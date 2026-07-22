@@ -31,6 +31,11 @@ app.use('/api/student', studentRoutes);
 app.use('/api/baseline', baselineRoutes);
 app.use('/api/user', userRoutes);
 
-app.listen(PORT, () => {
-  console.log(`[Cognilearn Server] API running on http://localhost:${PORT}`);
-});
+// Export Express app for Vercel Serverless deployment
+export default app;
+
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`[Cognilearn Server] API running on http://localhost:${PORT}`);
+  });
+}
