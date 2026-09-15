@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Route, User } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  School, ArrowLeft, Mail, Lock, User as UserIcon, AlertCircle, Eye, EyeOff, 
-  ChevronDown, CheckCircle2, ShieldCheck, Activity, Users, Award, BarChart3, Sparkles 
+import {
+  School, ArrowLeft, Mail, Lock, User as UserIcon, AlertCircle, Eye, EyeOff,
+  ChevronDown, CheckCircle2, ShieldCheck, Activity, Users, Award, BarChart3, Sparkles
 } from 'lucide-react';
 
 import { api } from '../services/api';
@@ -266,8 +266,8 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
               {mode === 'login' ? 'Educator & Admin Portal' : 'Register Educator Profile'}
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-slate-300 font-normal leading-relaxed">
-              {mode === 'login' 
-                ? 'Sign in with your institutional credentials to view real-time classroom focus analytics' 
+              {mode === 'login'
+                ? 'Sign in with your institutional credentials to view real-time classroom focus analytics'
                 : 'Create an administrator account to start tracking student focus analytics'}
             </p>
           </div>
@@ -313,11 +313,10 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="teacher@school.edu"
-                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                      errors.email 
-                        ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                    }`}
+                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.email
+                        ? 'border border-rose-500'
+                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      }`}
                   />
                 </div>
                 {errors.email && (
@@ -352,11 +351,10 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="••••••••"
-                    className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                      errors.password 
-                        ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                    }`}
+                    className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.password
+                        ? 'border border-rose-500'
+                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      }`}
                   />
                   <button
                     type="button"
@@ -451,11 +449,10 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       key={role}
                       type="button"
                       onClick={() => setTeacherType(role)}
-                      className={`p-2.5 rounded-lg text-center border transition-all cursor-pointer ${
-                        teacherType === role 
-                          ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-semibold' 
+                      className={`p-2.5 rounded-lg text-center border transition-all cursor-pointer ${teacherType === role
+                          ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-semibold'
                           : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                      }`}
+                        }`}
                     >
                       <p className="text-xs font-medium">{role}</p>
                     </button>
@@ -487,11 +484,10 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="Enter full name"
-                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                      errors.fullName 
-                        ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                    }`}
+                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.fullName
+                        ? 'border border-rose-500'
+                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      }`}
                   />
                 </div>
                 {errors.fullName && (
@@ -526,11 +522,10 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="teacher@school.edu"
-                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                      errors.email 
-                        ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                    }`}
+                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.email
+                        ? 'border border-rose-500'
+                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      }`}
                   />
                 </div>
                 {errors.email && (
@@ -564,11 +559,10 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="At least 8 characters"
-                    className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                      errors.password 
-                        ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                    }`}
+                    className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.password
+                        ? 'border border-rose-500'
+                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      }`}
                   />
                   <button
                     type="button"
@@ -610,11 +604,10 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="Re-enter password"
-                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                      errors.confirmPassword 
-                        ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                    }`}
+                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.confirmPassword
+                        ? 'border border-rose-500'
+                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      }`}
                   />
                 </div>
                 {errors.confirmPassword && (

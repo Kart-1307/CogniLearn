@@ -15,31 +15,53 @@ const getAuthHeaders = (): Record<string, string> => {
 
 async function safeParseJson(response: Response): Promise<any> {
   const contentType = response.headers.get('content-type') || '';
+  let parsedData: any = null;
+
   if (contentType.includes('application/json')) {
     try {
-      return await response.json();
+      parsedData = await response.json();
     } catch {
-      // JSON parsing error fallback
+      // JSON parse fallback
     }
   }
-  
-  const rawText = await response.text();
+
+  if (parsedData === null) {
+    try {
+      const rawText = await response.text();
+      if (rawText) {
+        try {
+          parsedData = JSON.parse(rawText);
+        } catch {
+          parsedData = { rawText };
+        }
+      }
+    } catch {
+      parsedData = null;
+    }
+  }
+
   if (!response.ok) {
+    const serverMsg =
+      parsedData?.message ||
+      parsedData?.error ||
+      (typeof parsedData?.rawText === 'string' && !parsedData.rawText.trim().startsWith('<') ? parsedData.rawText : null);
+
+    if (serverMsg) {
+      throw new Error(serverMsg);
+    }
+
     if (response.status === 500) {
       throw new Error('Server error (500). Please check your database connection or environment credentials.');
     } else if (response.status === 502 || response.status === 504) {
       throw new Error(`Server gateway error (${response.status}). Server function timed out or is restarting.`);
+    } else if (response.status === 401) {
+      throw new Error('Invalid email or password');
     } else {
-      const isHtml = rawText.trim().startsWith('<') || rawText.toLowerCase().includes('html');
-      throw new Error(isHtml ? `Server error (${response.status})` : rawText || `HTTP ${response.status}`);
+      throw new Error(`HTTP Error (${response.status})`);
     }
   }
 
-  try {
-    return JSON.parse(rawText);
-  } catch {
-    throw new Error('Invalid JSON response format received from server.');
-  }
+  return parsedData || {};
 }
 
 export const api = {

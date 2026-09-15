@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { StudentDiagnosticReport, ClassDiagnosticReport, DiagnosticMetric } from '../types';
 import { exportReportToCSV, exportReportToPDF } from '../utils/reportExport';
-import { 
-  X, Activity, Clock, CheckCircle2, AlertTriangle, Eye, ShieldCheck, 
+import {
+  X, Activity, Clock, CheckCircle2, AlertTriangle, Eye, ShieldCheck,
   User, Users, Sparkles, BarChart2, Award, Printer, ArrowRight, FileText, Trash2,
   TrendingUp, Zap, HeartPulse, Target, Compass, Brain, AlertCircle, HelpCircle, Download
 } from 'lucide-react';
@@ -36,11 +36,11 @@ function ensureDetailedMetrics(m: DiagnosticMetric) {
     blinkRatePerMin: avg > 78 ? 16 : avg > 60 ? 24 : 32,
     averageEyeOpenness: Number((0.22 + (avg / 100) * 0.08).toFixed(2)),
     fatigueRiskLevel: fatigueRiskLevel as any,
-    fatigueDescription: avg > 80 
+    fatigueDescription: avg > 80
       ? 'Optimal eye moisture and steady blink rhythm. Minimal cognitive fatigue detected.'
       : avg > 65
-      ? 'Mild eye strain detected with occasional rapid blinking. Short break recommended.'
-      : 'High cognitive fatigue and ocular exhaustion detected. Immediate 5-minute break advised.',
+        ? 'Mild eye strain detected with occasional rapid blinking. Short break recommended.'
+        : 'High cognitive fatigue and ocular exhaustion detected. Immediate 5-minute break advised.',
     postureScore: Math.min(98, Math.max(50, Math.round(avg * 0.95 + 8))),
   };
 
@@ -102,7 +102,7 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
   };
 
   const isClass = Boolean(classReport);
-  const rawStudentReport = isClass 
+  const rawStudentReport = isClass
     ? classReport?.studentReports.find(s => String(s.studentId) === String(selectedStudentId)) || classReport?.studentReports[0]
     : studentReport;
 
@@ -206,21 +206,19 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
             <div className="flex space-x-2">
               <button
                 onClick={() => setActiveTab('class')}
-                className={`px-3.5 py-1.5 font-bold cursor-pointer transition-colors border rounded-md ${
-                  activeTab === 'class'
+                className={`px-3.5 py-1.5 font-bold cursor-pointer transition-colors border rounded-md ${activeTab === 'class'
                     ? 'bg-[#1C1B1A] text-white border-[#1C1B1A]'
                     : 'bg-white text-[#1C1B1A]/70 border-[#1C1B1A]/20 hover:text-[#1C1B1A]'
-                }`}
+                  }`}
               >
                 Overall Class Analytics
               </button>
               <button
                 onClick={() => setActiveTab('student')}
-                className={`px-3.5 py-1.5 font-bold cursor-pointer transition-colors border rounded-md ${
-                  activeTab === 'student'
+                className={`px-3.5 py-1.5 font-bold cursor-pointer transition-colors border rounded-md ${activeTab === 'student'
                     ? 'bg-[#1C1B1A] text-white border-[#1C1B1A]'
                     : 'bg-white text-[#1C1B1A]/70 border-[#1C1B1A]/20 hover:text-[#1C1B1A]'
-                }`}
+                  }`}
               >
                 Individual Student Deep Dive
               </button>
@@ -232,7 +230,7 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
                 <select
                   value={selectedStudentId}
                   onChange={(e) => setSelectedStudentId(e.target.value)}
-                  className="bg-white border border-[#1C1B1A]/20 px-2.5 py-1 text-xs font-sans text-[#1C1B1A] font-medium outline-none focus:ring-2 focus:ring-[#B18F5A] rounded"
+                  className="bg-white border border-[#1C1B1A]/20 px-2.5 py-1 text-xs font-sans text-[#1C1B1A] font-medium outline-none focus:border-[#B18F5A] rounded"
                 >
                   {classReport.studentReports.map(s => (
                     <option key={s.studentId} value={s.studentId}>
@@ -270,9 +268,8 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
                   <span className="bg-slate-800 border border-slate-700 px-2.5 py-1 font-extrabold text-slate-300 rounded">
                     Actual: {formatSeconds(classReport.actualDurationSeconds)}
                   </span>
-                  <span className={`px-2.5 py-1 font-bold text-white rounded ${
-                    classReport.status === 'Completed' ? 'bg-emerald-600' : 'bg-amber-600'
-                  }`}>
+                  <span className={`px-2.5 py-1 font-bold text-white rounded ${classReport.status === 'Completed' ? 'bg-emerald-600' : 'bg-amber-600'
+                    }`}>
                     {classReport.status}
                   </span>
                 </div>
@@ -361,30 +358,27 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
                       placeholder="Search student..."
                       value={rosterSearch}
                       onChange={(e) => setRosterSearch(e.target.value)}
-                      className="bg-[#1C1B1A]/5 border border-[#1C1B1A]/20 px-2.5 py-1 text-xs font-sans text-[#1C1B1A] outline-none focus:ring-2 focus:ring-[#B18F5A] rounded w-36"
+                      className="bg-[#1C1B1A]/5 border border-[#1C1B1A]/20 px-2.5 py-1 text-xs font-sans text-[#1C1B1A] outline-none focus:border-[#B18F5A] rounded w-36"
                     />
                     <div className="flex space-x-1 font-mono text-[9px] uppercase font-bold">
                       <button
                         onClick={() => setRosterFilter('all')}
-                        className={`px-2 py-1 rounded cursor-pointer ${
-                          rosterFilter === 'all' ? 'bg-[#1C1B1A] text-white' : 'bg-[#1C1B1A]/10 text-[#1C1B1A]'
-                        }`}
+                        className={`px-2 py-1 rounded cursor-pointer ${rosterFilter === 'all' ? 'bg-[#1C1B1A] text-white' : 'bg-[#1C1B1A]/10 text-[#1C1B1A]'
+                          }`}
                       >
                         All
                       </button>
                       <button
                         onClick={() => setRosterFilter('high')}
-                        className={`px-2 py-1 rounded cursor-pointer ${
-                          rosterFilter === 'high' ? 'bg-emerald-700 text-white' : 'bg-[#1C1B1A]/10 text-[#1C1B1A]'
-                        }`}
+                        className={`px-2 py-1 rounded cursor-pointer ${rosterFilter === 'high' ? 'bg-emerald-700 text-white' : 'bg-[#1C1B1A]/10 text-[#1C1B1A]'
+                          }`}
                       >
                         ≥75%
                       </button>
                       <button
                         onClick={() => setRosterFilter('low')}
-                        className={`px-2 py-1 rounded cursor-pointer ${
-                          rosterFilter === 'low' ? 'bg-rose-700 text-white' : 'bg-[#1C1B1A]/10 text-[#1C1B1A]'
-                        }`}
+                        className={`px-2 py-1 rounded cursor-pointer ${rosterFilter === 'low' ? 'bg-rose-700 text-white' : 'bg-[#1C1B1A]/10 text-[#1C1B1A]'
+                          }`}
                       >
                         &lt;65%
                       </button>
@@ -401,35 +395,35 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
                       return matchesName;
                     })
                     .map((s) => (
-                    <div 
-                      key={s.studentId}
-                      onClick={() => {
-                        setSelectedStudentId(s.studentId);
-                        setActiveTab('student');
-                      }}
-                      className="py-3 px-2 flex items-center justify-between hover:bg-[#1C1B1A]/5 cursor-pointer transition-colors rounded"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-[#1C1B1A] text-white flex items-center justify-center font-bold font-mono text-xs rounded-md">
-                          {s.studentName.charAt(0)}
+                      <div
+                        key={s.studentId}
+                        onClick={() => {
+                          setSelectedStudentId(s.studentId);
+                          setActiveTab('student');
+                        }}
+                        className="py-3 px-2 flex items-center justify-between hover:bg-[#1C1B1A]/5 cursor-pointer transition-colors rounded"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-[#1C1B1A] text-white flex items-center justify-center font-bold font-mono text-xs rounded-md">
+                            {s.studentName.charAt(0)}
+                          </div>
+                          <div>
+                            <span className="font-bold text-[#1C1B1A] block">{s.studentName}</span>
+                            <span className="text-[10px] text-[#1C1B1A]/60 font-mono">
+                              Optimal Focus: {s.metrics.optimalFocusPercent}% | Shifts: {s.metrics.gazeShiftsCount}
+                            </span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="font-bold text-[#1C1B1A] block">{s.studentName}</span>
-                          <span className="text-[10px] text-[#1C1B1A]/60 font-mono">
-                            Optimal Focus: {s.metrics.optimalFocusPercent}% | Shifts: {s.metrics.gazeShiftsCount}
-                          </span>
-                        </div>
-                      </div>
 
-                      <div className="flex items-center space-x-4 font-mono text-[11px] text-[#1C1B1A] font-bold">
-                        <span>Avg Focus: <strong className="text-[#8A5A1B] text-sm">{s.metrics.avgFocusScore}%</strong></span>
-                        <span className="text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 bg-[#1C1B1A]/10 rounded">
-                          {s.metrics.meshQuality}
-                        </span>
-                        <ArrowRight className="h-4 w-4 text-[#8A5A1B]" />
+                        <div className="flex items-center space-x-4 font-mono text-[11px] text-[#1C1B1A] font-bold">
+                          <span>Avg Focus: <strong className="text-[#8A5A1B] text-sm">{s.metrics.avgFocusScore}%</strong></span>
+                          <span className="text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 bg-[#1C1B1A]/10 rounded">
+                            {s.metrics.meshQuality}
+                          </span>
+                          <ArrowRight className="h-4 w-4 text-[#8A5A1B]" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>
@@ -459,9 +453,8 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
                   <span className="bg-slate-800 border border-slate-700 px-2.5 py-1 font-extrabold text-slate-300 rounded">
                     Actual: {formatSeconds(currentStudentReport.actualDurationSeconds)}
                   </span>
-                  <span className={`px-2.5 py-1 font-bold text-white rounded ${
-                    currentStudentReport.status === 'Completed' ? 'bg-emerald-600' : 'bg-amber-600'
-                  }`}>
+                  <span className={`px-2.5 py-1 font-bold text-white rounded ${currentStudentReport.status === 'Completed' ? 'bg-emerald-600' : 'bg-amber-600'
+                    }`}>
                     {currentStudentReport.status}
                   </span>
                 </div>
@@ -530,7 +523,7 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 bg-[#1C1B1A] text-white text-[9px] font-mono py-1 px-1.5 rounded whitespace-nowrap pointer-events-none z-10 shadow-lg">
                             {sample.timeLabel}: {sample.focusScore}% ({sample.gazeState})
                           </div>
-                          <motion.div 
+                          <motion.div
                             className={`w-full ${barColor} rounded-t hover:brightness-110`}
                             initial={{ height: 0 }}
                             animate={{ height: `${hPercent}%` }}
@@ -561,13 +554,12 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
                   <div className="space-y-3 pt-1 text-xs">
                     <div className="flex items-center justify-between border-b border-[#1C1B1A]/10 pb-2">
                       <span className="text-[#1C1B1A]/70 font-medium">Fatigue Risk Level:</span>
-                      <span className={`font-mono font-bold px-2 py-0.5 rounded text-[10px] uppercase ${
-                        currentStudentReport.metrics.fatigueAnalysis?.fatigueRiskLevel === 'Low' 
+                      <span className={`font-mono font-bold px-2 py-0.5 rounded text-[10px] uppercase ${currentStudentReport.metrics.fatigueAnalysis?.fatigueRiskLevel === 'Low'
                           ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                           : currentStudentReport.metrics.fatigueAnalysis?.fatigueRiskLevel === 'Moderate'
-                          ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                          : 'bg-rose-100 text-rose-800 border border-rose-300'
-                      }`}>
+                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                            : 'bg-rose-100 text-rose-800 border border-rose-300'
+                        }`}>
                         {currentStudentReport.metrics.fatigueAnalysis?.fatigueRiskLevel} Risk
                       </span>
                     </div>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Route, User, StudentDiagnosticReport } from '../types';
 import { motion } from 'motion/react';
-import { 
-  Clock, Activity, BarChart2, Award, LogOut, 
+import {
+  Clock, Activity, BarChart2, Award, LogOut,
   Flame, BookOpen, Star, Sparkles, ChevronRight, Play, Pause, RotateCcw, Check, Trash2, Camera,
   FileText, Square, History, Eye, CheckCircle2, ListFilter
 } from 'lucide-react';
@@ -518,8 +518,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     setTasks(tasks.filter(t => t.id !== id));
   };
 
-  const completionRate = tasks.length > 0 
-    ? Math.round((tasks.filter(t => t.done).length / tasks.length) * 100) 
+  const completionRate = tasks.length > 0
+    ? Math.round((tasks.filter(t => t.done).length / tasks.length) * 100)
     : 0;
 
   // 4. Daily XP claim
@@ -633,11 +633,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
       {/* Daily Focus Tip Intelligence Card */}
       <div className="mb-8">
-        <FocusTipCard 
-          focusScore={focusScore} 
-          completedSessions={completedSessions} 
+        <FocusTipCard
+          focusScore={focusScore}
+          completedSessions={completedSessions}
           streakDays={5}
-          isDark={isDark} 
+          isDark={isDark}
         />
       </div>
 
@@ -654,7 +654,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 [TIMER]
               </span>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <h3 className="text-xl font-bold tracking-tight text-white">Study Timer</h3>
               <InfoTooltip title="Pomodoro Study Slots" content="Run structured 5m to 60m focus sessions with customizable breaks to optimize memory retention." isDark={isDark} />
@@ -673,11 +673,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       key={mins}
                       onClick={() => setTimerDuration(mins)}
                       disabled={isTimerRunning}
-                      className={`text-[10px] font-mono font-medium px-2.5 py-1 cursor-pointer transition-all border rounded-lg ${
-                        timerDuration === mins
+                      className={`text-[10px] font-mono font-medium px-2.5 py-1 cursor-pointer transition-all border rounded-lg ${timerDuration === mins
                           ? 'bg-indigo-600 border-indigo-500 text-white font-semibold'
                           : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-                      }`}
+                        }`}
                     >
                       {mins === 5 ? '⚡ 5m' : mins === 60 ? '📖 60m' : `${mins}m`}
                     </button>
@@ -693,11 +692,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 <div className="flex items-center gap-3 w-full">
                   <button
                     onClick={() => setIsTimerRunning(!isTimerRunning)}
-                    className={`flex-1 inline-flex items-center justify-center gap-2 font-medium py-2.5 px-4 cursor-pointer text-xs uppercase tracking-wider font-mono transition-colors rounded-xl border ${
-                      isTimerRunning 
-                        ? 'bg-amber-600 hover:bg-amber-700 border-amber-600 text-white' 
+                    className={`flex-1 inline-flex items-center justify-center gap-2 font-medium py-2.5 px-4 cursor-pointer text-xs uppercase tracking-wider font-mono transition-colors rounded-xl border ${isTimerRunning
+                        ? 'bg-amber-600 hover:bg-amber-700 border-amber-600 text-white'
                         : 'bg-indigo-600 hover:bg-indigo-500 border-indigo-500 text-white'
-                    }`}
+                      }`}
                   >
                     {isTimerRunning ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 fill-white text-white" />}
                     <span>{isTimerRunning ? 'Pause Session' : 'Start Session'}</span>
@@ -714,7 +712,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
             </div>
           </div>
-          
+
           <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-400">
             <span>Completed Study Slots: {completedSessions} today</span>
             <ChevronRight className="h-4 w-4 text-indigo-400" />
@@ -732,7 +730,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 [DIAGNOSTIC TIMER]
               </span>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <h3 className="text-xl font-heading font-bold text-white">Attention Diagnostic</h3>
               <InfoTooltip title="Live Gaze Vector Analysis" content="Monitors face landmark orientation, eye open/close rates, and off-screen gaze shifts in real-time." isDark={isDark} />
@@ -753,7 +751,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     value={diagnosticSessionTitle}
                     onChange={(e) => setDiagnosticSessionTitle(e.target.value)}
                     placeholder="Enter session topic..."
-                    className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
+                    className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:border-indigo-500 rounded-lg font-medium transition-colors"
                   />
                 </div>
 
@@ -774,11 +772,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                           setDiagnosticDuration(mins);
                           setIsCustomDuration(false);
                         }}
-                        className={`px-2.5 py-1 text-[10px] font-mono font-bold border rounded-lg transition-colors cursor-pointer ${
-                          !isCustomDuration && diagnosticDuration === mins
+                        className={`px-2.5 py-1 text-[10px] font-mono font-bold border rounded-lg transition-colors cursor-pointer ${!isCustomDuration && diagnosticDuration === mins
                             ? 'bg-indigo-600 text-white border-indigo-500'
                             : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white hover:border-slate-600'
-                        }`}
+                          }`}
                       >
                         {mins}m
                       </button>
@@ -786,11 +783,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsCustomDuration(true)}
-                      className={`px-2.5 py-1 text-[10px] font-mono font-bold border rounded-lg transition-colors cursor-pointer ${
-                        isCustomDuration
+                      className={`px-2.5 py-1 text-[10px] font-mono font-bold border rounded-lg transition-colors cursor-pointer ${isCustomDuration
                           ? 'bg-indigo-600 text-white border-indigo-500'
                           : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white hover:border-slate-600'
-                      }`}
+                        }`}
                     >
                       Custom
                     </button>
@@ -805,7 +801,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         placeholder="Minutes (e.g. 25)..."
                         value={customDurationInput}
                         onChange={(e) => setCustomDurationInput(e.target.value)}
-                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
+                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-1.5 outline-none focus:border-indigo-500 rounded-lg font-medium transition-colors"
                       />
                     </div>
                   )}
@@ -892,7 +888,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
             {/* Generate / View Latest Report Option */}
             {latestReport && !isTracking && (
-              <div className="mt-3 pt-3 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-white">
+              <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-white">
                 <div className="text-[10px] font-mono">
                   <span className="font-bold block text-indigo-300">Latest Diagnostic Ready</span>
                   <span className="font-sans font-medium text-slate-300">{latestReport.status} • {latestReport.metrics.avgFocusScore}% Focus</span>
@@ -907,7 +903,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
             )}
           </div>
-          
+
           <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
             <span>Mesh Calibration: 68 Points</span>
             <ChevronRight className="h-4 w-4 text-indigo-400" />
@@ -925,7 +921,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 [OBJECTIVES]
               </span>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <h3 className="text-xl font-heading font-bold text-white">Study Objectives</h3>
               <InfoTooltip title="Task Completion Index" content="Breaking study goals into smaller 15m tasks improves focus completion rates by +35%." isDark={isDark} />
@@ -944,8 +940,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
 
               <div className="w-full bg-slate-800 h-2.5 overflow-hidden mb-4 rounded-full border border-slate-700">
-                <motion.div 
-                  className="bg-sky-500 h-full rounded-full" 
+                <motion.div
+                  className="bg-sky-500 h-full rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${completionRate}%` }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
@@ -958,7 +954,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   placeholder="Add custom task objective..."
                   value={newTaskText}
                   onChange={(e) => setNewTaskText(e.target.value)}
-                  className="flex-1 text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:ring-2 focus:ring-sky-500 rounded-lg font-medium transition-colors"
+                  className="flex-1 text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:border-sky-500 rounded-lg font-medium transition-colors"
                 />
                 <button
                   type="submit"
@@ -975,14 +971,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       onClick={() => toggleTask(t.id)}
                       className="flex-1 flex items-center space-x-2.5 text-left cursor-pointer"
                     >
-                      <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${
-                        t.done ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-600 bg-slate-800'
-                      }`}>
+                      <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${t.done ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-600 bg-slate-800'
+                        }`}>
                         {t.done && <Check className="h-3 w-3 stroke-[3]" />}
                       </div>
-                      <span className={`font-semibold transition-all ${
-                        t.done ? 'line-through opacity-50' : ''
-                      }`}>
+                      <span className={`font-semibold transition-all ${t.done ? 'line-through opacity-50' : ''
+                        }`}>
                         {t.text}
                       </span>
                     </button>
@@ -997,7 +991,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
             </div>
           </div>
-          
+
           <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
             <span>Tasks count: {tasks.length} Configured</span>
             <ChevronRight className="h-4 w-4 text-sky-400" />
@@ -1015,7 +1009,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 [ACHIEVEMENTS]
               </span>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <h3 className="text-xl font-heading font-bold text-white">Badges & Certificates</h3>
               <InfoTooltip title="Gamified Mastery" content="Earn XP and unlock badges by completing daily focus blocks and keeping gaze focus above 80%." isDark={isDark} />
@@ -1047,18 +1041,17 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               <button
                 onClick={claimBonusXP}
                 disabled={hasClaimedBonus}
-                className={`w-full py-2.5 px-4 text-xs font-bold uppercase font-mono tracking-widest transition-all cursor-pointer border rounded-lg flex items-center justify-center gap-1.5 ${
-                  hasClaimedBonus 
+                className={`w-full py-2.5 px-4 text-xs font-bold uppercase font-mono tracking-widest transition-all cursor-pointer border rounded-lg flex items-center justify-center gap-1.5 ${hasClaimedBonus
                     ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed'
                     : 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-600/20'
-                }`}
+                  }`}
               >
                 <Award className="h-3.5 w-3.5" />
                 <span>{hasClaimedBonus ? 'Daily Bonus Claimed' : 'Claim Daily Bonus (+100 XP)'}</span>
               </button>
             </div>
           </div>
-          
+
           <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
             <span>Multiplier level: 1.2x Boost</span>
             <ChevronRight className="h-4 w-4 text-emerald-400" />
@@ -1100,18 +1093,16 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         </div>
 
         {diagnosticHistory.length === 0 ? (
-          <div className={`text-center py-10 border-2 rounded-xl text-xs font-mono font-medium ${
-            isDark ? 'bg-[#0F172A] border-slate-700 text-slate-400' : 'bg-[#F8F7F4] border-[#1C1B1A]/20 text-[#1C1B1A]/60'
-          }`}>
+          <div className={`text-center py-10 border-2 rounded-xl text-xs font-mono font-medium ${isDark ? 'bg-[#0F172A] border-slate-700 text-slate-400' : 'bg-[#F8F7F4] border-[#1C1B1A]/20 text-[#1C1B1A]/60'
+            }`}>
             No diagnostic sessions recorded yet. Start a session in the Attention Diagnostic card above.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className={`border-b-2 text-[9px] font-mono uppercase tracking-wider font-extrabold ${
-                  isDark ? 'border-slate-700 bg-[#0F172A] text-slate-300' : 'border-[#1C1B1A]/20 bg-[#F8F7F4] text-[#1C1B1A]'
-                }`}>
+                <tr className={`border-b-2 text-[9px] font-mono uppercase tracking-wider font-extrabold ${isDark ? 'border-slate-700 bg-[#0F172A] text-slate-300' : 'border-[#1C1B1A]/20 bg-[#F8F7F4] text-[#1C1B1A]'
+                  }`}>
                   <th className="py-3 px-4">Date</th>
                   <th className="py-3 px-4">Session Topic</th>
                   <th className="py-3 px-4">Duration (Config / Actual)</th>
@@ -1122,28 +1113,24 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </thead>
               <tbody className={`divide-y text-xs font-sans ${isDark ? 'divide-slate-700' : 'divide-[#1C1B1A]/10'}`}>
                 {diagnosticHistory.map((item) => (
-                  <tr key={item.id} className={`transition-colors ${
-                    isDark ? 'hover:bg-slate-800/60' : 'hover:bg-[#F8F7F4]/80'
-                  }`}>
-                    <td className={`py-3.5 px-4 font-mono text-[11px] font-bold ${
-                      isDark ? 'text-slate-300' : 'text-[#1C1B1A]/90'
+                  <tr key={item.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/60' : 'hover:bg-[#F8F7F4]/80'
                     }`}>
+                    <td className={`py-3.5 px-4 font-mono text-[11px] font-bold ${isDark ? 'text-slate-300' : 'text-[#1C1B1A]/90'
+                      }`}>
                       {item.date}
                     </td>
                     <td className={`py-3.5 px-4 font-bold ${isDark ? 'text-white' : 'text-[#1C1B1A]'}`}>
                       {item.sessionTitle}
                     </td>
-                    <td className={`py-3.5 px-4 font-mono text-[11px] font-bold ${
-                      isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'
-                    }`}>
+                    <td className={`py-3.5 px-4 font-mono text-[11px] font-bold ${isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'
+                      }`}>
                       {item.configuredDurationMinutes}m / {Math.floor(item.actualDurationSeconds / 60)}m {item.actualDurationSeconds % 60}s
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded ${
-                        item.status === 'Completed'
+                      <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded ${item.status === 'Completed'
                           ? 'bg-emerald-100 text-emerald-900 border border-emerald-400'
                           : 'bg-amber-100 text-amber-900 border border-amber-400'
-                      }`}>
+                        }`}>
                         {item.status}
                       </span>
                     </td>
@@ -1173,9 +1160,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             setViewingHistoryReport(item);
                             setShowReportModal(true);
                           }}
-                          className={`px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center space-x-1 rounded-lg border-2 ${
-                            isDark ? 'bg-[#FF5A5F] hover:bg-rose-600 border-[#FF5A5F] text-white' : 'bg-[#1C1B1A] hover:bg-[#B18F5A] border-[#1C1B1A] text-white'
-                          }`}
+                          className={`px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center space-x-1 rounded-lg border-2 ${isDark ? 'bg-[#FF5A5F] hover:bg-rose-600 border-[#FF5A5F] text-white' : 'bg-[#1C1B1A] hover:bg-[#B18F5A] border-[#1C1B1A] text-white'
+                            }`}
                         >
                           <span>View</span>
                         </button>
@@ -1271,9 +1257,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       )}
 
       {/* Subject-Based Analytics & Chronotype Breakdown */}
-      <SubjectAndHourlyAnalytics 
-        reports={diagnosticHistory} 
-        isDark={isDark} 
+      <SubjectAndHourlyAnalytics
+        reports={diagnosticHistory}
+        isDark={isDark}
       />
 
       {/* Adaptive In-Session Focus Break Modal */}

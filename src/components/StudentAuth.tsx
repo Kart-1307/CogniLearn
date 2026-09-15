@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Route, User } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  User as UserIcon, ArrowLeft, Mail, Lock, AlertCircle, Eye, EyeOff, 
+import {
+  User as UserIcon, ArrowLeft, Mail, Lock, AlertCircle, Eye, EyeOff,
   CheckCircle2, Camera, FileText, Sparkles, ChevronRight, Award, Target, BookOpen, ShieldCheck, SwitchCamera
 } from 'lucide-react';
 import { getMobileCompatibleCameraStream, attachStreamToVideo } from '../utils/cameraUtils';
@@ -421,8 +421,8 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
             {mode === 'login' ? 'Student Login' : 'Student Onboarding'}
           </h2>
           <p className="mt-2 text-xs sm:text-sm text-slate-300 font-normal leading-relaxed max-w-md mx-auto">
-            {mode === 'login' 
-              ? 'Resume your personalized AI focus sessions & analytics logs' 
+            {mode === 'login'
+              ? 'Resume your personalized AI focus sessions & analytics logs'
               : 'Join CogniLearn to unlock automated cognitive focus tracking'}
           </p>
         </div>
@@ -441,7 +441,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
               </span>
             </div>
             <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden flex">
-              <div 
+              <div
                 className="h-full bg-indigo-600 rounded-full transition-all duration-500"
                 style={{ width: `${(signupStep / 3) * 100}%` }}
               />
@@ -482,11 +482,10 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                     }
                   }}
                   placeholder="student@school.edu"
-                  className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                    errors.email 
-                      ? 'border border-rose-500' 
-                      : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                  }`}
+                  className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.email
+                      ? 'border border-rose-500'
+                      : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                    }`}
                 />
               </div>
               {errors.email && (
@@ -521,11 +520,10 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                     }
                   }}
                   placeholder="••••••••"
-                  className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                    errors.password 
-                      ? 'border border-rose-500' 
-                      : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                  }`}
+                  className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.password
+                      ? 'border border-rose-500'
+                      : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                    }`}
                 />
                 <button
                   type="button"
@@ -644,9 +642,8 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           }
                         }}
                         placeholder="Enter your full name"
-                        className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                          errors.fullName ? 'border border-rose-500' : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                        }`}
+                        className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.fullName ? 'border border-rose-500' : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                          }`}
                       />
                     </div>
                     {errors.fullName && (
@@ -681,9 +678,8 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           }
                         }}
                         placeholder="student@school.edu"
-                        className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                          errors.email ? 'border border-rose-500' : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                        }`}
+                        className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.email ? 'border border-rose-500' : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                          }`}
                       />
                     </div>
                     {errors.email && (
@@ -717,9 +713,8 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           }
                         }}
                         placeholder="At least 8 characters"
-                        className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                          errors.password ? 'border border-rose-500' : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
-                        }`}
+                        className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.password ? 'border border-rose-500' : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                          }`}
                       />
                       <button
                         type="button"
@@ -771,9 +766,8 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           }
                         }}
                         placeholder="Re-enter password"
-                        className={`block w-full pl-10 pr-4 py-2.5 bg-[#27272a] text-white text-sm focus:outline-none transition-all placeholder:opacity-40 ${
-                          errors.confirmPassword ? 'border-rose-500' : 'border-slate-700 focus:ring-2 focus:ring-indigo-500'
-                        }`}
+                        className={`block w-full pl-10 pr-4 py-2.5 bg-[#27272a] text-white text-sm focus:outline-none transition-all placeholder:opacity-40 ${errors.confirmPassword ? 'border-rose-500' : 'border-slate-700 focus:border-indigo-500'
+                          }`}
                       />
                     </div>
                     {errors.confirmPassword && (
@@ -825,16 +819,15 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                       <div className="relative w-full h-full">
                         <video ref={videoRef} className="w-full h-full object-cover transform -scale-x-100" />
                         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover pointer-events-none transform -scale-x-100" />
-                        
+
                         {/* Top HUD Badges Overlay */}
                         <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none z-10">
-                          <div className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded shadow-sm backdrop-blur-md ${
-                            calibrationStatus.isCalibrated 
-                              ? 'bg-emerald-500/90 text-white border border-emerald-400/50' 
-                              : calibrationStatus.faceDetected 
-                              ? 'bg-amber-500/90 text-slate-950 font-black' 
-                              : 'bg-rose-500/90 text-white'
-                          }`}>
+                          <div className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded shadow-sm backdrop-blur-md ${calibrationStatus.isCalibrated
+                              ? 'bg-emerald-500/90 text-white border border-emerald-400/50'
+                              : calibrationStatus.faceDetected
+                                ? 'bg-amber-500/90 text-slate-950 font-black'
+                                : 'bg-rose-500/90 text-white'
+                            }`}>
                             {calibrationStatus.isCalibrated ? '✔ CALIBRATED' : calibrationStatus.faceDetected ? '🎯 ALIGNING' : '⚠️ NO FACE'}
                           </div>
                           <div className="text-[9px] font-mono bg-black/80 text-emerald-400 font-bold px-2 py-0.5 rounded border border-white/10 backdrop-blur-md">
@@ -861,13 +854,12 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
 
                   {/* Live Positioning Prompt Banner */}
                   {cameraActive && (
-                    <div className={`p-3 rounded-lg border text-xs font-mono transition-all duration-300 flex items-center justify-between gap-2 text-left ${
-                      calibrationStatus.isCalibrated
+                    <div className={`p-3 rounded-lg border text-xs font-mono transition-all duration-300 flex items-center justify-between gap-2 text-left ${calibrationStatus.isCalibrated
                         ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300 shadow-sm shadow-emerald-500/20'
                         : calibrationStatus.faceDetected
-                        ? 'bg-amber-950/50 border-amber-500/40 text-amber-300'
-                        : 'bg-rose-950/50 border-rose-500/40 text-rose-300'
-                    }`}>
+                          ? 'bg-amber-950/50 border-amber-500/40 text-amber-300'
+                          : 'bg-rose-950/50 border-rose-500/40 text-rose-300'
+                      }`}>
                       <div className="flex items-center gap-2">
                         {calibrationStatus.isCalibrated ? (
                           <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 animate-bounce" />
@@ -933,9 +925,8 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           key={idx}
                           type="button"
                           onClick={() => setAvatar(url)}
-                          className={`w-10 h-10 rounded-full border-2 overflow-hidden transition-all cursor-pointer ${
-                            avatar === url ? 'border-[#FF5A5F] scale-110 shadow-md shadow-[#FF5A5F]/30' : 'border-white/20 hover:border-white/50'
-                          }`}
+                          className={`w-10 h-10 rounded-full border-2 overflow-hidden transition-all cursor-pointer ${avatar === url ? 'border-[#FF5A5F] scale-110 shadow-md shadow-[#FF5A5F]/30' : 'border-white/20 hover:border-white/50'
+                            }`}
                         >
                           <img src={url} alt={`Preset ${idx}`} className="w-full h-full object-cover" />
                         </button>
@@ -986,11 +977,10 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           key={lvl}
                           type="button"
                           onClick={() => setGradeLevel(lvl)}
-                          className={`py-2 px-3 text-xs font-mono font-semibold border transition-all cursor-pointer ${
-                            gradeLevel === lvl 
-                              ? 'bg-[#FF5A5F]/20 border-[#FF5A5F] text-white' 
+                          className={`py-2 px-3 text-xs font-mono font-semibold border transition-all cursor-pointer ${gradeLevel === lvl
+                              ? 'bg-[#FF5A5F]/20 border-[#FF5A5F] text-white'
                               : 'bg-[#27272a] border-white/10 text-white/70 hover:border-white/30'
-                          }`}
+                            }`}
                         >
                           {lvl}
                         </button>
@@ -1013,11 +1003,10 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           key={slot.duration}
                           type="button"
                           onClick={() => setTargetFocusSlot(slot.duration)}
-                          className={`py-2.5 px-3 text-center border transition-all cursor-pointer ${
-                            targetFocusSlot === slot.duration
+                          className={`py-2.5 px-3 text-center border transition-all cursor-pointer ${targetFocusSlot === slot.duration
                               ? 'bg-[#FF5A5F]/20 border-[#FF5A5F] text-white'
                               : 'bg-[#27272a] border-white/10 text-white/70 hover:border-white/30'
-                          }`}
+                            }`}
                         >
                           <p className="text-xs font-mono font-bold">{slot.title}</p>
                         </button>
@@ -1038,11 +1027,10 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                             key={sub}
                             type="button"
                             onClick={() => toggleSubject(sub)}
-                            className={`py-1.5 px-3 text-xs font-medium border transition-all cursor-pointer ${
-                              isSelected
+                            className={`py-1.5 px-3 text-xs font-medium border transition-all cursor-pointer ${isSelected
                                 ? 'bg-[#FF5A5F] border-[#FF5A5F] text-white'
                                 : 'bg-[#27272a] border-white/10 text-white/70 hover:border-white/30'
-                            }`}
+                              }`}
                           >
                             {isSelected ? `✓ ${sub}` : `+ ${sub}`}
                           </button>

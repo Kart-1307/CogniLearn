@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
+import {
   X, ShieldAlert, AlertTriangle, RefreshCw, CheckCircle2, ArrowRight, ArrowLeft, Database, Trash2
 } from 'lucide-react';
 import { api } from '../services/api';
@@ -56,7 +56,7 @@ export const ResetDatabaseModal: React.FC<ResetDatabaseModalProps> = ({
       await api.user.resetDatabase();
       setIsResetting(false);
       setSuccessMessage('Database successfully reset to factory default state!');
-      
+
       setTimeout(() => {
         handleClose();
         onResetComplete();
@@ -68,7 +68,7 @@ export const ResetDatabaseModal: React.FC<ResetDatabaseModalProps> = ({
       localStorage.removeItem('cognilearn_recent_activities');
       setIsResetting(false);
       setSuccessMessage('Local database cache cleared successfully.');
-      
+
       setTimeout(() => {
         handleClose();
         onResetComplete();
@@ -197,7 +197,7 @@ export const ResetDatabaseModal: React.FC<ResetDatabaseModalProps> = ({
                     onChange={(e) => setConfirmationInput(e.target.value)}
                     placeholder='Type "RESET" here'
                     disabled={isResetting}
-                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-rose-900/60 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 font-mono tracking-widest uppercase placeholder:text-slate-600"
+                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-rose-900/60 rounded-xl text-white text-sm focus:outline-none focus:border-rose-500 font-mono tracking-widest uppercase placeholder:text-slate-600"
                   />
                   {errorMessage && (
                     <p className="text-[11px] text-rose-400 font-mono font-medium mt-1.5 flex items-center space-x-1">
@@ -222,7 +222,7 @@ export const ResetDatabaseModal: React.FC<ResetDatabaseModalProps> = ({
                     type="button"
                     onClick={handleExecuteReset}
                     disabled={confirmationInput.trim() !== 'RESET' || isResetting}
-                    className="inline-flex items-center space-x-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-mono uppercase tracking-wider font-medium transition-all enabled:cursor-pointer rounded-xl border-none disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="inline-flex items-center space-x-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-mono uppercase tracking-wider font-medium transition-all cursor-pointer rounded-xl border-none disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {isResetting ? (
                       <>

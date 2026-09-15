@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { User } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  X, User as UserIcon, ShieldAlert, Trash2, Save, Sparkles, CheckCircle2, 
+import {
+  X, User as UserIcon, ShieldAlert, Trash2, Save, Sparkles, CheckCircle2,
   BookOpen, School, AlertTriangle, Lock, Camera, Database
 } from 'lucide-react';
 import { api } from '../services/api';
@@ -131,21 +131,19 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
         <div className="flex border-b border-slate-800 bg-slate-950/40 px-6">
           <button
             onClick={() => setActiveTab('profile')}
-            className={`py-3.5 px-4 text-xs font-mono font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-              activeTab === 'profile'
+            className={`py-3.5 px-4 text-xs font-mono font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${activeTab === 'profile'
                 ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-slate-400 hover:text-white'
-            }`}
+              }`}
           >
             Profile & Preferences
           </button>
           <button
             onClick={() => setActiveTab('danger')}
-            className={`py-3.5 px-4 text-xs font-mono font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-              activeTab === 'danger'
+            className={`py-3.5 px-4 text-xs font-mono font-semibold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${activeTab === 'danger'
                 ? 'border-rose-500 text-rose-400'
                 : 'border-transparent text-slate-400 hover:text-rose-400'
-            }`}
+              }`}
           >
             Danger Zone (Delete Account)
           </button>
@@ -171,7 +169,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -186,7 +184,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                       <select
                         value={gradeLevel}
                         onChange={(e) => setGradeLevel(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
                       >
                         <option value="Class 9">Class 9</option>
                         <option value="Class 10">Class 10</option>
@@ -203,7 +201,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                       <select
                         value={learningStyle}
                         onChange={(e) => setLearningStyle(e.target.value as any)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
                       >
                         <option value="Visual">Visual (Graphics & Maps)</option>
                         <option value="Auditory">Auditory (Lectures & Audio)</option>
@@ -223,11 +221,10 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                           key={track}
                           type="button"
                           onClick={() => setCurriculumTrack(track)}
-                          className={`py-1.5 px-3 rounded-lg border text-xs font-mono font-medium transition-all cursor-pointer ${
-                            curriculumTrack === track
+                          className={`py-1.5 px-3 rounded-lg border text-xs font-mono font-medium transition-all cursor-pointer ${curriculumTrack === track
                               ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
                               : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-                          }`}
+                            }`}
                         >
                           {track}
                         </button>
@@ -248,7 +245,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                       type="text"
                       value={institutionName}
                       onChange={(e) => setInstitutionName(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
@@ -260,7 +257,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                       type="text"
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                 </div>
@@ -300,7 +297,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                   value={deleteConfirmationText}
                   onChange={(e) => setDeleteConfirmationText(e.target.value)}
                   placeholder="DELETE MY ACCOUNT"
-                  className="w-full bg-slate-900 border border-rose-900/60 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500 font-mono tracking-wide"
+                  className="w-full bg-slate-900 border border-rose-900/60 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-500 font-mono tracking-wide"
                 />
               </div>
 
