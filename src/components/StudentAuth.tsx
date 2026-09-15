@@ -485,7 +485,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                   className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
                     errors.email 
                       ? 'border border-rose-500' 
-                      : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                   }`}
                 />
               </div>
@@ -524,7 +524,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                   className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
                     errors.password 
                       ? 'border border-rose-500' 
-                      : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                   }`}
                 />
                 <button
@@ -645,7 +645,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                         }}
                         placeholder="Enter your full name"
                         className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                          errors.fullName ? 'border border-rose-500' : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                          errors.fullName ? 'border border-rose-500' : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                         }`}
                       />
                     </div>
@@ -682,7 +682,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                         }}
                         placeholder="student@school.edu"
                         className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                          errors.email ? 'border border-rose-500' : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                          errors.email ? 'border border-rose-500' : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                         }`}
                       />
                     </div>
@@ -718,7 +718,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                         }}
                         placeholder="At least 8 characters"
                         className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
-                          errors.password ? 'border border-rose-500' : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                          errors.password ? 'border border-rose-500' : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                         }`}
                       />
                       <button
@@ -772,7 +772,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                         }}
                         placeholder="Re-enter password"
                         className={`block w-full pl-10 pr-4 py-2.5 bg-[#27272a] text-white text-sm focus:outline-none transition-all placeholder:opacity-40 ${
-                          errors.confirmPassword ? 'border-rose-500' : 'border-slate-700 focus:border-indigo-500'
+                          errors.confirmPassword ? 'border-rose-500' : 'border-slate-700 focus:ring-2 focus:ring-indigo-500'
                         }`}
                       />
                     </div>

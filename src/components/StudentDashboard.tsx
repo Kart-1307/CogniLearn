@@ -753,7 +753,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     value={diagnosticSessionTitle}
                     onChange={(e) => setDiagnosticSessionTitle(e.target.value)}
                     placeholder="Enter session topic..."
-                    className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:border-indigo-500 rounded-lg font-medium transition-colors"
+                    className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
                   />
                 </div>
 
@@ -805,7 +805,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         placeholder="Minutes (e.g. 25)..."
                         value={customDurationInput}
                         onChange={(e) => setCustomDurationInput(e.target.value)}
-                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-1.5 outline-none focus:border-indigo-500 rounded-lg font-medium transition-colors"
+                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
                       />
                     </div>
                   )}
@@ -892,7 +892,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
             {/* Generate / View Latest Report Option */}
             {latestReport && !isTracking && (
-              <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-white">
+              <div className="mt-3 pt-3 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-white">
                 <div className="text-[10px] font-mono">
                   <span className="font-bold block text-indigo-300">Latest Diagnostic Ready</span>
                   <span className="font-sans font-medium text-slate-300">{latestReport.status} • {latestReport.metrics.avgFocusScore}% Focus</span>
@@ -958,7 +958,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   placeholder="Add custom task objective..."
                   value={newTaskText}
                   onChange={(e) => setNewTaskText(e.target.value)}
-                  className="flex-1 text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:border-sky-500 rounded-lg font-medium transition-colors"
+                  className="flex-1 text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:ring-2 focus:ring-sky-500 rounded-lg font-medium transition-colors"
                 />
                 <button
                   type="submit"

@@ -892,7 +892,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       setActiveClassId(e.target.value);
                       setShowDetailedAddForm(false);
                     }}
-                    className="text-xs border border-slate-700 rounded-lg px-4 py-2.5 font-bold outline-none cursor-pointer pr-8 appearance-none bg-slate-900 text-white focus:border-indigo-500 transition-colors"
+                    className="text-xs border border-slate-700 rounded-lg px-4 py-2.5 font-bold outline-none cursor-pointer pr-8 appearance-none bg-slate-900 text-white focus:ring-2 focus:ring-indigo-500 transition-colors"
                   >
                     {classes.length === 0 ? (
                       <option value="" className="bg-slate-900 text-white">
@@ -932,7 +932,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       placeholder="e.g. Class XI-Science"
                       value={newClassName}
                       onChange={(e) => setNewClassName(e.target.value)}
-                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:border-indigo-500"
+                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <div>
@@ -942,7 +942,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       placeholder="e.g. Chemistry Lab 3"
                       value={newClassRoom}
                       onChange={(e) => setNewClassRoom(e.target.value)}
-                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:border-indigo-500"
+                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
@@ -1083,7 +1083,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           value={detailedName}
                           onChange={(e) => setDetailedName(e.target.value)}
                           className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${
-                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-2 focus:ring-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-2 focus:ring-[#1C1B1A]'
                           }`}
                         />
                         {detailedErrors.name && (
@@ -1104,7 +1104,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           value={detailedEmail}
                           onChange={(e) => setDetailedEmail(e.target.value)}
                           className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${
-                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-2 focus:ring-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-2 focus:ring-[#1C1B1A]'
                           }`}
                         />
                         {detailedErrors.email && (
@@ -1125,7 +1125,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           value={detailedRollNo}
                           onChange={(e) => setDetailedRollNo(e.target.value)}
                           className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${
-                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-2 focus:ring-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-2 focus:ring-[#1C1B1A]'
                           }`}
                         />
                         {detailedErrors.rollNo && (
@@ -1146,7 +1146,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           value={detailedPassword}
                           onChange={(e) => setDetailedPassword(e.target.value)}
                           className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${
-                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-2 focus:ring-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-2 focus:ring-[#1C1B1A]'
                           }`}
                         />
                         {detailedErrors.password && (
@@ -1165,7 +1165,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           value={detailedGender}
                           onChange={(e) => setDetailedGender(e.target.value)}
                           className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${
-                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-2 focus:ring-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-2 focus:ring-[#1C1B1A]'
                           }`}
                         >
                           <option value="Male" className={isDark ? 'bg-[#0F172A]' : 'bg-white'}>Male</option>
@@ -1183,7 +1183,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           value={detailedFocusBaseline}
                           onChange={(e) => setDetailedFocusBaseline(e.target.value)}
                           className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${
-                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                            isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-2 focus:ring-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-2 focus:ring-[#1C1B1A]'
                           }`}
                         >
                           <option value="Optimal Focus" className={isDark ? 'bg-[#0F172A]' : 'bg-white'}>Optimal Focus</option>
@@ -1422,7 +1422,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       value={newSubject}
                       onChange={(e) => setNewSubject(e.target.value)}
                       className={`flex-1 text-xs border-2 rounded-xl px-3 py-2 outline-none font-medium ${
-                        isDark ? 'bg-[#0F172A] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-[#F8F7F4] border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                        isDark ? 'bg-[#0F172A] border-slate-600 text-white focus:ring-2 focus:ring-[#FF5A5F]' : 'bg-[#F8F7F4] border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-2 focus:ring-[#1C1B1A]'
                       }`}
                     />
                     <button
@@ -1805,7 +1805,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             placeholder="Custom Minutes (e.g. 20)..."
                             value={teacherCustomDurationInput}
                             onChange={(e) => setTeacherCustomDurationInput(e.target.value)}
-                            className="w-full text-xs bg-[#111113] border border-white/10 rounded px-2.5 py-1 text-[#F8F7F4] outline-none focus:border-[#FF5A5F]"
+                            className="w-full text-xs bg-[#111113] border border-white/10 rounded px-2.5 py-1 text-[#F8F7F4] outline-none focus:ring-2 focus:ring-[#FF5A5F]"
                           />
                         </div>
                       )}

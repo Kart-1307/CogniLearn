@@ -171,7 +171,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
@@ -186,7 +186,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                       <select
                         value={gradeLevel}
                         onChange={(e) => setGradeLevel(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       >
                         <option value="Class 9">Class 9</option>
                         <option value="Class 10">Class 10</option>
@@ -203,7 +203,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                       <select
                         value={learningStyle}
                         onChange={(e) => setLearningStyle(e.target.value as any)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
+                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       >
                         <option value="Visual">Visual (Graphics & Maps)</option>
                         <option value="Auditory">Auditory (Lectures & Audio)</option>
@@ -248,7 +248,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                       type="text"
                       value={institutionName}
                       onChange={(e) => setInstitutionName(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -260,7 +260,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                       type="text"
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
@@ -300,7 +300,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                   value={deleteConfirmationText}
                   onChange={(e) => setDeleteConfirmationText(e.target.value)}
                   placeholder="DELETE MY ACCOUNT"
-                  className="w-full bg-slate-900 border border-rose-900/60 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-500 font-mono tracking-wide"
+                  className="w-full bg-slate-900 border border-rose-900/60 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500 font-mono tracking-wide"
                 />
               </div>
 

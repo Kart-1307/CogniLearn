@@ -316,7 +316,7 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                     className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
                       errors.email 
                         ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                     }`}
                   />
                 </div>
@@ -355,7 +355,7 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                     className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
                       errors.password 
                         ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                     }`}
                   />
                   <button
@@ -490,7 +490,7 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                     className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
                       errors.fullName 
                         ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                     }`}
                   />
                 </div>
@@ -529,7 +529,7 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                     className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
                       errors.email 
                         ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                     }`}
                   />
                 </div>
@@ -567,7 +567,7 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                     className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
                       errors.password 
                         ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                     }`}
                   />
                   <button
@@ -613,7 +613,7 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                     className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${
                       errors.confirmPassword 
                         ? 'border border-rose-500' 
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                     }`}
                   />
                 </div>

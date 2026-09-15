@@ -232,7 +232,7 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
                 <select
                   value={selectedStudentId}
                   onChange={(e) => setSelectedStudentId(e.target.value)}
-                  className="bg-white border border-[#1C1B1A]/20 px-2.5 py-1 text-xs font-sans text-[#1C1B1A] font-medium outline-none focus:border-[#B18F5A] rounded"
+                  className="bg-white border border-[#1C1B1A]/20 px-2.5 py-1 text-xs font-sans text-[#1C1B1A] font-medium outline-none focus:ring-2 focus:ring-[#B18F5A] rounded"
                 >
                   {classReport.studentReports.map(s => (
                     <option key={s.studentId} value={s.studentId}>
@@ -361,7 +361,7 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
                       placeholder="Search student..."
                       value={rosterSearch}
                       onChange={(e) => setRosterSearch(e.target.value)}
-                      className="bg-[#1C1B1A]/5 border border-[#1C1B1A]/20 px-2.5 py-1 text-xs font-sans text-[#1C1B1A] outline-none focus:border-[#B18F5A] rounded w-36"
+                      className="bg-[#1C1B1A]/5 border border-[#1C1B1A]/20 px-2.5 py-1 text-xs font-sans text-[#1C1B1A] outline-none focus:ring-2 focus:ring-[#B18F5A] rounded w-36"
                     />
                     <div className="flex space-x-1 font-mono text-[9px] uppercase font-bold">
                       <button

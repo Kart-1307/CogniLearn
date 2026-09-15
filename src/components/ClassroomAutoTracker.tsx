@@ -485,7 +485,7 @@ export const ClassroomAutoTracker: React.FC<ClassroomAutoTrackerProps> = ({
             <select
               value={selectedStudentForEnroll}
               onChange={(e) => setSelectedStudentForEnroll(e.target.value)}
-              className="bg-slate-800 text-white text-xs border border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-indigo-500"
+              className="bg-slate-800 text-white text-xs border border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               {registeredStudents.map((s) => (
                 <option key={s.id} value={s.id}>
