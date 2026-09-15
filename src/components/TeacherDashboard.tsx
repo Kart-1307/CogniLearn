@@ -839,12 +839,8 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
       {/* Dynamic Success notifications */}
       {classSuccessMsg && (
-        <div className={`mb-6 p-4 rounded-xl flex items-center space-x-2 animate-fade-in text-xs font-mono font-bold border-2 ${
-          isDark 
-            ? 'bg-rose-950/60 border-rose-500 text-rose-100' 
-            : 'bg-rose-50 border-rose-400 text-rose-950'
-        }`}>
-          <CheckCircle2 className="h-4.5 w-4.5 text-[#FF5A5F] shrink-0" />
+        <div className="mb-6 p-4 rounded-xl flex items-center space-x-2 animate-fade-in text-xs font-mono font-bold border bg-indigo-500/10 border-indigo-500/30 text-indigo-200">
+          <CheckCircle2 className="h-4.5 w-4.5 text-indigo-400 shrink-0" />
           <span>{classSuccessMsg}</span>
         </div>
       )}
@@ -854,25 +850,21 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         <div className="space-y-8">
           {/* Notice Banner */}
           {showNotice && (
-            <div className={`mb-8 p-5 rounded-xl border-2 relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ${
-              isDark 
-                ? 'bg-rose-950/40 border-rose-600/60 text-rose-100' 
-                : 'bg-rose-50 border-rose-300 text-rose-950'
-            }`}>
+            <div className="mb-8 p-5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-100 relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="relative flex items-start space-x-3.5">
-                <div className="bg-[#FF5A5F]/20 p-2 rounded shrink-0 mt-0.5 border border-[#FF5A5F]/40">
-                  <Sparkles className="h-5 w-5 text-[#FF5A5F] animate-pulse" />
+                <div className="bg-indigo-500/20 p-2 rounded-lg shrink-0 mt-0.5 border border-indigo-500/40">
+                  <Sparkles className="h-5 w-5 text-indigo-400 animate-pulse" />
                 </div>
                 <div>
-                  <p className="font-bold text-sm sm:text-base tracking-tight font-display">CogniLearn Focus System Active</p>
-                  <p className="text-xs mt-0.5 font-sans leading-relaxed font-medium opacity-90">
+                  <p className="font-bold text-sm sm:text-base tracking-tight font-heading text-white">CogniLearn Focus System Active</p>
+                  <p className="text-xs mt-0.5 font-sans leading-relaxed font-medium text-slate-300">
                     The multiple classroom manager, student registers, and 5-Cam live room-mode focus simulator are configured.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowNotice(false)}
-                className="text-[#FF5A5F] hover:text-[#FF5A5F]/80 text-[10px] font-mono font-bold tracking-wider uppercase shrink-0 self-start sm:self-center cursor-pointer border-2 border-[#FF5A5F] px-2.5 py-1 rounded bg-white/10"
+                className="text-indigo-300 hover:text-white text-[10px] font-mono font-bold tracking-wider uppercase shrink-0 self-start sm:self-center cursor-pointer border border-indigo-500/40 px-3 py-1 rounded-lg bg-indigo-500/20 transition-colors"
               >
                 Dismiss
               </button>
@@ -880,22 +872,14 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           )}
 
           {/* Classroom Selector Hub Card */}
-          <div className={`border-2 rounded-xl p-6 sm:p-8 shadow-xs ${
-            isDark 
-              ? 'bg-[#1E293B] border-slate-700 text-white' 
-              : 'bg-white border-[#1C1B1A]/20 text-[#1C1B1A]'
-          }`}>
+          <div className="saas-card p-6 sm:p-8 rounded-xl shadow-xs">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h3 className={`text-lg font-bold font-display flex items-center space-x-2 ${
-                  isDark ? 'text-white' : 'text-[#1C1B1A]'
-                }`}>
-                  <School className="h-5 w-5 text-[#FF5A5F]" />
+                <h3 className="text-lg font-bold font-heading text-white flex items-center space-x-2">
+                  <School className="h-5 w-5 text-indigo-400" />
                   <span>My Active Classrooms</span>
                 </h3>
-                <p className={`text-xs mt-1 font-sans ${
-                  isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80 font-medium'
-                }`}>
+                <p className="text-xs mt-1 font-sans text-slate-300">
                   Select, coordinate, and register rosters for different academic segments.
                 </p>
               </div>
@@ -908,36 +892,26 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       setActiveClassId(e.target.value);
                       setShowDetailedAddForm(false);
                     }}
-                    className={`text-xs border-2 rounded-xl px-4 py-2.5 font-bold outline-none cursor-pointer pr-8 appearance-none ${
-                      isDark 
-                        ? 'bg-[#0F172A] border-slate-600 text-white focus:border-[#FF5A5F]' 
-                        : 'bg-[#F8F7F4] border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
-                    }`}
+                    className="text-xs border border-slate-700 rounded-lg px-4 py-2.5 font-bold outline-none cursor-pointer pr-8 appearance-none bg-slate-900 text-white focus:border-indigo-500 transition-colors"
                   >
                     {classes.length === 0 ? (
-                      <option value="" className={isDark ? 'bg-[#0F172A] text-white' : 'bg-white text-[#1C1B1A]'}>
+                      <option value="" className="bg-slate-900 text-white">
                         No Classes Created (Click '+ New Class')
                       </option>
                     ) : (
                       classes.map(c => (
-                        <option key={c.id} value={c.id} className={isDark ? 'bg-[#0F172A] text-white' : 'bg-white text-[#1C1B1A]'}>
+                        <option key={c.id} value={c.id} className="bg-slate-900 text-white">
                           {c.name} ({c.room})
                         </option>
                       ))
                     )}
                   </select>
-                  <ChevronDown className={`h-4 w-4 absolute right-2.5 top-3.5 pointer-events-none ${
-                    isDark ? 'text-slate-400' : 'text-[#1C1B1A]/70'
-                  }`} />
+                  <ChevronDown className="h-4 w-4 absolute right-2.5 top-3.5 pointer-events-none text-slate-400" />
                 </div>
 
                 <button
                   onClick={() => setShowAddClassForm(!showAddClassForm)}
-                  className={`text-xs font-mono font-bold uppercase tracking-wider rounded-xl px-4 py-2.5 flex items-center space-x-1 transition-all cursor-pointer border-2 ${
-                    isDark 
-                      ? 'bg-[#FF5A5F] hover:bg-rose-600 border-[#FF5A5F] text-white' 
-                      : 'bg-[#1C1B1A] hover:bg-[#B18F5A] border-[#1C1B1A] text-white'
-                  }`}
+                  className="text-xs font-mono font-bold uppercase tracking-wider rounded-lg px-4 py-2.5 flex items-center space-x-1 transition-all cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 border-none"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>New Class</span>
@@ -947,42 +921,28 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
             {/* Expander to create a classroom */}
             {showAddClassForm && (
-              <form onSubmit={handleAddClass} className={`mt-6 p-5 rounded-xl border-2 space-y-4 animate-fade-in text-xs ${
-                isDark ? 'bg-[#0F172A] border-slate-700' : 'bg-[#F8F7F4] border-[#1C1B1A]/20'
-              }`}>
-                <h4 className="text-xs font-bold text-[#FF5A5F] uppercase tracking-wider font-mono">Initialize Classroom</h4>
+              <form onSubmit={handleAddClass} className="mt-6 p-5 rounded-xl border border-slate-800 bg-slate-900/60 space-y-4 animate-fade-in text-xs">
+                <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider font-mono">Initialize Classroom</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className={`block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 ${
-                      isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'
-                    }`}>Class Segment Name</label>
+                    <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Class Segment Name</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Class XI-Science"
                       value={newClassName}
                       onChange={(e) => setNewClassName(e.target.value)}
-                      className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${
-                        isDark 
-                          ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' 
-                          : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
-                      }`}
+                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:border-indigo-500"
                     />
                   </div>
                   <div>
-                    <label className={`block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 ${
-                      isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'
-                    }`}>Room / Lab Number</label>
+                    <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Room / Lab Number</label>
                     <input
                       type="text"
                       placeholder="e.g. Chemistry Lab 3"
                       value={newClassRoom}
                       onChange={(e) => setNewClassRoom(e.target.value)}
-                      className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${
-                        isDark 
-                          ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' 
-                          : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
-                      }`}
+                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:border-indigo-500"
                     />
                   </div>
                 </div>
@@ -990,13 +950,13 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowAddClassForm(false)}
-                    className="px-3 py-2 border border-white/10 rounded-xl text-xs font-bold text-[#F8F7F4]/60 hover:bg-white/5 cursor-pointer font-mono uppercase tracking-wider"
+                    className="px-3 py-2 border border-slate-700 rounded-lg text-xs font-bold text-slate-400 hover:bg-slate-800 cursor-pointer font-mono uppercase tracking-wider transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-[#111113] rounded-xl text-xs font-bold cursor-pointer font-mono uppercase tracking-wider"
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold cursor-pointer font-mono uppercase tracking-wider shadow-md transition-colors"
                   >
                     Create Classroom
                   </button>

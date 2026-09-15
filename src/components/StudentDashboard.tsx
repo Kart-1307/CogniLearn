@@ -722,40 +722,30 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         </div>
 
         {/* Card 2: Focus Tracking */}
-        <div className={`border-2 transition-all p-6 sm:p-8 flex flex-col justify-between group relative overflow-hidden rounded-2xl shadow-xs ${
-          isDark ? 'bg-[#1E293B] border-slate-700 hover:border-[#FF5A5F]/50 text-white' : 'bg-white border-[#1C1B1A]/20 hover:border-[#1C1B1A] text-[#1C1B1A]'
-        }`} id="card-student-focus">
+        <div className="saas-card saas-card-hover p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden rounded-xl" id="card-student-focus">
           <div>
             <div className="flex justify-between items-start mb-6">
-              <div className={`h-12 w-12 rounded-xl border-2 flex items-center justify-center ${
-                isDark ? 'bg-rose-950/50 border-rose-800 text-[#FF5A5F]' : 'bg-[#1C1B1A] border-[#1C1B1A] text-white'
-              }`}>
+              <div className="h-12 w-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
                 <Activity className="h-6 w-6" />
               </div>
-              <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest border rounded ${
-                isDark ? 'bg-slate-800 text-[#FF5A5F] border-slate-600' : 'bg-[#1C1B1A]/10 text-[#8A5A1B] border-[#8A5A1B]/40 font-extrabold'
-              }`}>
+              <span className="inline-flex items-center px-2.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 rounded-full">
                 [DIAGNOSTIC TIMER]
               </span>
             </div>
             
             <div className="flex items-center space-x-2">
-              <h3 className={`text-xl font-serif italic ${isDark ? 'text-white' : 'text-[#1C1B1A]'}`}>Attention Diagnostic</h3>
+              <h3 className="text-xl font-heading font-bold text-white">Attention Diagnostic</h3>
               <InfoTooltip title="Live Gaze Vector Analysis" content="Monitors face landmark orientation, eye open/close rates, and off-screen gaze shifts in real-time." isDark={isDark} />
             </div>
-            <p className={`mt-2 text-xs leading-relaxed font-sans font-medium ${isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'}`}>
+            <p className="mt-2 text-xs leading-relaxed font-sans font-medium text-slate-300">
               Configure session duration, monitor live eye-gaze tracking, and generate diagnostic reports.
             </p>
 
             {/* Configurable Duration Selector (before tracking starts) */}
             {!isTracking ? (
-              <div className={`mt-5 space-y-3 border-2 p-4 rounded-2xl ${
-                isDark ? 'bg-[#0F172A] border-slate-700' : 'bg-[#F8F7F4] border-[#1C1B1A]/20'
-              }`}>
+              <div className="mt-5 space-y-3 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
                 <div className="space-y-1 text-left">
-                  <label className={`text-[9px] font-mono font-bold uppercase tracking-wider block ${
-                    isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'
-                  }`}>
+                  <label className="text-[9px] font-mono font-bold uppercase tracking-wider block text-slate-300">
                     Session Topic / Subject
                   </label>
                   <input
@@ -763,16 +753,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     value={diagnosticSessionTitle}
                     onChange={(e) => setDiagnosticSessionTitle(e.target.value)}
                     placeholder="Enter session topic..."
-                    className={`w-full text-xs border-2 px-3 py-2 outline-none rounded-xl font-medium ${
-                      isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
-                    }`}
+                    className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:border-indigo-500 rounded-lg font-medium transition-colors"
                   />
                 </div>
 
                 <div className="space-y-1.5 text-left">
                   <div className="flex justify-between items-center text-[9px] font-mono uppercase font-bold">
-                    <span className={isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'}>Set Duration:</span>
-                    <span className="text-[#FF5A5F]">
+                    <span className="text-slate-300">Set Duration:</span>
+                    <span className="text-indigo-400">
                       Configured: {isCustomDuration ? (customDurationInput || '15') : diagnosticDuration} min
                     </span>
                   </div>
@@ -786,10 +774,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                           setDiagnosticDuration(mins);
                           setIsCustomDuration(false);
                         }}
-                        className={`px-2.5 py-1 text-[10px] font-mono font-bold border-2 rounded-lg transition-colors cursor-pointer ${
+                        className={`px-2.5 py-1 text-[10px] font-mono font-bold border rounded-lg transition-colors cursor-pointer ${
                           !isCustomDuration && diagnosticDuration === mins
-                            ? 'bg-[#FF5A5F] text-white border-[#FF5A5F]'
-                            : isDark ? 'bg-slate-800 text-slate-300 border-slate-600 hover:text-white' : 'bg-white text-[#1C1B1A] border-[#1C1B1A]/30 hover:border-[#1C1B1A]'
+                            ? 'bg-indigo-600 text-white border-indigo-500'
+                            : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white hover:border-slate-600'
                         }`}
                       >
                         {mins}m
@@ -798,10 +786,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsCustomDuration(true)}
-                      className={`px-2.5 py-1 text-[10px] font-mono font-bold border-2 rounded-lg transition-colors cursor-pointer ${
+                      className={`px-2.5 py-1 text-[10px] font-mono font-bold border rounded-lg transition-colors cursor-pointer ${
                         isCustomDuration
-                          ? 'bg-[#FF5A5F] text-white border-[#FF5A5F]'
-                          : isDark ? 'bg-slate-800 text-slate-300 border-slate-600 hover:text-white' : 'bg-white text-[#1C1B1A] border-[#1C1B1A]/30 hover:border-[#1C1B1A]'
+                          ? 'bg-indigo-600 text-white border-indigo-500'
+                          : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white hover:border-slate-600'
                       }`}
                     >
                       Custom
@@ -817,9 +805,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         placeholder="Minutes (e.g. 25)..."
                         value={customDurationInput}
                         onChange={(e) => setCustomDurationInput(e.target.value)}
-                        className={`w-full text-xs border-2 px-3 py-1.5 outline-none rounded-xl font-medium ${
-                          isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
-                        }`}
+                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-1.5 outline-none focus:border-indigo-500 rounded-lg font-medium transition-colors"
                       />
                     </div>
                   )}
@@ -828,9 +814,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 <button
                   type="button"
                   onClick={handleStartDiagnostic}
-                  className={`w-full mt-2 py-2.5 px-4 text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer border-2 rounded-xl flex items-center justify-center space-x-1.5 ${
-                    isDark ? 'bg-[#FF5A5F] hover:bg-rose-600 border-[#FF5A5F] text-white' : 'bg-[#1C1B1A] hover:bg-[#B18F5A] border-[#1C1B1A] text-white'
-                  }`}
+                  className="w-full mt-2 py-2.5 px-4 text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg flex items-center justify-center space-x-1.5 shadow-lg shadow-indigo-600/25"
                 >
                   <Play className="h-3.5 w-3.5 fill-white" />
                   <span>Start Tracking</span>
@@ -838,17 +822,15 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
             ) : (
               /* Active Tracking Mode with Countdown & Stop Tracking */
-              <div className={`mt-5 space-y-3 border-2 p-4 rounded-2xl ${
-                isDark ? 'bg-[#0F172A] border-slate-700' : 'bg-[#F8F7F4] border-[#1C1B1A]/20'
-              }`}>
-                <div className="flex justify-between items-center bg-[#1C1B1A] text-white p-2.5 font-mono text-xs rounded-xl">
+              <div className="mt-5 space-y-3 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+                <div className="flex justify-between items-center bg-slate-900 border border-slate-800 text-white p-2.5 font-mono text-xs rounded-xl">
                   <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 text-[#FF5A5F] animate-pulse" />
-                    <span className="font-bold text-sm tracking-wider text-[#FF5A5F]">
+                    <Clock className="h-4 w-4 text-indigo-400 animate-pulse" />
+                    <span className="font-bold text-sm tracking-wider text-indigo-400">
                       {formatCountdown(diagnosticTimeLeft)}
                     </span>
                   </div>
-                  <span className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold bg-emerald-950 px-2 py-0.5 border border-emerald-800 rounded">
+                  <span className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
                     Live Tracking Active
                   </span>
                 </div>
@@ -866,8 +848,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     onStatusChange={(_, status, score) => {
                       setFocusScore(score);
 
-                      // Check if focus drops below threshold (e.g., < 50)
-                      // Cooldown of 3 minutes between automatic break popups
                       const now = Date.now();
                       const timeSinceLastBreak = now - lastBreakTimeRef.current;
                       if (score < 50) {
@@ -892,9 +872,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       setBreakTriggerScore(focusScore);
                       setShowFocusBreakModal(true);
                     }}
-                    className={`flex-1 py-2 px-3 text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer border rounded-xl flex items-center justify-center space-x-1.5 ${
-                      isDark ? 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/40 text-amber-300' : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-800'
-                    }`}
+                    className="flex-1 py-2 px-3 text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer border rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-300 flex items-center justify-center space-x-1.5"
                     title="Take 60-Second Guided Focus Break"
                   >
                     <span>⚡ Take 60s Focus Reset</span>
@@ -903,7 +881,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleStopDiagnostic('Manually Stopped')}
-                    className="flex-1 bg-rose-700 hover:bg-rose-800 text-white py-2 px-3 text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer border-2 border-rose-800 rounded-xl flex items-center justify-center space-x-1.5"
+                    className="flex-1 bg-rose-600 hover:bg-rose-500 text-white py-2 px-3 text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer border border-rose-500 rounded-lg flex items-center justify-center space-x-1.5"
                   >
                     <Square className="h-3.5 w-3.5 fill-white" />
                     <span>Stop Tracking</span>
@@ -914,19 +892,15 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
             {/* Generate / View Latest Report Option */}
             {latestReport && !isTracking && (
-              <div className={`mt-3 pt-3 border-t flex items-center justify-between p-3 rounded-xl border ${
-                isDark ? 'bg-rose-950/40 border-rose-800 text-white' : 'bg-[#B18F5A]/10 border-[#B18F5A]/30 text-[#1C1B1A]'
-              }`}>
+              <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-white">
                 <div className="text-[10px] font-mono">
-                  <span className="font-bold block">Latest Diagnostic Ready</span>
-                  <span className="font-sans font-medium">{latestReport.status} • {latestReport.metrics.avgFocusScore}% Focus</span>
+                  <span className="font-bold block text-indigo-300">Latest Diagnostic Ready</span>
+                  <span className="font-sans font-medium text-slate-300">{latestReport.status} • {latestReport.metrics.avgFocusScore}% Focus</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowReportModal(true)}
-                  className={`px-3 py-1.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-colors ${
-                    isDark ? 'bg-[#FF5A5F] text-white hover:bg-rose-600' : 'bg-[#1C1B1A] text-white hover:bg-[#B18F5A]'
-                  }`}
+                  className="px-3 py-1.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded-lg cursor-pointer transition-colors bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm"
                 >
                   Generate Report
                 </button>
@@ -934,58 +908,44 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             )}
           </div>
           
-          <div className={`mt-6 pt-4 border-t flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold ${
-            isDark ? 'border-slate-700 text-slate-300' : 'border-[#1C1B1A]/20 text-[#1C1B1A]/80'
-          }`}>
+          <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
             <span>Mesh Calibration: 68 Points</span>
-            <ChevronRight className="h-4 w-4 text-[#FF5A5F]" />
+            <ChevronRight className="h-4 w-4 text-indigo-400" />
           </div>
         </div>
 
         {/* Card 3: Progress */}
-        <div className={`border-2 transition-all p-6 sm:p-8 flex flex-col justify-between group relative overflow-hidden rounded-2xl shadow-xs ${
-          isDark ? 'bg-[#1E293B] border-slate-700 hover:border-[#FF5A5F]/50 text-white' : 'bg-white border-[#1C1B1A]/20 hover:border-[#1C1B1A] text-[#1C1B1A]'
-        }`} id="card-student-progress">
+        <div className="saas-card saas-card-hover p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden rounded-xl" id="card-student-progress">
           <div>
             <div className="flex justify-between items-start mb-6">
-              <div className={`h-12 w-12 rounded-xl border-2 flex items-center justify-center ${
-                isDark ? 'bg-rose-950/50 border-rose-800 text-[#FF5A5F]' : 'bg-[#B18F5A]/10 border-[#B18F5A]/30 text-[#B18F5A]'
-              }`}>
+              <div className="h-12 w-12 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center">
                 <BarChart2 className="h-6 w-6" />
               </div>
-              <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest border rounded ${
-                isDark ? 'bg-slate-800 text-[#FF5A5F] border-slate-600' : 'bg-[#1C1B1A]/5 text-[#B18F5A] border-[#B18F5A]/30'
-              }`}>
+              <span className="inline-flex items-center px-2.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest bg-sky-500/10 text-sky-300 border border-sky-500/20 rounded-full">
                 [OBJECTIVES]
               </span>
             </div>
             
             <div className="flex items-center space-x-2">
-              <h3 className={`text-xl font-serif italic ${isDark ? 'text-white' : 'text-[#1C1B1A]'}`}>Study Objectives</h3>
+              <h3 className="text-xl font-heading font-bold text-white">Study Objectives</h3>
               <InfoTooltip title="Task Completion Index" content="Breaking study goals into smaller 15m tasks improves focus completion rates by +35%." isDark={isDark} />
             </div>
-            <p className={`mt-2 text-xs leading-relaxed font-sans font-medium ${isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'}`}>
+            <p className="mt-2 text-xs leading-relaxed font-sans font-medium text-slate-300">
               Check off tasks, complete subject deliverables, and watch your completion index scale up in real-time.
             </p>
 
             {/* Interactive study objectives list */}
-            <div className={`mt-6 border-2 p-4 rounded-2xl ${
-              isDark ? 'bg-[#0F172A] border-slate-700' : 'bg-[#F8F7F4] border-[#1C1B1A]/20'
-            }`}>
+            <div className="mt-6 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
               <div className="flex justify-between items-center mb-3">
-                <span className={`text-[9px] font-mono font-bold uppercase tracking-widest ${
-                  isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'
-                }`}>Completion rate</span>
-                <span className="text-[9px] font-mono font-extrabold text-[#FF5A5F] bg-[#FF5A5F]/10 border border-[#FF5A5F]/30 px-2 py-0.5 rounded">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-300">Completion rate</span>
+                <span className="text-[9px] font-mono font-extrabold text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded">
                   {completionRate}% Complete
                 </span>
               </div>
 
-              <div className={`w-full border h-3 overflow-hidden mb-4 rounded-full ${
-                isDark ? 'bg-slate-800 border-slate-700' : 'bg-gray-200 border-[#1C1B1A]/20'
-              }`}>
+              <div className="w-full bg-slate-800 h-2.5 overflow-hidden mb-4 rounded-full border border-slate-700">
                 <motion.div 
-                  className="bg-[#FF5A5F] h-full rounded-full" 
+                  className="bg-sky-500 h-full rounded-full" 
                   initial={{ width: 0 }}
                   animate={{ width: `${completionRate}%` }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
@@ -998,15 +958,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   placeholder="Add custom task objective..."
                   value={newTaskText}
                   onChange={(e) => setNewTaskText(e.target.value)}
-                  className={`flex-1 text-xs border-2 px-3 py-2 outline-none rounded-xl font-medium ${
-                    isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
-                  }`}
+                  className="flex-1 text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:border-sky-500 rounded-lg font-medium transition-colors"
                 />
                 <button
                   type="submit"
-                  className={`px-4 py-2 text-xs font-bold font-mono uppercase tracking-wider cursor-pointer shrink-0 border-2 rounded-xl ${
-                    isDark ? 'bg-[#FF5A5F] hover:bg-rose-600 border-[#FF5A5F] text-white' : 'bg-[#1C1B1A] hover:bg-[#B18F5A] border-[#1C1B1A] text-white'
-                  }`}
+                  className="px-4 py-2 text-xs font-bold font-mono uppercase tracking-wider cursor-pointer shrink-0 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors"
                 >
                   Add
                 </button>
@@ -1014,15 +970,13 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
               <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                 {tasks.map((t) => (
-                  <div key={t.id} className={`flex justify-between items-center border-2 p-2.5 px-3 text-xs rounded-xl ${
-                    isDark ? 'bg-[#1E293B] border-slate-700 text-white' : 'bg-white border-[#1C1B1A]/20 text-[#1C1B1A]'
-                  }`}>
+                  <div key={t.id} className="flex justify-between items-center border border-slate-800 bg-slate-900/80 p-2.5 px-3 text-xs rounded-lg text-white">
                     <button
                       onClick={() => toggleTask(t.id)}
                       className="flex-1 flex items-center space-x-2.5 text-left cursor-pointer"
                     >
-                      <div className={`w-4 h-4 border-2 rounded flex items-center justify-center transition-colors ${
-                        t.done ? 'bg-[#FF5A5F] border-[#FF5A5F] text-white' : isDark ? 'border-slate-500 bg-slate-800' : 'border-[#1C1B1A]/40 bg-white'
+                      <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${
+                        t.done ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-600 bg-slate-800'
                       }`}>
                         {t.done && <Check className="h-3 w-3 stroke-[3]" />}
                       </div>
@@ -1034,9 +988,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     </button>
                     <button
                       onClick={() => removeTask(t.id)}
-                      className={`p-1 cursor-pointer ml-2 ${
-                        isDark ? 'text-slate-400 hover:text-[#FF5A5F]' : 'text-[#1C1B1A]/50 hover:text-rose-600'
-                      }`}
+                      className="p-1 cursor-pointer ml-2 text-slate-400 hover:text-rose-400 transition-colors"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -1046,63 +998,47 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </div>
           </div>
           
-          <div className={`mt-6 pt-4 border-t flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold ${
-            isDark ? 'border-slate-700 text-slate-300' : 'border-[#1C1B1A]/20 text-[#1C1B1A]/80'
-          }`}>
+          <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
             <span>Tasks count: {tasks.length} Configured</span>
-            <ChevronRight className="h-4 w-4 text-[#FF5A5F]" />
+            <ChevronRight className="h-4 w-4 text-sky-400" />
           </div>
         </div>
 
         {/* Card 4: Achievements */}
-        <div className={`border-2 transition-all p-6 sm:p-8 flex flex-col justify-between group relative overflow-hidden rounded-2xl shadow-xs ${
-          isDark ? 'bg-[#1E293B] border-slate-700 hover:border-[#FF5A5F]/50 text-white' : 'bg-white border-[#1C1B1A]/20 hover:border-[#1C1B1A] text-[#1C1B1A]'
-        }`} id="card-student-achievements">
+        <div className="saas-card saas-card-hover p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden rounded-xl" id="card-student-achievements">
           <div>
             <div className="flex justify-between items-start mb-6">
-              <div className={`h-12 w-12 rounded-xl border-2 flex items-center justify-center ${
-                isDark ? 'bg-rose-950/50 border-rose-800 text-[#FF5A5F]' : 'bg-[#B18F5A]/10 border-[#B18F5A]/30 text-[#B18F5A]'
-              }`}>
+              <div className="h-12 w-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
                 <Award className="h-6 w-6" />
               </div>
-              <span className={`inline-flex items-center px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest border rounded ${
-                isDark ? 'bg-slate-800 text-[#FF5A5F] border-slate-600' : 'bg-[#1C1B1A]/5 text-[#B18F5A] border-[#B18F5A]/30'
-              }`}>
+              <span className="inline-flex items-center px-2.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-full">
                 [ACHIEVEMENTS]
               </span>
             </div>
             
             <div className="flex items-center space-x-2">
-              <h3 className={`text-xl font-serif italic ${isDark ? 'text-white' : 'text-[#1C1B1A]'}`}>Badges & Certificates</h3>
+              <h3 className="text-xl font-heading font-bold text-white">Badges & Certificates</h3>
               <InfoTooltip title="Gamified Mastery" content="Earn XP and unlock badges by completing daily focus blocks and keeping gaze focus above 80%." isDark={isDark} />
             </div>
-            <p className={`mt-2 text-xs leading-relaxed font-sans font-medium ${isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'}`}>
+            <p className="mt-2 text-xs leading-relaxed font-sans font-medium text-slate-300">
               Unlock daily streaks, gaze level certificates, and high concentration rewards signed by class teachers.
             </p>
 
             {/* Interactive Achievements/XP Claims */}
-            <div className={`mt-6 border-2 p-4 rounded-2xl ${
-              isDark ? 'bg-[#0F172A] border-slate-700' : 'bg-[#F8F7F4] border-[#1C1B1A]/20'
-            }`}>
+            <div className="mt-6 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
               <div className="flex justify-between items-center mb-3.5">
-                <span className={`text-[9px] font-mono font-bold uppercase tracking-widest ${
-                  isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'
-                }`}>Streaks claimed</span>
-                <span className="text-xs font-extrabold text-[#FF5A5F] bg-[#FF5A5F]/10 border border-[#FF5A5F]/30 px-3 py-0.5 rounded font-mono">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-300">Streaks claimed</span>
+                <span className="text-xs font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-0.5 rounded font-mono">
                   {currentXP.toLocaleString()} XP
                 </span>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                <div className={`flex items-center space-x-1.5 font-bold p-1 px-3 text-[10px] select-none font-mono uppercase tracking-wider border rounded-lg ${
-                  isDark ? 'bg-rose-950/60 border-rose-800 text-[#FF5A5F]' : 'bg-[#B18F5A]/10 border-[#B18F5A]/30 text-[#B18F5A]'
-                }`}>
-                  <Star className="h-3.5 w-3.5 fill-[#FF5A5F]" />
+                <div className="flex items-center space-x-1.5 font-bold p-1 px-3 text-[10px] select-none font-mono uppercase tracking-wider border rounded-lg bg-emerald-500/10 border-emerald-500/20 text-emerald-400">
+                  <Star className="h-3.5 w-3.5 fill-emerald-400" />
                   <span>5-Day Flame</span>
                 </div>
-                <div className={`flex items-center space-x-1.5 font-bold p-1 px-3 text-[10px] select-none font-mono uppercase tracking-wider border rounded-lg ${
-                  isDark ? 'bg-rose-950/60 border-rose-800 text-[#FF5A5F]' : 'bg-[#B18F5A]/10 border-[#B18F5A]/30 text-[#B18F5A]'
-                }`}>
+                <div className="flex items-center space-x-1.5 font-bold p-1 px-3 text-[10px] select-none font-mono uppercase tracking-wider border rounded-lg bg-emerald-500/10 border-emerald-500/20 text-emerald-400">
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>Focus Master</span>
                 </div>
@@ -1111,10 +1047,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               <button
                 onClick={claimBonusXP}
                 disabled={hasClaimedBonus}
-                className={`w-full py-2.5 px-4 text-xs font-bold uppercase font-mono tracking-widest transition-all cursor-pointer border-2 rounded-xl flex items-center justify-center gap-1.5 ${
+                className={`w-full py-2.5 px-4 text-xs font-bold uppercase font-mono tracking-widest transition-all cursor-pointer border rounded-lg flex items-center justify-center gap-1.5 ${
                   hasClaimedBonus 
-                    ? isDark ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
-                    : isDark ? 'bg-[#FF5A5F] hover:bg-rose-600 border-[#FF5A5F] text-white' : 'bg-[#1C1B1A] hover:bg-[#B18F5A] border-[#1C1B1A] text-white'
+                    ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed'
+                    : 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-600/20'
                 }`}
               >
                 <Award className="h-3.5 w-3.5" />
@@ -1123,39 +1059,31 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </div>
           </div>
           
-          <div className={`mt-6 pt-4 border-t flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold ${
-            isDark ? 'border-slate-700 text-slate-300' : 'border-[#1C1B1A]/20 text-[#1C1B1A]/80'
-          }`}>
+          <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
             <span>Multiplier level: 1.2x Boost</span>
-            <ChevronRight className="h-4 w-4 text-[#FF5A5F]" />
+            <ChevronRight className="h-4 w-4 text-emerald-400" />
           </div>
         </div>
       </div>
 
       {/* Attention Diagnostic History Section */}
-      <div className={`mt-10 border-2 p-6 sm:p-8 rounded-2xl shadow-xs ${
-        isDark ? 'bg-[#1E293B] border-slate-700 text-white' : 'bg-white border-[#1C1B1A]/20 text-[#1C1B1A]'
-      }`} id="attention-diagnostic-history-section">
-        <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b ${
-          isDark ? 'border-slate-700' : 'border-[#1C1B1A]/20'
-        }`}>
+      <div className="mt-10 saas-card p-6 sm:p-8 rounded-xl" id="attention-diagnostic-history-section">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
           <div>
-            <span className="text-[9px] font-mono font-extrabold uppercase tracking-widest text-[#FF5A5F]">
+            <span className="text-[9px] font-mono font-extrabold uppercase tracking-widest text-indigo-400">
               [DIAGNOSTIC ARCHIVE]
             </span>
-            <h3 className={`text-xl font-serif italic mt-1 flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#1C1B1A]'}`}>
-              <History className="h-5 w-5 text-[#FF5A5F]" />
+            <h3 className="text-xl font-heading font-bold text-white mt-1 flex items-center gap-2">
+              <History className="h-5 w-5 text-indigo-400" />
               <span>Attention Diagnostic History</span>
             </h3>
-            <p className={`text-xs mt-1 font-medium ${isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'}`}>
+            <p className="text-xs mt-1 font-medium text-slate-300">
               Historical logs of past diagnostic tracking sessions. Revisit metrics, observations, and focus recommendations.
             </p>
           </div>
 
           <div className="flex items-center space-x-2 self-start sm:self-auto">
-            <div className={`border px-3 py-1.5 font-mono text-[10px] font-bold uppercase rounded-lg ${
-              isDark ? 'bg-slate-800 border-slate-600 text-slate-200' : 'bg-gray-100 border-gray-300 text-[#1C1B1A]'
-            }`}>
+            <div className="border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-[10px] font-bold uppercase rounded-lg text-slate-300">
               Logged Sessions: {diagnosticHistory.length} Records
             </div>
             {diagnosticHistory.length > 0 && (

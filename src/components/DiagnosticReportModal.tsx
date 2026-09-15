@@ -251,27 +251,27 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
           {isClass && activeTab === 'class' && classReport && (
             <div className="space-y-6">
               {/* Meta Banner */}
-              <div className="bg-white border border-[#1C1B1A]/20 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4 rounded-lg">
+              <div className="bg-slate-900/80 border border-slate-800 p-4 shadow-xs flex flex-wrap items-center justify-between gap-4 rounded-xl">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#8A5A1B]">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-400">
                     CLASSROOM SESSION METADATA
                   </span>
                   <div className="flex items-center space-x-2 text-xs font-semibold">
-                    <span className="text-base font-serif italic text-[#1C1B1A] font-bold">{classReport.sessionTitle}</span>
-                    <span className="text-[#1C1B1A]">•</span>
-                    <span className="font-mono text-[#1C1B1A] font-bold">{classReport.date}</span>
+                    <span className="text-base font-heading font-bold text-white">{classReport.sessionTitle}</span>
+                    <span className="text-slate-500">•</span>
+                    <span className="font-mono text-slate-300 font-bold">{classReport.date}</span>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase">
-                  <span className="bg-[#1C1B1A]/10 border border-[#1C1B1A]/30 px-2.5 py-1 font-extrabold text-[#1C1B1A] rounded">
+                  <span className="bg-slate-800 border border-slate-700 px-2.5 py-1 font-extrabold text-slate-300 rounded">
                     Configured: {classReport.configuredDurationMinutes}m
                   </span>
-                  <span className="bg-[#1C1B1A]/10 border border-[#1C1B1A]/30 px-2.5 py-1 font-extrabold text-[#1C1B1A] rounded">
+                  <span className="bg-slate-800 border border-slate-700 px-2.5 py-1 font-extrabold text-slate-300 rounded">
                     Actual: {formatSeconds(classReport.actualDurationSeconds)}
                   </span>
                   <span className={`px-2.5 py-1 font-bold text-white rounded ${
-                    classReport.status === 'Completed' ? 'bg-emerald-700' : 'bg-amber-700'
+                    classReport.status === 'Completed' ? 'bg-emerald-600' : 'bg-amber-600'
                   }`}>
                     {classReport.status}
                   </span>
@@ -439,28 +439,28 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
           {(!isClass || activeTab === 'student') && currentStudentReport && (
             <div className="space-y-6">
               {/* Header Banner */}
-              <div className="bg-white border border-[#1C1B1A]/20 p-5 rounded-lg shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-[#8A5A1B]">
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-indigo-400">
                     INDIVIDUAL COGNITIVE DIAGNOSTIC PROFILE
                   </span>
-                  <h3 className="text-xl font-serif italic text-[#1C1B1A] font-bold mt-0.5">
+                  <h3 className="text-xl font-heading font-bold text-white mt-0.5">
                     {currentStudentReport.studentName}
                   </h3>
-                  <p className="text-xs font-mono text-[#1C1B1A]/80 font-semibold mt-1">
+                  <p className="text-xs font-mono text-slate-300 font-semibold mt-1">
                     Session: {currentStudentReport.sessionTitle} • Date: {currentStudentReport.date}
                   </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase">
-                  <span className="bg-[#1C1B1A]/10 border border-[#1C1B1A]/30 px-2.5 py-1 font-extrabold text-[#1C1B1A] rounded">
+                  <span className="bg-slate-800 border border-slate-700 px-2.5 py-1 font-extrabold text-slate-300 rounded">
                     Configured: {currentStudentReport.configuredDurationMinutes}m
                   </span>
-                  <span className="bg-[#1C1B1A]/10 border border-[#1C1B1A]/30 px-2.5 py-1 font-extrabold text-[#1C1B1A] rounded">
+                  <span className="bg-slate-800 border border-slate-700 px-2.5 py-1 font-extrabold text-slate-300 rounded">
                     Actual: {formatSeconds(currentStudentReport.actualDurationSeconds)}
                   </span>
                   <span className={`px-2.5 py-1 font-bold text-white rounded ${
-                    currentStudentReport.status === 'Completed' ? 'bg-emerald-700' : 'bg-amber-700'
+                    currentStudentReport.status === 'Completed' ? 'bg-emerald-600' : 'bg-amber-600'
                   }`}>
                     {currentStudentReport.status}
                   </span>

@@ -59,7 +59,7 @@ export const InfoTooltip: React.FC<{
             {title && (
               <div className="flex items-center space-x-1.5 mb-1">
                 <Lightbulb className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                <span className="font-serif italic font-bold text-xs text-amber-400">{title}</span>
+                <span className="font-heading font-bold text-xs text-amber-400">{title}</span>
               </div>
             )}
             <p className="text-[11px] leading-relaxed font-sans font-medium">{content}</p>
@@ -132,7 +132,7 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
     } else {
       return {
         label: 'Focus Recovery Mode',
-        color: 'bg-rose-500/10 text-[#FF5A5F] border-rose-500/30',
+        color: 'bg-rose-500/10 text-rose-300 border-rose-500/30',
         note: 'Off-gaze shifts detected. Try taking a short hydration break before your next diagnostic block.',
       };
     }
@@ -158,11 +158,7 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className={`border-2 p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all shadow-xs ${
-        isDark 
-          ? 'bg-gradient-to-br from-[#1E293B] to-[#0F172A] border-amber-500/30 text-white' 
-          : 'bg-gradient-to-br from-amber-50/50 to-white border-[#B18F5A]/30 text-[#1C1B1A]'
-      }`}
+      className="saas-card p-5 sm:p-6 rounded-xl relative overflow-hidden transition-all shadow-xs"
     >
       {/* Decorative background glow */}
       <div className="absolute -right-10 -top-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
@@ -175,14 +171,14 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
-              <h3 className="font-serif italic font-bold text-lg">Daily Focus Intelligence</h3>
+              <h3 className="font-heading font-bold text-lg text-white">Daily Focus Intelligence</h3>
               <InfoTooltip
                 title="AI Focus Science"
                 content="CogniLearn evaluates your real-time gaze vectors, streak duration, and task completion speed to generate personalized focus optimization strategies."
                 isDark={isDark}
               />
             </div>
-            <p className={`text-[11px] font-sans font-medium ${isDark ? 'text-slate-300' : 'text-[#1C1B1A]/70'}`}>
+            <p className="text-[11px] font-sans font-medium text-slate-300">
               Tailored study & eye ergonomics advice based on your current {focusScore}% Focus Score
             </p>
           </div>
@@ -196,9 +192,7 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
       </div>
 
       {/* Tip Content Card */}
-      <div className={`p-4 rounded-xl border mb-4 relative ${
-        isDark ? 'bg-[#0F172A]/80 border-slate-700' : 'bg-white/90 border-[#1C1B1A]/15'
-      }`}>
+      <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/80 mb-4 relative">
         {!isCustomAi ? (
           <div>
             <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest font-bold text-amber-400 mb-2">
@@ -209,13 +203,11 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
               <span className="text-slate-400">Tip #{tipIndex + 1} of {focusTips.length}</span>
             </div>
 
-            <h4 className="font-serif italic text-sm font-bold mb-1.5">{currentTip.title}</h4>
-            <p className={`text-xs font-sans leading-relaxed mb-2 font-medium ${isDark ? 'text-slate-200' : 'text-[#1C1B1A]'}`}>
+            <h4 className="font-heading font-bold text-sm text-white mb-1.5">{currentTip.title}</h4>
+            <p className="text-xs font-sans leading-relaxed mb-2 font-medium text-slate-200">
               {currentTip.suggestion}
             </p>
-            <div className={`text-[11px] font-mono p-2 rounded-lg border ${
-              isDark ? 'bg-amber-500/10 border-amber-500/20 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900'
-            }`}>
+            <div className="text-[11px] font-mono p-2 rounded-lg border bg-amber-500/10 border-amber-500/20 text-amber-300">
               ⚡ <strong>Expected Impact:</strong> {currentTip.impact}
             </div>
           </div>
@@ -225,18 +217,16 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
               <Sparkles className="h-3.5 w-3.5" />
               <span>Personalized AI Focus Recommendation</span>
             </div>
-            <h4 className="font-serif italic text-sm font-bold mb-1.5">
+            <h4 className="font-heading font-bold text-sm text-white mb-1.5">
               {focusScore >= 80 ? 'Maintain High Flow & Vision Comfort' : 'Micro-Reset Strategy for High Attention'}
             </h4>
-            <p className={`text-xs font-sans leading-relaxed mb-2 font-medium ${isDark ? 'text-slate-200' : 'text-[#1C1B1A]'}`}>
+            <p className="text-xs font-sans leading-relaxed mb-2 font-medium text-slate-200">
               {focusScore >= 80
                 ? `You have logged ${completedSessions} study slots with an impressive ${focusScore}% focus average! To sustain this level for upcoming tests, take a 5-minute break every 25 minutes and dim non-essential background lights.`
                 : `Your live attention diagnostic is at ${focusScore}%. Take 3 deep breaths, adjust your chair height so your eyes align with the camera top, and run a short 15-minute diagnostic block to rebuild focus momentum.`
               }
             </p>
-            <div className={`text-[11px] font-mono p-2 rounded-lg border ${
-              isDark ? 'bg-rose-500/10 border-rose-500/20 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-900'
-            }`}>
+            <div className="text-[11px] font-mono p-2 rounded-lg border bg-rose-500/10 border-rose-500/20 text-rose-300">
               🎯 <strong>Pro Tip:</strong> {streakDays}-day active streak multiplier (+1.2x XP) active!
             </div>
           </div>
