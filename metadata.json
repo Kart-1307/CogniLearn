@@ -1,0 +1,8 @@
+{
+  "name": "CogniLearn",
+  "description": "Student Focus Tracking & Improvement System - Interactive dashboard and tracking tool for classrooms and individuals.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
