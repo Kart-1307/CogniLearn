@@ -4,7 +4,6 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { getSupabase } from './supabase';
 import authRoutes from './routes/auth';
 import studentRoutes from './routes/student';
@@ -34,13 +33,18 @@ app.use('/api/baseline', baselineRoutes);
 app.use('/api/user', userRoutes);
 
 async function startServer() {
-  // Vite middleware for development / Static serve for production
+  // Vite middleware for local development / Static serve for production Node
   if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
+    try {
+      const { createServer: createViteServer } = await import('vite');
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    } catch (e) {
+      console.warn('[Vite Dev Middleware Warning]:', e);
+    }
   } else if (!process.env.VERCEL) {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));

@@ -13,6 +13,35 @@ const getAuthHeaders = (): Record<string, string> => {
   return headers;
 };
 
+async function safeParseJson(response: Response): Promise<any> {
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    try {
+      return await response.json();
+    } catch {
+      // JSON parsing error fallback
+    }
+  }
+  
+  const rawText = await response.text();
+  if (!response.ok) {
+    if (response.status === 500) {
+      throw new Error('Server error (500). Please check your database connection or environment credentials.');
+    } else if (response.status === 502 || response.status === 504) {
+      throw new Error(`Server gateway error (${response.status}). Server function timed out or is restarting.`);
+    } else {
+      const isHtml = rawText.trim().startsWith('<') || rawText.toLowerCase().includes('html');
+      throw new Error(isHtml ? `Server error (${response.status})` : rawText || `HTTP ${response.status}`);
+    }
+  }
+
+  try {
+    return JSON.parse(rawText);
+  } catch {
+    throw new Error('Invalid JSON response format received from server.');
+  }
+}
+
 export const api = {
   auth: {
     register: async (payload: {
@@ -38,7 +67,7 @@ export const api = {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) {
         throw new Error(data.message || 'Registration failed');
       }
@@ -56,7 +85,7 @@ export const api = {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
       }
@@ -76,7 +105,7 @@ export const api = {
           headers: getAuthHeaders(),
         });
         if (!response.ok) return null;
-        const data = await response.json();
+        const data = await safeParseJson(response);
         return data.user;
       } catch (err) {
         return null;
@@ -93,7 +122,7 @@ export const api = {
       const response = await fetch(`${API_BASE}/student/profile`, {
         headers: getAuthHeaders(),
       });
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) throw new Error(data.message || 'Failed to load profile');
       return data;
     },
@@ -104,7 +133,7 @@ export const api = {
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) throw new Error(data.message || 'Failed to record session');
       return data;
     },
@@ -120,7 +149,7 @@ export const api = {
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) throw new Error(data.message || 'Failed to record break');
       return data;
     },
@@ -131,7 +160,7 @@ export const api = {
         headers: getAuthHeaders(),
         body: JSON.stringify({ avatar }),
       });
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) throw new Error(data.message || 'Failed to update avatar photo');
       return data;
     },
@@ -150,7 +179,7 @@ export const api = {
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) throw new Error(data.message || 'Failed to save baseline score');
       return data;
     },
@@ -159,7 +188,7 @@ export const api = {
       const response = await fetch(`${API_BASE}/baseline/scores`, {
         headers: getAuthHeaders(),
       });
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) throw new Error(data.message || 'Failed to fetch baseline scores');
       return data.scores;
     },
@@ -172,7 +201,7 @@ export const api = {
         headers: getAuthHeaders(),
         body: JSON.stringify(updateData),
       });
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) throw new Error(data.message || 'Failed to update profile');
       return data;
     },
@@ -182,7 +211,7 @@ export const api = {
         method: 'DELETE',
         headers: getAuthHeaders(),
       });
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) throw new Error(data.message || 'Failed to delete account');
       localStorage.removeItem('cognilearn_token');
       return data;
@@ -193,7 +222,7 @@ export const api = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-      const data = await response.json();
+      const data = await safeParseJson(response);
       if (!response.ok) throw new Error(data.message || 'Failed to reset database');
       localStorage.removeItem('cognilearn_token');
       localStorage.removeItem('cognilearn_recent_activities');
