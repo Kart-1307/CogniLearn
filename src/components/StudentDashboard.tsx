@@ -300,12 +300,69 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     setIsTracking(true);
   };
 
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+
   // Handler to Stop Attention Diagnostic Tracking (Automatic Completion or Manual Stop)
-  const handleStopDiagnostic = (status: 'Completed' | 'Manually Stopped') => {
+  const handleStopDiagnostic = async (status: 'Completed' | 'Manually Stopped') => {
     setIsTracking(false);
+    setIsGeneratingAI(true);
     const now = Date.now();
     const startTime = diagnosticStartTimestamp || now;
     const elapsedSeconds = Math.max(1, Math.round((now - startTime) / 1000));
+
+    const metrics = {
+      avgFocusScore: focusScore,
+      peakFocusScore: Math.min(99, focusScore + 7),
+      minFocusScore: Math.max(52, focusScore - 14),
+      optimalFocusPercent: Math.round(focusScore * 0.85),
+      moderateFocusPercent: Math.round((100 - focusScore) * 0.6),
+      distractedPercent: Math.max(0, 100 - Math.round(focusScore * 0.85) - Math.round((100 - focusScore) * 0.6)),
+      gazeShiftsCount: Math.floor(elapsedSeconds / 50) + 1,
+      meshQuality: 'Optimal (68 Coordinates)',
+    };
+
+    let observations = [
+      `Maintained average focus score of ${focusScore}% during the ${status === 'Completed' ? 'full session' : 'tracked period'}.`,
+      `Gaze tracking stayed within primary target threshold with ${Math.floor(elapsedSeconds / 50) + 1} vector drift alerts recorded.`,
+      `Facial landmark wireframe mesh remained synchronized across 68 coordinate points.`,
+    ];
+    let recommendations = [
+      'Take a 5-minute cognitive rest before starting your next intensive study block.',
+      'Maintain adequate room illumination to minimize eye strain.',
+      'Optimal focal intervals achieved; continue tracking session trends.',
+    ];
+    let aiActionPlan: string[] | undefined = undefined;
+
+    // Call Gemini API for AI-based report generation
+    try {
+      const aiRes = await api.report.generateAIReport({
+        isClassroom: false,
+        telemetry: {
+          studentName,
+          sessionTitle: diagnosticSessionTitle || 'Attention Diagnostic Session',
+          configuredDurationMinutes: diagnosticDuration,
+          actualDurationSeconds: elapsedSeconds,
+          status,
+          metrics,
+        },
+      });
+
+      if (aiRes?.aiGenerated && aiRes?.report) {
+        if (Array.isArray(aiRes.report.observations) && aiRes.report.observations.length > 0) {
+          observations = aiRes.report.observations;
+        }
+        if (Array.isArray(aiRes.report.recommendations) && aiRes.report.recommendations.length > 0) {
+          recommendations = aiRes.report.recommendations;
+        }
+        if (Array.isArray(aiRes.report.aiActionPlan) && aiRes.report.aiActionPlan.length > 0) {
+          aiActionPlan = aiRes.report.aiActionPlan;
+        }
+      }
+    } catch (err) {
+      console.warn('[CogniLearn] AI report API call failed or unavailable; using fallback report rules:', err);
+    } finally {
+      setIsGeneratingAI(false);
+    }
 
     const report: StudentDiagnosticReport = {
       id: `diag-student-${Date.now()}`,
@@ -317,26 +374,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       configuredDurationMinutes: diagnosticDuration,
       actualDurationSeconds: elapsedSeconds,
       status,
-      metrics: {
-        avgFocusScore: focusScore,
-        peakFocusScore: Math.min(99, focusScore + 7),
-        minFocusScore: Math.max(52, focusScore - 14),
-        optimalFocusPercent: Math.round(focusScore * 0.85),
-        moderateFocusPercent: Math.round((100 - focusScore) * 0.6),
-        distractedPercent: Math.max(0, 100 - Math.round(focusScore * 0.85) - Math.round((100 - focusScore) * 0.6)),
-        gazeShiftsCount: Math.floor(elapsedSeconds / 50) + 1,
-        meshQuality: 'Optimal (68 Coordinates)',
-      },
-      observations: [
-        `Maintained average focus score of ${focusScore}% during the ${status === 'Completed' ? 'full session' : 'tracked period'}.`,
-        `Gaze tracking stayed within primary target threshold with ${Math.floor(elapsedSeconds / 50) + 1} vector drift alerts recorded.`,
-        `Facial landmark wireframe mesh remained synchronized across 68 coordinate points.`,
-      ],
-      recommendations: [
-        'Take a 5-minute cognitive rest before starting your next intensive study block.',
-        'Maintain adequate room illumination to minimize eye strain.',
-        'Optimal focal intervals achieved; continue tracking session trends.',
-      ],
+      metrics,
+      observations,
+      recommendations,
+      aiActionPlan,
     };
 
     setLatestReport(report);
@@ -751,7 +792,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     value={diagnosticSessionTitle}
                     onChange={(e) => setDiagnosticSessionTitle(e.target.value)}
                     placeholder="Enter session topic..."
-                    className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:border-indigo-500 rounded-lg font-medium transition-colors"
+                    className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
                   />
                 </div>
 
@@ -801,7 +842,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         placeholder="Minutes (e.g. 25)..."
                         value={customDurationInput}
                         onChange={(e) => setCustomDurationInput(e.target.value)}
-                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-1.5 outline-none focus:border-indigo-500 rounded-lg font-medium transition-colors"
+                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
                       />
                     </div>
                   )}
@@ -888,7 +929,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
             {/* Generate / View Latest Report Option */}
             {latestReport && !isTracking && (
-              <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-white">
+              <div className="mt-3 pt-3 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-white">
                 <div className="text-[10px] font-mono">
                   <span className="font-bold block text-indigo-300">Latest Diagnostic Ready</span>
                   <span className="font-sans font-medium text-slate-300">{latestReport.status} • {latestReport.metrics.avgFocusScore}% Focus</span>
@@ -954,7 +995,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   placeholder="Add custom task objective..."
                   value={newTaskText}
                   onChange={(e) => setNewTaskText(e.target.value)}
-                  className="flex-1 text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:border-sky-500 rounded-lg font-medium transition-colors"
+                  className="flex-1 text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:ring-1 focus:ring-sky-500 rounded-lg font-medium transition-colors"
                 />
                 <button
                   type="submit"

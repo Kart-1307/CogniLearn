@@ -3,9 +3,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { getSupabase, isSupabaseConfigured, mapUserFromDB } from '../supabase';
 import { memoryStore } from '../memoryStore';
+import { JWT_SECRET } from '../authMiddleware';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'cognilearn_super_secret_jwt_key_2026';
 
 // Register endpoint
 router.post('/register', async (req: Request, res: Response): Promise<void> => {

@@ -11,7 +11,8 @@ export type CognitiveState =
   | 'SCREEN_ENGAGEMENT'      // Looking directly at screen / video
   | 'NOTE_TAKING'            // Downward pitch (15° - 35°), centered body, active solving/writing
   | 'COGNITIVE_REFLECTION'   // Brief upward/aside pause (<3.5s) while processing thoughts
-  | 'GENUINE_DISTRACTION';   // Sustained off-target gaze (>3.5s) or prolonged eye closure (PERCLOS)
+  | 'OFF_TASK_ESTIMATED'     // Sustained off-target gaze (>3.5s) or prolonged eye closure (PERCLOS)
+  | 'GENUINE_DISTRACTION';   // Backward compatibility alias
 
 export interface CognitiveFeatures {
   earLeft: number;
@@ -31,6 +32,8 @@ export interface CognitiveFeatures {
 export interface CognitiveInferenceResult {
   state: CognitiveState;
   stateLabel: string;
+  confidence: number;
+  reasons: string[];
   probabilities: {
     screen: number;
     noteTaking: number;
@@ -49,12 +52,15 @@ interface FrameRecord {
   pitch: number;
   yaw: number;
   irisOffsetX: number;
+  isClosed: boolean;
 }
 
 export class CognitiveAttentionModel {
-  // Rolling temporal buffer: stores up to 90 frames (~3 sec at 30fps)
+  // Time-based rolling buffer (keeps up to 45 seconds of continuous frames)
   private buffer: FrameRecord[] = [];
-  private maxBufferSize = 90;
+  private sessionStartTime = Date.now();
+  private openEarSamples: number[] = [];
+  private calibratedClosedEarThreshold = 0.18; // Default baseline fallback
 
   // Running smoothed score
   private smoothedScore = 90;
@@ -69,6 +75,9 @@ export class CognitiveAttentionModel {
    */
   public reset() {
     this.buffer = [];
+    this.openEarSamples = [];
+    this.sessionStartTime = Date.now();
+    this.calibratedClosedEarThreshold = 0.18;
     this.smoothedScore = 90;
     this.currentState = 'SCREEN_ENGAGEMENT';
     this.stateStartTime = Date.now();
@@ -84,56 +93,87 @@ export class CognitiveAttentionModel {
     pitch: number,
     roll: number,
     irisOffsetX: number,
-    irisOffsetY: number
+    irisOffsetY: number,
+    blendshapes?: Record<string, number>,
+    context?: { isQuizActive?: boolean; hasRecentInteraction?: boolean }
   ): CognitiveInferenceResult {
     const now = Date.now();
     this.lastFrameTime = now;
 
-    // 1. Append frame to sliding buffer
-    this.buffer.push({ timestamp: now, avgEar, pitch, yaw, irisOffsetX });
-    if (this.buffer.length > this.maxBufferSize) {
+    // 1. Determine eye closure via blendshapes or calibrated EAR threshold
+    let isClosed = false;
+    if (blendshapes && (blendshapes['eyeBlinkLeft'] !== undefined || blendshapes['eyeBlinkRight'] !== undefined)) {
+      const blinkLeft = blendshapes['eyeBlinkLeft'] ?? 0;
+      const blinkRight = blendshapes['eyeBlinkRight'] ?? 0;
+      const blinkScore = (blinkLeft + blinkRight) / 2;
+      isClosed = blinkScore > 0.45 || avgEar < this.calibratedClosedEarThreshold;
+    } else {
+      isClosed = avgEar < this.calibratedClosedEarThreshold;
+    }
+
+    // 2. Dynamic EAR Calibration during initial 25s window for individual eyelid differences
+    const elapsedSession = now - this.sessionStartTime;
+    if (elapsedSession < 25000 && !isClosed) {
+      const absYawDeg = Math.abs(yaw) > 1.2 ? Math.abs(yaw) : Math.abs(yaw * 100);
+      if (absYawDeg < 22 && avgEar > 0.15) {
+        this.openEarSamples.push(avgEar);
+        if (this.openEarSamples.length >= 30) {
+          const sorted = [...this.openEarSamples].sort((a, b) => a - b);
+          const p10 = sorted[Math.floor(sorted.length * 0.10)];
+          this.calibratedClosedEarThreshold = Math.max(0.12, Math.min(0.22, p10 * 0.85));
+        }
+      }
+    }
+
+    // 3. Append frame to sliding buffer (45-second window)
+    this.buffer.push({ timestamp: now, avgEar, pitch, yaw, irisOffsetX, isClosed });
+    const windowCutoff = now - 45000;
+    while (this.buffer.length > 0 && this.buffer[0].timestamp < windowCutoff) {
       this.buffer.shift();
     }
 
-    // 2. Compute Temporal Features
+    // 4. Compute Temporal Features
     const perclos = this.computePerclos();
     const pitchVariance = this.computePitchVariance();
     const saccadeVelocity = this.computeSaccadeVelocity();
 
-    // 3. Multi-Class Decision Tree Forest (Softmax Probabilities)
-    // Class 0: SCREEN_ENGAGEMENT
-    // Class 1: NOTE_TAKING (pitch down, yaw centered, normal/low EAR due to down-gaze angle)
-    // Class 2: COGNITIVE_REFLECTION (pitch up/neutral, brief yaw deviation < 3.2s, low saccade)
-    // Class 3: GENUINE_DISTRACTION (sustained yaw > 0.22 for > 3.5s, or sustained PERCLOS > 0.45)
-
+    // 5. Multi-Class Decision Tree Forest (Softmax Probabilities)
     let pScreen = 0.05;
     let pNoteTaking = 0.05;
     let pReflection = 0.05;
     let pDistraction = 0.05;
 
-    const absYaw = Math.abs(yaw);
     const absIrisX = Math.abs(irisOffsetX);
 
-    // Human posture: when looking down at desk / notebook, pitch is positive (0.34 - 0.52),
-    // and head is reasonably centered (|yaw| <= 0.18). Eye aspect ratio naturally narrows when gazing downward.
-    const isDownwardDeskPosture = pitch >= 0.33 && pitch <= 0.54 && absYaw <= 0.19;
+    // Support angles passed either in degrees or legacy ratios
+    let effYaw = yaw;
+    let effPitch = pitch;
+    const isDegreeFormat = Math.abs(yaw) > 1.2 || Math.abs(pitch) > 1.2;
 
-    // Screen Engagement: Pitch between 0.22 and 0.33, Yaw within ±0.14
-    const isScreenFacing = pitch >= 0.20 && pitch <= 0.34 && absYaw <= 0.15 && absIrisX <= 0.07;
+    if (isDegreeFormat) {
+      effYaw = yaw / 100;
+      effPitch = 0.27 + (pitch / 100);
+    }
 
-    // Reflection glance: looking slightly upward (pitch < 0.20) or slight gentle side-drift (|yaw| 0.14 - 0.26)
-    const isGentleGlanceAway = (pitch < 0.20 && absYaw <= 0.24) || (absYaw > 0.15 && absYaw <= 0.28 && pitch <= 0.36);
+    const absYaw = Math.abs(effYaw);
+
+    // Human posture: note taking pitch is positive (0.33 - 0.54), yaw centered
+    const isDownwardDeskPosture = effPitch >= 0.33 && effPitch <= 0.54 && absYaw <= 0.19;
+
+    // Screen Engagement: Pitch between 0.20 and 0.34, Yaw within ±0.15
+    const isScreenFacing = effPitch >= 0.20 && effPitch <= 0.34 && absYaw <= 0.15 && absIrisX <= 0.07;
+
+    // Reflection glance: looking slightly upward (pitch < 0.20) or slight gentle side-drift
+    const isGentleGlanceAway = (effPitch < 0.20 && absYaw <= 0.24) || (absYaw > 0.15 && absYaw <= 0.28 && effPitch <= 0.36);
 
     // Sustained extreme turn: large yaw (> 0.28) or phone-in-lap steep drop (pitch > 0.56)
-    const isExtremeOffTarget = absYaw > 0.28 || pitch > 0.56;
+    const isExtremeOffTarget = absYaw > 0.28 || effPitch > 0.56;
 
     if (isScreenFacing) {
       pScreen += 0.85;
       pReflection += 0.08;
     } else if (isDownwardDeskPosture) {
-      // High confidence in note-taking / reading on notebook
       pNoteTaking += 0.82;
-      // If student is steady (low pitch variance), boost note taking confidence
       if (pitchVariance < 0.005) {
         pNoteTaking += 0.10;
       }
@@ -153,11 +193,16 @@ export class CognitiveAttentionModel {
       pReflection = Math.max(0.1, pReflection - 0.4);
     }
 
-    // Heavy eye closure (PERCLOS > 40%) indicates genuine drowsiness, not just normal 200ms blinks
-    if (perclos > 0.40) {
+    // Heavy eye closure (PERCLOS > 35%) indicates genuine drowsiness
+    if (perclos > 0.35) {
       pDistraction += 0.75;
       pScreen = Math.max(0.05, pScreen - 0.5);
       pNoteTaking = Math.max(0.05, pNoteTaking - 0.5);
+    }
+
+    // Context adjustments
+    if (context?.isQuizActive && isScreenFacing) {
+      pScreen += 0.10;
     }
 
     // Normalize probabilities using Softmax
@@ -176,7 +221,7 @@ export class CognitiveAttentionModel {
     if (maxProb === norm.screen) newState = 'SCREEN_ENGAGEMENT';
     else if (maxProb === norm.noteTaking) newState = 'NOTE_TAKING';
     else if (maxProb === norm.reflection) newState = 'COGNITIVE_REFLECTION';
-    else newState = 'GENUINE_DISTRACTION';
+    else newState = 'OFF_TASK_ESTIMATED';
 
     // State dwell time tracking
     if (newState !== this.currentState) {
@@ -184,7 +229,6 @@ export class CognitiveAttentionModel {
       this.stateStartTime = now;
     }
 
-    // 4. Compute Human-Realistic Focus Score (with graceful temporal smoothing)
     // Target instantaneous score based on state
     let targetScore = 95;
 
@@ -193,22 +237,18 @@ export class CognitiveAttentionModel {
         targetScore = 96 - Math.round(absYaw * 35) - Math.round(absIrisX * 40);
         break;
       case 'NOTE_TAKING':
-        // Real-world note taking is high focus work! Maintain 84% - 92%
         targetScore = 88 - Math.round(absYaw * 30);
         break;
       case 'COGNITIVE_REFLECTION':
-        // Brief reflection does not penalize heavily, stays at 80% - 85%
         targetScore = Math.max(76, 84 - Math.round(Math.min(3, dwellSeconds) * 2));
         break;
-      case 'GENUINE_DISTRACTION':
-        // Gradual decay curve rather than instant drop to 20%
-        // Drops gradually with dwell time
+      case 'OFF_TASK_ESTIMATED':
         const penalty = Math.min(55, 20 + dwellSeconds * 8);
         targetScore = Math.max(18, 70 - penalty);
         break;
     }
 
-    // Exponential Moving Average (EMA) smoothing: alpha = 0.12 (prevents jerky frame fluctuations)
+    // EMA smoothing: alpha = 0.12
     const alpha = 0.12;
     this.smoothedScore = Math.round(alpha * targetScore + (1 - alpha) * this.smoothedScore);
     this.smoothedScore = Math.max(15, Math.min(99, this.smoothedScore));
@@ -234,18 +274,47 @@ export class CognitiveAttentionModel {
         statusMessage = dwellSeconds < 2 ? 'Processing Information (Brief Pause)' : 'Cognitive Reflection Window';
         recommendedColor = '#FBBF24'; // Warm Amber
         break;
-      case 'GENUINE_DISTRACTION':
-        stateLabel = perclos > 0.40 ? 'Drowsiness Alert' : 'Off-Task Gaze';
-        statusMessage = perclos > 0.40 
+      case 'OFF_TASK_ESTIMATED':
+        stateLabel = perclos > 0.35 ? 'Drowsiness Alert' : 'Off-Task (Estimated)';
+        statusMessage = perclos > 0.35 
           ? 'Prolonged Eye Closure Detected' 
-          : `Gaze Drifted Away (${dwellSeconds.toFixed(1)}s)`;
+          : `Off-Task Gaze Estimated (${dwellSeconds.toFixed(1)}s)`;
         recommendedColor = '#FF5A5F'; // Coral / Alert
         break;
     }
 
+    // Explainability reasons
+    const reasons: string[] = [];
+    if (newState === 'SCREEN_ENGAGEMENT') {
+      reasons.push(`Direct screen engagement (Yaw: ${(effYaw * 100).toFixed(0)}°, Pitch: ${((effPitch - 0.27) * 100).toFixed(0)}°)`);
+      if (perclos < 0.15) reasons.push(`Alert blink rate (PERCLOS: ${(perclos * 100).toFixed(0)}%)`);
+      if (context?.isQuizActive) reasons.push('Active quiz engagement confirmed');
+    } else if (newState === 'NOTE_TAKING') {
+      reasons.push(`Desk reading/writing posture detected (Pitch: ${((effPitch - 0.27) * 100).toFixed(0)}° downward)`);
+      if (pitchVariance < 0.005) reasons.push('Steady head posture indicates active problem solving');
+    } else if (newState === 'COGNITIVE_REFLECTION') {
+      reasons.push(`Brief reflective pause (${dwellSeconds.toFixed(1)}s < 3.5s limit)`);
+      reasons.push('Natural cognitive processing gaze');
+    } else {
+      if (perclos > 0.35) {
+        reasons.push(`High eye closure rate (PERCLOS: ${(perclos * 100).toFixed(0)}% > 35%)`);
+        reasons.push('Extended eye closure indicates fatigue or drowsiness');
+      } else {
+        reasons.push(`Head turned off-target (Yaw: ${(effYaw * 100).toFixed(0)}°, dwell: ${dwellSeconds.toFixed(1)}s)`);
+        reasons.push('Sustained visual distraction from lesson stream');
+      }
+    }
+
+    // Confidence derived from probability margin
+    const sortedProbs = [norm.screen, norm.noteTaking, norm.reflection, norm.distraction].sort((a, b) => b - a);
+    const probMargin = sortedProbs[0] - sortedProbs[1];
+    const confidence = Math.min(1.0, Math.max(0.40, Number((0.50 + probMargin * 0.75).toFixed(2))));
+
     return {
       state: newState,
       stateLabel,
+      confidence,
+      reasons,
       probabilities: norm,
       smoothedScore: this.smoothedScore,
       perclos,
@@ -255,12 +324,12 @@ export class CognitiveAttentionModel {
   }
 
   /**
-   * Calculates PERCLOS (Percentage of Eye Closure over time buffer).
-   * A true blink lasts 150-300ms. PERCLOS > 0.35 over 3 seconds indicates true fatigue.
+   * Calculates PERCLOS (Percentage of Eye Closure over temporal 45-second buffer).
+   * Frame-by-frame binary closure aggregated across the rolling window.
    */
   private computePerclos(): number {
     if (this.buffer.length < 10) return 0;
-    const closedCount = this.buffer.filter((f) => f.avgEar < 0.14).length;
+    const closedCount = this.buffer.filter((f) => f.isClosed).length;
     return Number((closedCount / this.buffer.length).toFixed(3));
   }
 
@@ -294,8 +363,46 @@ export const singleStudentCognitiveModel = new CognitiveAttentionModel();
 export const classroomCognitiveModels: Map<number | string, CognitiveAttentionModel> = new Map();
 
 export function getOrCreateClassroomModel(key: number | string): CognitiveAttentionModel {
-  if (!classroomCognitiveModels.has(key)) {
-    classroomCognitiveModels.set(key, new CognitiveAttentionModel());
+  const strKey = String(key);
+  if (!classroomCognitiveModels.has(strKey)) {
+    classroomCognitiveModels.set(strKey, new CognitiveAttentionModel());
   }
-  return classroomCognitiveModels.get(key)!;
+  return classroomCognitiveModels.get(strKey)!;
+}
+
+/**
+ * Migrates a track's cognitive model state to a student identity once identity locks.
+ */
+export function migrateClassroomModel(oldKey: number | string, newKey: number | string): CognitiveAttentionModel {
+  const oldStr = String(oldKey);
+  const newStr = String(newKey);
+  if (oldStr === newStr) {
+    return getOrCreateClassroomModel(newStr);
+  }
+  const existing = classroomCognitiveModels.get(oldStr);
+  if (existing) {
+    classroomCognitiveModels.set(newStr, existing);
+    classroomCognitiveModels.delete(oldStr);
+    return existing;
+  }
+  return getOrCreateClassroomModel(newStr);
+}
+
+/**
+ * Disposes a cognitive model when a track is permanently evicted.
+ */
+export function disposeClassroomModel(key: number | string): boolean {
+  return classroomCognitiveModels.delete(String(key));
+}
+
+/**
+ * Cleans up all models that are not in the active keys set.
+ */
+export function disposeUnusedClassroomModels(activeKeys: Set<number | string>) {
+  const stringKeys = new Set(Array.from(activeKeys).map((k) => String(k)));
+  for (const existingKey of classroomCognitiveModels.keys()) {
+    if (!stringKeys.has(String(existingKey))) {
+      classroomCognitiveModels.delete(existingKey);
+    }
+  }
 }

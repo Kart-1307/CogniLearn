@@ -46,26 +46,15 @@ function ensureDetailedMetrics(m: DiagnosticMetric) {
 
   const cognitiveMetrics = m.cognitiveMetrics || {
     focusStabilityIndex: Math.min(99, Math.max(40, Math.round(avg * 0.92 + 5))),
-    peakAttentionTime: '04m 15s',
-    lowestAttentionTime: '12m 30s',
+    peakAttentionTime: 'N/A',
+    lowestAttentionTime: 'N/A',
     focusDropEventsCount: m.gazeShiftsCount || Math.round((100 - avg) / 6),
     estimatedComprehensionRate: Math.min(98, Math.max(45, Math.round(avg * 0.95))),
     engagementLevel: (avg >= 82 ? 'Optimal Active' : avg >= 68 ? 'Sustained Steady' : avg >= 52 ? 'Variable Attention' : 'At-Risk') as any,
   };
 
-  // Generate 8 timeline samples across the session duration
-  const timelineSamples = m.timelineSamples || Array.from({ length: 8 }, (_, i) => {
-    const timeSec = (i + 1) * 120;
-    const mLabel = `${Math.floor(timeSec / 60).toString().padStart(2, '0')}:${(timeSec % 60).toString().padStart(2, '0')}`;
-    const scoreVariation = Math.sin(i * 1.2) * 12 + Math.cos(i * 0.8) * 8;
-    const score = Math.max(25, Math.min(99, Math.round(avg + scoreVariation)));
-    return {
-      timeSec,
-      timeLabel: mLabel,
-      focusScore: score,
-      gazeState: score > 75 ? 'Direct Center' : score > 55 ? 'Micro Shift' : 'Off Screen',
-    };
-  });
+  // Only use authentic telemetry timeline samples; do not generate synthetic sine-wave data
+  const timelineSamples = m.timelineSamples && m.timelineSamples.length > 0 ? m.timelineSamples : [];
 
   return {
     ...m,
@@ -245,6 +234,14 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
 
         {/* Scrollable Content Body */}
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
+          {/* Formative Learning & Non-Punitive Notice */}
+          <div className="bg-amber-500/10 border border-amber-500/20 px-4 py-3 rounded-xl flex items-center gap-3 text-xs text-amber-200/90 shadow-sm">
+            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+            <span className="leading-relaxed">
+              <strong className="font-semibold text-amber-300">Diagnostic Notice:</strong> This report is a formative learning tool generated from on-device computer vision estimates. It is not an assessment of academic ability, intent, or behavioral compliance.
+            </span>
+          </div>
+
           {/* 1. Overall Class Overview View */}
           {isClass && activeTab === 'class' && classReport && (
             <div className="space-y-6">
@@ -513,32 +510,40 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
 
                 {/* Visual Bar Timeline Graph */}
                 <div className="pt-2">
-                  <div className="h-24 w-full flex items-end gap-1.5 border-b border-[#1C1B1A]/20 pb-1">
-                    {currentStudentReport.metrics.timelineSamples?.map((sample, idx) => {
-                      const hPercent = sample.focusScore;
-                      const barColor = hPercent >= 75 ? 'bg-[#8A5A1B]' : hPercent >= 55 ? 'bg-amber-500' : 'bg-rose-500';
-                      return (
-                        <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative">
-                          {/* Tooltip on hover */}
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 bg-[#1C1B1A] text-white text-[9px] font-mono py-1 px-1.5 rounded whitespace-nowrap pointer-events-none z-10 shadow-lg">
-                            {sample.timeLabel}: {sample.focusScore}% ({sample.gazeState})
-                          </div>
-                          <motion.div
-                            className={`w-full ${barColor} rounded-t hover:brightness-110`}
-                            initial={{ height: 0 }}
-                            animate={{ height: `${hPercent}%` }}
-                            transition={{ duration: 0.6, ease: 'easeOut', delay: idx * 0.04 }}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
+                  {currentStudentReport.metrics.timelineSamples && currentStudentReport.metrics.timelineSamples.length > 0 ? (
+                    <>
+                      <div className="h-24 w-full flex items-end gap-1.5 border-b border-[#1C1B1A]/20 pb-1">
+                        {currentStudentReport.metrics.timelineSamples.map((sample, idx) => {
+                          const hPercent = sample.focusScore;
+                          const barColor = hPercent >= 75 ? 'bg-[#8A5A1B]' : hPercent >= 55 ? 'bg-amber-500' : 'bg-rose-500';
+                          return (
+                            <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative">
+                              {/* Tooltip on hover */}
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 bg-[#1C1B1A] text-white text-[9px] font-mono py-1 px-1.5 rounded whitespace-nowrap pointer-events-none z-10 shadow-lg">
+                                {sample.timeLabel}: {sample.focusScore}% ({sample.gazeState})
+                              </div>
+                              <motion.div
+                                className={`w-full ${barColor} rounded-t hover:brightness-110`}
+                                initial={{ height: 0 }}
+                                animate={{ height: `${hPercent}%` }}
+                                transition={{ duration: 0.6, ease: 'easeOut', delay: idx * 0.04 }}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                  <div className="flex justify-between items-center text-[9px] font-mono text-[#1C1B1A]/70 font-bold mt-2">
-                    {currentStudentReport.metrics.timelineSamples?.map((sample, idx) => (
-                      <span key={idx}>{sample.timeLabel}</span>
-                    ))}
-                  </div>
+                      <div className="flex justify-between items-center text-[9px] font-mono text-[#1C1B1A]/70 font-bold mt-2">
+                        {currentStudentReport.metrics.timelineSamples.map((sample, idx) => (
+                          <span key={idx}>{sample.timeLabel}</span>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-4 text-center text-xs font-mono text-slate-400 bg-slate-900/60 rounded-lg border border-slate-800">
+                      ℹ Limited continuous timeline data recorded for this session. Real-time focus curve unavailable.
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -251,4 +251,19 @@ export const api = {
       return data;
     },
   },
+
+  report: {
+    generateAIReport: async (payload: {
+      isClassroom?: boolean;
+      telemetry: any;
+    }) => {
+      const response = await fetch(`${API_BASE}/report/generate-ai`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload),
+      });
+      const data = await safeParseJson(response);
+      return data;
+    },
+  },
 };

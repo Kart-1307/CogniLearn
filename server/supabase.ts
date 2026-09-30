@@ -25,7 +25,12 @@ export function getSupabase(): SupabaseClient | null {
       supabaseInstance = null;
     }
   } else {
-    console.log('[Supabase]: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are not provided. Operating in-memory mode.');
+    if (process.env.NODE_ENV === 'production') {
+      console.error('\n❌ [FATAL DATABASE ERROR]: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required in production.');
+      console.error('In-memory fallback is strictly disabled in production to prevent silent data loss on stateless cloud workers.\n');
+      process.exit(1);
+    }
+    console.log('[Supabase]: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY not provided. Operating in development in-memory mode.');
     supabaseInstance = null;
   }
 

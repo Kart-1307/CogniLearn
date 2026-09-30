@@ -9,6 +9,7 @@ import {
   Lock, Mail, UserPlus, Info, ChevronDown, Clock, Square, History, SwitchCamera
 } from 'lucide-react';
 import { getMobileCompatibleCameraStream, attachStreamToVideo } from '../utils/cameraUtils';
+import { api } from '../services/api';
 import { StudentCameraFeed } from './StudentCameraFeed';
 import { ClassroomAutoTracker } from './ClassroomAutoTracker';
 import { DiagnosticReportModal } from './DiagnosticReportModal';
@@ -16,6 +17,12 @@ import { InfoTooltip } from './FocusTipCard';
 import { isDemoAccount } from '../utils/demoUtils';
 import { exportReportToPDF, exportReportToCSV } from '../utils/reportExport';
 import { Download } from 'lucide-react';
+import {
+  getAllBiometricRecords,
+  deleteBiometricRecord,
+  StudentBiometricRecord,
+} from '../utils/biometricStorage';
+import { subscribeToTelemetry } from '../services/telemetryStream';
 
 interface TeacherDashboardProps {
   user: User | null;
@@ -145,6 +152,22 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   useEffect(() => {
     localStorage.setItem(studentsStorageKey, JSON.stringify(students));
   }, [students, studentsStorageKey]);
+
+  // DPDP Biometric Enrollment Tracking
+  const [enrolledBiometrics, setEnrolledBiometrics] = useState<Map<string, StudentBiometricRecord>>(new Map());
+
+  const refreshBiometrics = async () => {
+    try {
+      const map = await getAllBiometricRecords();
+      setEnrolledBiometrics(map);
+    } catch (e) {
+      console.warn('Failed to load biometrics in TeacherDashboard:', e);
+    }
+  };
+
+  useEffect(() => {
+    refreshBiometrics();
+  }, [dashboardMode]);
 
   // --- Detailed Student Registration Signup-Style Form States ---
   const [showDetailedAddForm, setShowDetailedAddForm] = useState(false);
@@ -396,6 +419,28 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     }
   };
 
+  // Live per-device telemetry subscription from student cameras
+  useEffect(() => {
+    const unsubscribe = subscribeToTelemetry('default_class', (packet) => {
+      setAutoTrackedMap((prev) => ({
+        ...prev,
+        [packet.studentId]: {
+          matched: true,
+          score: packet.focusScore,
+          gaze: packet.state,
+          confidence: 95,
+        },
+      }));
+      setRoomCamsFocus((prev) => ({
+        ...prev,
+        [packet.studentId]: packet.focusScore,
+      }));
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   // Get active class details
   const activeClass = classes.find(c => c.id === activeClassId) || classes[0] || {
     id: '',
@@ -628,9 +673,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     setIsRoomTracking(true);
   };
 
+  const [isGeneratingClassroomAI, setIsGeneratingClassroomAI] = useState(false);
+
   // Handle Stopping Classroom Diagnostic Tracking (Automatic or Manual Stop)
-  const handleStopClassroomDiagnostic = (status: 'Completed' | 'Manually Stopped') => {
+  const handleStopClassroomDiagnostic = async (status: 'Completed' | 'Manually Stopped') => {
     setIsRoomTracking(false);
+    setIsGeneratingClassroomAI(true);
     const now = Date.now();
     const startTime = teacherStartTimestamp || now;
     const elapsedSeconds = Math.max(1, Math.round((now - startTime) / 1000));
@@ -672,6 +720,48 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       };
     });
 
+    const distractedStudentsCount = studentReports.filter(s => s.metrics.avgFocusScore < 60).length;
+    const optimalStudentsCount = studentReports.filter(s => s.metrics.avgFocusScore >= 80).length;
+
+    let classObservations = [
+      `${activeClass.name} achieved a live classroom focus average of ${liveClassFocusAvg}% across ${testingStudents.length} monitored camera channels.`,
+      `Class session status recorded as ${status} after ${Math.floor(elapsedSeconds / 60)} minutes and ${elapsedSeconds % 60} seconds.`,
+    ];
+    let classRecommendations = [
+      'Review individual student distraction logs for pupils below 60% focus.',
+      'Incorporate 3-minute mental refresh breaks between dense lecture segments.',
+    ];
+
+    try {
+      const aiRes = await api.report.generateAIReport({
+        isClassroom: true,
+        telemetry: {
+          className: activeClass.name,
+          studentsCount: testingStudents.length,
+          configuredDurationMinutes: teacherDiagDuration,
+          actualDurationSeconds: elapsedSeconds,
+          status,
+          avgClassFocus: liveClassFocusAvg,
+          peakClassFocus: Math.min(99, liveClassFocusAvg + 8),
+          distractedStudentsCount,
+          optimalStudentsCount,
+        },
+      });
+
+      if (aiRes?.aiGenerated && aiRes?.report) {
+        if (Array.isArray(aiRes.report.classObservations) && aiRes.report.classObservations.length > 0) {
+          classObservations = aiRes.report.classObservations;
+        }
+        if (Array.isArray(aiRes.report.classRecommendations) && aiRes.report.classRecommendations.length > 0) {
+          classRecommendations = aiRes.report.classRecommendations;
+        }
+      }
+    } catch (err) {
+      console.warn('[CogniLearn] Classroom AI report call failed or unavailable; using fallback rules:', err);
+    } finally {
+      setIsGeneratingClassroomAI(false);
+    }
+
     const classReport: ClassDiagnosticReport = {
       id: `class-diag-${Date.now()}`,
       classId: activeClassId,
@@ -685,16 +775,10 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       studentsCount: testingStudents.length,
       avgClassFocus: liveClassFocusAvg,
       peakClassFocus: Math.min(99, liveClassFocusAvg + 8),
-      distractedStudentsCount: studentReports.filter(s => s.metrics.avgFocusScore < 60).length,
-      optimalStudentsCount: studentReports.filter(s => s.metrics.avgFocusScore >= 80).length,
-      classObservations: [
-        `${activeClass.name} achieved a live classroom focus average of ${liveClassFocusAvg}% across ${testingStudents.length} monitored camera channels.`,
-        `Class session status recorded as ${status} after ${Math.floor(elapsedSeconds / 60)} minutes and ${elapsedSeconds % 60} seconds.`,
-      ],
-      classRecommendations: [
-        'Review individual student distraction logs for pupils below 60% focus.',
-        'Incorporate 3-minute mental refresh breaks between dense lecture segments.',
-      ],
+      distractedStudentsCount,
+      optimalStudentsCount,
+      classObservations,
+      classRecommendations,
       studentReports,
     };
 
@@ -890,7 +974,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       setActiveClassId(e.target.value);
                       setShowDetailedAddForm(false);
                     }}
-                    className="text-xs border border-slate-700 rounded-lg px-4 py-2.5 font-bold outline-none cursor-pointer pr-8 appearance-none bg-slate-900 text-white focus:border-indigo-500 transition-colors"
+                    className="text-xs border border-slate-700 rounded-lg px-4 py-2.5 font-bold outline-none cursor-pointer pr-8 appearance-none bg-slate-900 text-white focus:ring-1 focus:ring-indigo-500 transition-colors"
                   >
                     {classes.length === 0 ? (
                       <option value="" className="bg-slate-900 text-white">
@@ -930,7 +1014,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       placeholder="e.g. Class XI-Science"
                       value={newClassName}
                       onChange={(e) => setNewClassName(e.target.value)}
-                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:border-indigo-500"
+                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                   <div>
@@ -940,7 +1024,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       placeholder="e.g. Chemistry Lab 3"
                       value={newClassRoom}
                       onChange={(e) => setNewClassRoom(e.target.value)}
-                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:border-indigo-500"
+                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
@@ -1062,7 +1146,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           placeholder="e.g. Karthik Sharma"
                           value={detailedName}
                           onChange={(e) => setDetailedName(e.target.value)}
-                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-1 focus:ring-rose-500' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-1 focus:ring-[#1C1B1A]'
                             }`}
                         />
                         {detailedErrors.name && (
@@ -1081,7 +1165,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           placeholder="e.g. karthik.sharma@kv.edu.in"
                           value={detailedEmail}
                           onChange={(e) => setDetailedEmail(e.target.value)}
-                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-1 focus:ring-rose-500' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-1 focus:ring-[#1C1B1A]'
                             }`}
                         />
                         {detailedErrors.email && (
@@ -1100,7 +1184,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           placeholder="e.g. 12"
                           value={detailedRollNo}
                           onChange={(e) => setDetailedRollNo(e.target.value)}
-                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-1 focus:ring-rose-500' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-1 focus:ring-[#1C1B1A]'
                             }`}
                         />
                         {detailedErrors.rollNo && (
@@ -1119,7 +1203,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                           placeholder="student123"
                           value={detailedPassword}
                           onChange={(e) => setDetailedPassword(e.target.value)}
-                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-1 focus:ring-rose-500' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-1 focus:ring-[#1C1B1A]'
                             }`}
                         />
                         {detailedErrors.password && (
@@ -1136,7 +1220,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         <select
                           value={detailedGender}
                           onChange={(e) => setDetailedGender(e.target.value)}
-                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-1 focus:ring-rose-500' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-1 focus:ring-[#1C1B1A]'
                             }`}
                         >
                           <option value="Male" className={isDark ? 'bg-[#0F172A]' : 'bg-white'}>Male</option>
@@ -1152,7 +1236,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                         <select
                           value={detailedFocusBaseline}
                           onChange={(e) => setDetailedFocusBaseline(e.target.value)}
-                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                          className={`w-full text-xs border-2 rounded-xl px-3 py-2.5 outline-none font-medium ${isDark ? 'bg-[#1E293B] border-slate-600 text-white focus:ring-1 focus:ring-rose-500' : 'bg-white border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-1 focus:ring-[#1C1B1A]'
                             }`}
                         >
                           <option value="Optimal Focus" className={isDark ? 'bg-[#0F172A]' : 'bg-white'}>Optimal Focus</option>
@@ -1375,7 +1459,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                       placeholder="Add custom subject (e.g., Biology)..."
                       value={newSubject}
                       onChange={(e) => setNewSubject(e.target.value)}
-                      className={`flex-1 text-xs border-2 rounded-xl px-3 py-2 outline-none font-medium ${isDark ? 'bg-[#0F172A] border-slate-600 text-white focus:border-[#FF5A5F]' : 'bg-[#F8F7F4] border-[#1C1B1A]/30 text-[#1C1B1A] focus:border-[#1C1B1A]'
+                      className={`flex-1 text-xs border-2 rounded-xl px-3 py-2 outline-none font-medium ${isDark ? 'bg-[#0F172A] border-slate-600 text-white focus:ring-1 focus:ring-rose-500' : 'bg-[#F8F7F4] border-[#1C1B1A]/30 text-[#1C1B1A] focus:ring-1 focus:ring-[#1C1B1A]'
                         }`}
                     />
                     <button
@@ -1726,7 +1810,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             placeholder="Custom Minutes (e.g. 20)..."
                             value={teacherCustomDurationInput}
                             onChange={(e) => setTeacherCustomDurationInput(e.target.value)}
-                            className="w-full text-xs bg-[#111113] border border-white/10 rounded px-2.5 py-1 text-[#F8F7F4] outline-none focus:border-[#FF5A5F]"
+                            className="w-full text-xs bg-[#111113] border border-white/10 rounded px-2.5 py-1 text-[#F8F7F4] outline-none focus:ring-1 focus:ring-rose-500"
                           />
                         </div>
                       )}
@@ -1864,8 +1948,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     } else if (matchData.cognitiveState === 'COGNITIVE_REFLECTION') {
                       statusText = 'Cognitive Reflection';
                       themeBorder = 'border-amber-500/50 bg-amber-950/20';
-                    } else if (matchData.cognitiveState === 'GENUINE_DISTRACTION' || score < 60) {
-                      statusText = 'Distracted';
+                    } else if (
+                      matchData.cognitiveState === 'OFF_TASK_ESTIMATED' ||
+                      (matchData.cognitiveState as string) === 'GENUINE_DISTRACTION' ||
+                      score < 60
+                    ) {
+                      statusText = 'Off-Task (Estimated)';
                       themeBorder = 'border-rose-500/50 bg-rose-950/20';
                     } else if (score >= 80) {
                       statusText = 'Optimal Focus';
@@ -1959,6 +2047,34 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             </span>
                           </div>
                         )}
+
+                        {/* Biometric Template Status & DPDP Erasure */}
+                        <div className="flex items-center justify-between text-[8px] pt-1.5 border-t border-white/5 font-mono">
+                          {enrolledBiometrics.has(String(student.id)) ? (
+                            <>
+                              <span className="text-cyan-400 bg-cyan-950/40 border border-cyan-800/60 px-1.5 py-0.5 rounded font-bold">
+                                512-D ENROLLED
+                              </span>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm(`Delete encrypted 512-D biometric template for ${student.name}? This permanently removes all local biometric data.`)) {
+                                    await deleteBiometricRecord(student.id);
+                                    await refreshBiometrics();
+                                  }
+                                }}
+                                className="text-rose-400 hover:text-rose-300 underline cursor-pointer"
+                                title="Permanently erase encrypted biometric template from device"
+                              >
+                                Erase Biometric
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-slate-500 bg-slate-800/40 border border-slate-700/60 px-1.5 py-0.5 rounded">
+                              NO BIOMETRIC
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );

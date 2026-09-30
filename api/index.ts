@@ -1,3 +1,4 @@
+// @ts-ignore
 import app from '../dist/server.cjs';
 
 const handler = (app as any).default || app;
