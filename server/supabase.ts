@@ -45,6 +45,11 @@ export function isSupabaseConfigured(): boolean {
 // Convert DB user row (snake_case) to application User shape (camelCase)
 export function mapUserFromDB(row: any): any {
   if (!row) return null;
+  const isDemo = row.email === 'student@cognilearn.com' ||
+    row.email === 'teacher@cognilearn.com' ||
+    row.email === 'college-student@cognilearn.com' ||
+    row.email === 'college-teacher@cognilearn.com';
+
   return {
     _id: row.id,
     id: row.id,
@@ -56,7 +61,10 @@ export function mapUserFromDB(row: any): any {
     xp: Number(row.xp || 0),
     totalHours: Number(row.total_hours || 0),
     completedSessions: Number(row.completed_sessions || 0),
-    isDemo: row.email === 'student@cognilearn.com' || row.email === 'teacher@cognilearn.com',
+    isDemo,
+    tier: row.tier || (row.grade_level?.toLowerCase().includes('college') ? 'college' : 'school'),
+    academicProfile: row.academic_profile || null,
+    teacherProfile: row.teacher_profile || null,
     gradeLevel: row.grade_level,
     learningStyle: row.learning_style,
     curriculumTrack: row.curriculum_track,
@@ -66,6 +74,45 @@ export function mapUserFromDB(row: any): any {
     teacherIdNumber: row.teacher_id_number,
     department: row.department,
     assignedClasses: row.assigned_classes || [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+// Convert DB cohort row (snake_case) to application Cohort shape
+export function mapCohortFromDB(row: any): any {
+  if (!row) return null;
+  return {
+    id: row.id,
+    code: row.code,
+    tier: row.tier,
+    name: row.name,
+    standard: row.standard,
+    department: row.department,
+    schoolStream: row.school_stream,
+    academicYear: row.academic_year,
+    semester: row.semester,
+    section: row.section,
+    subject: row.subject,
+    room: row.room,
+    teacherId: row.teacher_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+// Convert DB enrollment row (snake_case) to application Enrollment shape
+export function mapEnrollmentFromDB(row: any): any {
+  if (!row) return null;
+  return {
+    id: row.id,
+    cohortId: row.cohort_id,
+    studentId: row.student_id,
+    rollNo: row.roll_no,
+    enrolledSubjects: row.enrolled_subjects || [],
+    status: row.status || 'active',
+    cohort: row.cohorts ? mapCohortFromDB(row.cohorts) : undefined,
+    student: row.users ? mapUserFromDB(row.users) : undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

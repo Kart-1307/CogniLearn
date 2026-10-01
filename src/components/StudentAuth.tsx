@@ -3,12 +3,14 @@ import { Route, User } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   User as UserIcon, ArrowLeft, Mail, Lock, AlertCircle, Eye, EyeOff,
-  CheckCircle2, Camera, FileText, Sparkles, ChevronRight, Award, Target, BookOpen, ShieldCheck, SwitchCamera
+  CheckCircle2, Camera, FileText, Sparkles, ChevronRight, Award, Target, BookOpen, ShieldCheck, SwitchCamera,
+  School, Building2, KeyRound, Search, Hash
 } from 'lucide-react';
 import { getMobileCompatibleCameraStream, attachStreamToVideo } from '../utils/cameraUtils';
 
 import { api } from '../services/api';
 import { getFaceLandmarker, analyzeFaceLandmarks, drawFaceCalibrationOverlay, FaceCalibrationStatus } from '../services/faceTracker';
+import { AcademicProfileForm } from './common/AcademicProfileForm';
 
 interface StudentAuthProps {
   mode: 'login' | 'signup';
@@ -17,7 +19,7 @@ interface StudentAuthProps {
 }
 
 export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute, onLoginSuccess }) => {
-  // Wizard step state (1: Credentials, 2: Photo Capture, 3: Academic Preferences)
+  // Wizard step state (1: Credentials, 2: Academic Track / Class Code, 3: Photo Calibration)
   const [signupStep, setSignupStep] = useState<1 | 2 | 3>(1);
 
   // Common states
@@ -38,11 +40,21 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
   // Signup-specific states
   const [fullName, setFullName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [gradeLevel, setGradeLevel] = useState('Class 11');
+  const [gradeLevel, setGradeLevel] = useState('Class 10');
   const [learningStyle, setLearningStyle] = useState<'Visual' | 'Auditory' | 'Kinesthetic' | 'Reading/Writing'>('Visual');
   const [curriculumTrack, setCurriculumTrack] = useState('CBSE');
   const [targetFocusSlot, setTargetFocusSlot] = useState('25'); // minutes
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(['Mathematics', 'Physics']);
+
+  // Academic Onboarding (Step 2)
+  const [academicMode, setAcademicMode] = useState<'code' | 'profile'>('code');
+  const [joinCode, setJoinCode] = useState('');
+  const [joinRollNo, setJoinRollNo] = useState('');
+  const [verifiedCohort, setVerifiedCohort] = useState<any | null>(null);
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+  const [codeVerifyError, setCodeVerifyError] = useState('');
+  const [academicProfileData, setAcademicProfileData] = useState<any>(null);
+  const [isProfileValid, setIsProfileValid] = useState(false);
 
   // Preset Avatars
   const presetAvatars = [
@@ -158,9 +170,9 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
     cameraActiveRef.current = cameraActive;
   }, [cameraActive]);
 
-  // Turn off camera if user navigates away from Step 2
+  // Turn off camera if user navigates away from Step 3
   useEffect(() => {
-    if (signupStep !== 2 && cameraActive) {
+    if (signupStep !== 3 && cameraActive) {
       stopCamera();
     }
   }, [signupStep, cameraActive]);
@@ -232,12 +244,12 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
     if (videoRef.current) {
       const video = videoRef.current;
       const canvas = document.createElement('canvas');
-      canvas.width = 480;
-      canvas.height = 480;
+      canvas.width = 320;
+      canvas.height = 320;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.drawImage(video, 0, 0, 480, 480);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+        ctx.drawImage(video, 0, 0, 320, 320);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
         setAvatar(dataUrl);
       }
       stopCamera();
@@ -248,8 +260,37 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatar(reader.result as string);
+      reader.onload = (event) => {
+        const rawResult = event.target?.result as string;
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 320;
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            setAvatar(canvas.toDataURL('image/jpeg', 0.82));
+          } else {
+            setAvatar(rawResult);
+          }
+        };
+        img.onerror = () => setAvatar(rawResult);
+        img.src = rawResult;
       };
       reader.readAsDataURL(file);
     }
@@ -324,23 +365,103 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
     setSignupStep(2);
   };
 
+  // Verify Class Join Code
+  const handleVerifyCode = async (codeToVerify: string) => {
+    const clean = codeToVerify.trim().toUpperCase();
+    if (!clean) {
+      setCodeVerifyError('Please enter a class join code');
+      return;
+    }
+    setIsVerifyingCode(true);
+    setCodeVerifyError('');
+    try {
+      const cohort = await api.cohorts.verifyCode(clean);
+      setVerifiedCohort(cohort);
+      setIsVerifyingCode(false);
+    } catch (err: any) {
+      setVerifiedCohort(null);
+      setCodeVerifyError(err.message || 'Class cohort not found with code: ' + clean);
+      setIsVerifyingCode(false);
+    }
+  };
+
+  // Step 2 Next button handler
+  const handleStep2Next = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (academicMode === 'code') {
+      if (!joinCode.trim()) {
+        newErrors.joinCode = 'Please enter a class join code';
+      } else if (!verifiedCohort) {
+        newErrors.joinCode = 'Please verify class code before continuing';
+      }
+      if (!joinRollNo.trim()) {
+        newErrors.joinRollNo = 'Roll number / USN is required';
+      }
+    } else {
+      if (!isProfileValid) {
+        newErrors.academic = 'Please resolve all required academic profile fields';
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    setSignupStep(3);
+  };
+
   // Final Signup Submit
   const handleFinalSignupSubmit = async () => {
     setLoading(true);
     setErrors({});
 
     try {
-      const res = await api.auth.register({
+      const regPayload: any = {
         fullName,
         email,
         password,
         role: 'student',
         avatar,
-        gradeLevel,
-        learningStyle,
-        curriculumTrack,
-        studySchedule: targetFocusSlot === '25' ? '25m Pomodoro' : targetFocusSlot === '45' ? '45m Deep Work' : '60m Sprint',
-      });
+      };
+
+      if (academicMode === 'code' && verifiedCohort) {
+        regPayload.tier = verifiedCohort.tier;
+        regPayload.gradeLevel = verifiedCohort.standard || verifiedCohort.department;
+        regPayload.rollNo = joinRollNo.trim();
+        regPayload.enrolledSubjects = [verifiedCohort.subject];
+        regPayload.academicProfile = {
+          tier: verifiedCohort.tier,
+          institutionName: verifiedCohort.name,
+          standard: verifiedCohort.standard,
+          department: verifiedCohort.department,
+          section: verifiedCohort.section,
+          rollNo: joinRollNo.trim(),
+          subjects: [verifiedCohort.subject],
+          classCode: verifiedCohort.code,
+        };
+      } else if (academicProfileData) {
+        regPayload.tier = academicProfileData.tier;
+        regPayload.academicProfile = academicProfileData;
+        regPayload.gradeLevel = academicProfileData.standard || academicProfileData.department;
+        regPayload.rollNo = academicProfileData.rollNo;
+        regPayload.enrolledSubjects = academicProfileData.subjects;
+        regPayload.institutionName = academicProfileData.institutionName;
+      }
+
+      const res = await api.auth.register(regPayload);
+
+      // If joining via class code, bind enrollment
+      if (academicMode === 'code' && verifiedCohort) {
+        try {
+          await api.cohorts.join(joinCode.trim(), joinRollNo.trim());
+        } catch (joinErr: any) {
+          console.warn('[Cohort Join Warning]:', joinErr.message);
+        }
+      }
+
       setLoading(false);
       onLoginSuccess(res.user);
       setCurrentRoute('student-dashboard');
@@ -350,27 +471,31 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
     }
   };
 
-  const toggleSubject = (subject: string) => {
-    if (selectedSubjects.includes(subject)) {
-      setSelectedSubjects(selectedSubjects.filter(s => s !== subject));
+  const fillMockData = (track: 'school' | 'college' = 'school') => {
+    if (track === 'college') {
+      setEmail('college-student@cognilearn.com');
+      setPassword('password123');
+      setFullName('Rohan Varma (Demo)');
+      setConfirmPassword('password123');
+      setJoinCode('CS3B-9X');
+      setJoinRollNo('22CS084');
     } else {
-      setSelectedSubjects([...selectedSubjects, subject]);
+      setEmail('student@cognilearn.com');
+      setPassword('password123');
+      setFullName('Ananya Sharma (Demo)');
+      setConfirmPassword('password123');
+      setJoinCode('KV10-A');
+      setJoinRollNo('14');
     }
-  };
-
-  const fillMockData = () => {
-    setEmail('student@cognilearn.com');
-    setPassword('password123');
-    setFullName('Ananya Sharma (Demo)');
-    setConfirmPassword('password123');
     setErrors({});
   };
 
-  const handleQuickDemoLogin = async () => {
+  const handleQuickDemoLogin = async (track: 'school' | 'college' = 'school') => {
     setLoading(true);
     setErrors({});
+    const targetEmail = track === 'college' ? 'college-student@cognilearn.com' : 'student@cognilearn.com';
     try {
-      const res = await api.auth.login({ email: 'student@cognilearn.com', password: 'password123', role: 'student' });
+      const res = await api.auth.login({ email: targetEmail, password: 'password123', role: 'student' });
       setLoading(false);
       onLoginSuccess({
         ...res.user,
@@ -379,16 +504,35 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
       setCurrentRoute('student-dashboard');
     } catch {
       setLoading(false);
-      onLoginSuccess({
-        id: 'mem-user-student-1',
-        fullName: 'Ananya Sharma (Demo)',
-        email: 'student@cognilearn.com',
-        role: 'student',
-        xp: 1450,
-        totalHours: 24.5,
-        completedSessions: 12,
-        isDemo: true,
-      });
+      if (track === 'college') {
+        onLoginSuccess({
+          id: 'mem-user-student-2',
+          fullName: 'Rohan Varma (Demo)',
+          email: 'college-student@cognilearn.com',
+          role: 'student',
+          tier: 'college',
+          xp: 2180,
+          totalHours: 42.0,
+          completedSessions: 26,
+          isDemo: true,
+          gradeLevel: 'College 3rd Year',
+          department: 'Computer Science & Engineering',
+        });
+      } else {
+        onLoginSuccess({
+          id: 'mem-user-student-1',
+          fullName: 'Ananya Sharma (Demo)',
+          email: 'student@cognilearn.com',
+          role: 'student',
+          tier: 'school',
+          xp: 1450,
+          totalHours: 24.5,
+          completedSessions: 12,
+          isDemo: true,
+          gradeLevel: 'Class 10',
+          institutionName: 'Delhi Public School, R.K. Puram',
+        });
+      }
       setCurrentRoute('student-dashboard');
     }
   };
@@ -436,8 +580,8 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
               </span>
               <span className="text-slate-300">
                 {signupStep === 1 && 'Account Credentials'}
-                {signupStep === 2 && 'AI Profile Avatar'}
-                {signupStep === 3 && 'Academic Focus Goals'}
+                {signupStep === 2 && 'School / College Track'}
+                {signupStep === 3 && 'Face Calibration & Reticle'}
               </span>
             </div>
             <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden flex">
@@ -482,9 +626,9 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                     }
                   }}
                   placeholder="student@school.edu"
-                  className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.email
+                  className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.email
                       ? 'border border-rose-500'
-                      : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                     }`}
                 />
               </div>
@@ -520,9 +664,9 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                     }
                   }}
                   placeholder="••••••••"
-                  className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.password
+                  className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.password
                       ? 'border border-rose-500'
-                      : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                      : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                     }`}
                 />
                 <button
@@ -579,27 +723,46 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
               </button>
 
               {/* Quick Mock Login Helper */}
-              <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-lg text-center space-y-2.5">
-                <p className="text-xs font-semibold text-sky-300">
-                  Sandbox Student Demo (With Pre-loaded Stats)
+              <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl text-center space-y-3">
+                <p className="text-xs font-semibold text-slate-300 flex items-center justify-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Try Sandbox Student Demos (With Pre-loaded Stats)</span>
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={handleQuickDemoLogin}
-                    className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/30 text-sky-300 py-1.5 px-3.5 rounded-md text-xs font-semibold cursor-pointer transition-colors"
-                    id="btn-student-instant-demo"
+                    onClick={() => handleQuickDemoLogin('school')}
+                    className="inline-flex items-center justify-center space-x-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 py-2 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                    id="btn-student-instant-demo-school"
                   >
-                    <CheckCircle2 className="h-3.5 w-3.5 text-sky-400" />
-                    <span>Instant Demo Login</span>
+                    <School className="h-3.5 w-3.5 text-indigo-400" />
+                    <span>School Demo (Class 10-A)</span>
                   </button>
                   <button
                     type="button"
-                    onClick={fillMockData}
-                    className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 py-1.5 px-3.5 rounded-md text-xs font-medium cursor-pointer transition-colors"
-                    id="btn-student-mock-fill"
+                    onClick={() => handleQuickDemoLogin('college')}
+                    className="inline-flex items-center justify-center space-x-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 text-cyan-300 py-2 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                    id="btn-student-instant-demo-college"
                   >
-                    <span>Autofill Form</span>
+                    <Building2 className="h-3.5 w-3.5 text-cyan-400" />
+                    <span>College Demo (B.Tech CSE)</span>
+                  </button>
+                </div>
+                <div className="flex justify-center gap-2 pt-1 border-t border-slate-800/80">
+                  <button
+                    type="button"
+                    onClick={() => fillMockData('school')}
+                    className="text-[11px] text-slate-400 hover:text-indigo-300 transition-colors"
+                  >
+                    Autofill School Credentials
+                  </button>
+                  <span className="text-slate-600">•</span>
+                  <button
+                    type="button"
+                    onClick={() => fillMockData('college')}
+                    className="text-[11px] text-slate-400 hover:text-cyan-300 transition-colors"
+                  >
+                    Autofill College Credentials
                   </button>
                 </div>
               </div>
@@ -642,7 +805,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           }
                         }}
                         placeholder="Enter your full name"
-                        className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.fullName ? 'border border-rose-500' : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.fullName ? 'border border-rose-500' : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                           }`}
                       />
                     </div>
@@ -678,7 +841,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           }
                         }}
                         placeholder="student@school.edu"
-                        className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.email ? 'border border-rose-500' : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.email ? 'border border-rose-500' : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                           }`}
                       />
                     </div>
@@ -713,7 +876,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           }
                         }}
                         placeholder="At least 8 characters"
-                        className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.password ? 'border border-rose-500' : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.password ? 'border border-rose-500' : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                           }`}
                       />
                       <button
@@ -766,7 +929,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           }
                         }}
                         placeholder="Re-enter password"
-                        className={`block w-full pl-10 pr-4 py-2.5 bg-[#27272a] text-white text-sm focus:outline-none transition-all placeholder:opacity-40 ${errors.confirmPassword ? 'border-rose-500' : 'border-slate-700 focus:border-indigo-500'
+                        className={`block w-full pl-10 pr-4 py-2.5 bg-[#27272a] text-white text-sm focus:outline-none transition-all placeholder:opacity-40 ${errors.confirmPassword ? 'border-rose-500' : 'border-slate-700 focus:ring-2 focus:ring-indigo-500'
                           }`}
                       />
                     </div>
@@ -781,16 +944,33 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                   <div className="pt-3">
                     <button
                       type="submit"
-                      className="w-full inline-flex items-center justify-center space-x-2 bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-bold py-3.5 px-4 transition-colors cursor-pointer text-xs uppercase tracking-widest font-mono border-none"
+                      className="w-full inline-flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-colors cursor-pointer text-xs uppercase tracking-wider font-mono shadow-md shadow-indigo-600/30"
                     >
-                      <span>Continue to Profile Setup</span>
+                      <span>Continue to Academic Setup</span>
                       <ChevronRight className="h-4 w-4" />
                     </button>
+                    <div className="flex justify-center gap-2 pt-3 border-t border-slate-800/80 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => fillMockData('school')}
+                        className="text-slate-400 hover:text-indigo-400 transition-colors"
+                      >
+                        Autofill School Demo
+                      </button>
+                      <span className="text-slate-600">•</span>
+                      <button
+                        type="button"
+                        onClick={() => fillMockData('college')}
+                        className="text-slate-400 hover:text-cyan-400 transition-colors"
+                      >
+                        Autofill College Demo
+                      </button>
+                    </div>
                   </div>
                 </motion.form>
               )}
 
-              {/* STEP 2: PROFILE PHOTO & CAMERA RETICLE */}
+              {/* STEP 2: ACADEMIC TRACK & CLASS CODE */}
               {signupStep === 2 && (
                 <motion.div
                   key="step2"
@@ -798,19 +978,204 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.25 }}
-                  className="space-y-4 text-center"
+                  className="space-y-5"
                   id="student-signup-step2"
                 >
-                  <div className="bg-white/5 border border-white/10 p-3.5 text-center rounded-lg">
+                  {/* Mode Selector Tabs */}
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl border border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setAcademicMode('code')}
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                        academicMode === 'code'
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <KeyRound className="w-3.5 h-3.5" />
+                      <span>Join with Class Code</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setAcademicMode('profile')}
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                        academicMode === 'profile'
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <School className="w-3.5 h-3.5" />
+                      <span>Independent Profile</span>
+                    </button>
+                  </div>
+
+                  {academicMode === 'code' ? (
+                    <div className="space-y-4 bg-slate-900/60 p-5 rounded-2xl border border-slate-800 text-left">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                          Enter 6-Character Class Join Code
+                        </label>
+                        <p className="text-[11px] text-slate-400 mb-2">
+                          Ask your teacher or professor for the 6-character class code (e.g., <span className="text-indigo-400 font-mono">KV10-A</span> or <span className="text-cyan-400 font-mono">CS3B-9X</span>).
+                        </p>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={joinCode}
+                            onChange={(e) => {
+                              setJoinCode(e.target.value.toUpperCase());
+                              setVerifiedCohort(null);
+                              setCodeVerifyError('');
+                            }}
+                            placeholder="e.g. KV10-A"
+                            className="flex-1 px-4 py-2.5 bg-slate-950 text-white font-mono uppercase text-sm border border-slate-800 rounded-xl tracking-wider focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                          <button
+                            type="button"
+                            disabled={isVerifyingCode || !joinCode.trim()}
+                            onClick={() => handleVerifyCode(joinCode)}
+                            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shadow-md shadow-indigo-600/20"
+                          >
+                            <Search className="w-3.5 h-3.5" />
+                            <span>{isVerifyingCode ? 'Checking...' : 'Verify'}</span>
+                          </button>
+                        </div>
+                        {codeVerifyError && (
+                          <p className="text-rose-400 text-xs mt-1.5 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>{codeVerifyError}</span>
+                          </p>
+                        )}
+                        {errors.joinCode && (
+                          <p className="text-rose-400 text-xs mt-1.5 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>{errors.joinCode}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Verified Cohort Preview Banner */}
+                      {verifiedCohort && (
+                        <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 rounded-xl space-y-2 animate-fadeIn text-left">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Class Verified
+                            </span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              {verifiedCohort.tier === 'school' ? 'K-12 School' : 'Higher Ed'}
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-bold text-white">{verifiedCohort.name}</h4>
+                          <div className="grid grid-cols-2 gap-2 text-xs text-slate-300 font-mono">
+                            <div><span className="text-slate-500">Subject:</span> {verifiedCohort.subject}</div>
+                            <div><span className="text-slate-500">Section:</span> {verifiedCohort.section}</div>
+                            <div><span className="text-slate-500">Faculty:</span> {verifiedCohort.teacherName}</div>
+                            {verifiedCohort.room && <div><span className="text-slate-500">Room:</span> {verifiedCohort.room}</div>}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Roll Number Input */}
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                          Your Roll Number / USN in this Class
+                        </label>
+                        <input
+                          type="text"
+                          value={joinRollNo}
+                          onChange={(e) => {
+                            setJoinRollNo(e.target.value);
+                            if (errors.joinRollNo) {
+                              const updated = { ...errors };
+                              delete updated.joinRollNo;
+                              setErrors(updated);
+                            }
+                          }}
+                          placeholder="e.g. 14 or 22CS084"
+                          className="w-full px-4 py-2.5 bg-slate-950 text-white font-mono text-sm border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                        {errors.joinRollNo && (
+                          <p className="text-rose-400 text-xs mt-1.5 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>{errors.joinRollNo}</span>
+                          </p>
+                        )}
+                        <p className="text-[11px] text-slate-500 mt-1">
+                          Roll numbers are unique per class cohort to match teacher attendance records.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <AcademicProfileForm
+                        mode="student"
+                        onChange={(profile, isValid) => {
+                          setAcademicProfileData(profile);
+                          setIsProfileValid(isValid);
+                          if (errors.academic && isValid) {
+                            const updated = { ...errors };
+                            delete updated.academic;
+                            setErrors(updated);
+                          }
+                        }}
+                      />
+                      {errors.academic && (
+                        <p className="text-rose-400 text-xs mt-2 flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{errors.academic}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Navigation buttons */}
+                  <div className="pt-4 flex items-center justify-between border-t border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setSignupStep(1)}
+                      className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleStep2Next}
+                      className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-5 rounded-xl text-xs transition-colors cursor-pointer shadow-md shadow-indigo-600/20"
+                    >
+                      <span>Continue to Face Calibration</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* STEP 3: FACE CALIBRATION & AVATAR RETICLE */}
+              {signupStep === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.25 }}
+                  className="space-y-4 text-center"
+                  id="student-signup-step3"
+                >
+                  <div className="bg-slate-900/80 border border-slate-800 p-3.5 text-center rounded-xl">
                     <div className="flex items-center justify-center gap-2 mb-1">
-                      <Sparkles className="h-4 w-4 text-[#FF5A5F]" />
-                      <p className="text-xs font-mono uppercase tracking-wider text-[#FF5A5F] font-bold">
+                      <Sparkles className="h-4 w-4 text-indigo-400" />
+                      <p className="text-xs font-mono uppercase tracking-wider text-indigo-300 font-bold">
                         AI Real-Time Face Calibration Overlay
                       </p>
                     </div>
-                    <p className="text-xs text-white/70">
+                    <p className="text-xs text-slate-400">
                       Align your face inside the target ring. The MediaPipe 468-point mesh generates high-precision vectors for classroom tracking.
                     </p>
+                    {/* DPDP Act Compliance Notice */}
+                    <div className="mt-2 text-[10px] text-emerald-400/90 font-mono bg-emerald-950/30 border border-emerald-500/20 p-1.5 rounded flex items-center justify-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>DPDP Act Verified: On-device processing for Standards 6–12 & Higher Ed. No raw video stored.</span>
+                    </div>
                   </div>
 
                   {/* Avatar & Camera Calibration Viewport */}
@@ -881,7 +1246,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                         <button
                           type="button"
                           onClick={capturePhoto}
-                          className="inline-flex items-center space-x-1.5 bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-bold text-xs py-2.5 px-5 font-mono uppercase tracking-wider cursor-pointer border-none shadow-md shadow-[#FF5A5F]/20"
+                          className="inline-flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 px-5 font-mono uppercase tracking-wider cursor-pointer border-none shadow-md shadow-indigo-600/20"
                         >
                           <Camera className="h-4 w-4" />
                           <span>Snap Calibrated Photo</span>
@@ -900,7 +1265,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                       <button
                         type="button"
                         onClick={startCamera}
-                        className="inline-flex items-center space-x-1.5 bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-semibold text-xs py-2.5 px-5 border border-transparent transition-colors cursor-pointer shadow-md shadow-[#FF5A5F]/20 font-mono"
+                        className="inline-flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs py-2.5 px-5 border border-transparent transition-colors cursor-pointer shadow-md shadow-indigo-600/20 font-mono"
                       >
                         <Camera className="h-4 w-4 text-white" />
                         <span>Start Camera Calibration</span>
@@ -908,7 +1273,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                     )}
 
                     <label className="inline-flex items-center space-x-1.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs py-2.5 px-4 border border-white/20 transition-colors cursor-pointer font-mono">
-                      <FileText className="h-4 w-4 text-[#FF5A5F]" />
+                      <FileText className="h-4 w-4 text-indigo-400" />
                       <span>Upload File</span>
                       <input type="file" accept="image/*" onChange={handleImageFileChange} className="hidden" />
                     </label>
@@ -925,7 +1290,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                           key={idx}
                           type="button"
                           onClick={() => setAvatar(url)}
-                          className={`w-10 h-10 rounded-full border-2 overflow-hidden transition-all cursor-pointer ${avatar === url ? 'border-[#FF5A5F] scale-110 shadow-md shadow-[#FF5A5F]/30' : 'border-white/20 hover:border-white/50'
+                          className={`w-10 h-10 rounded-full border-2 overflow-hidden transition-all cursor-pointer ${avatar === url ? 'border-indigo-500 scale-110 shadow-md shadow-indigo-500/30' : 'border-white/20 hover:border-white/50'
                             }`}
                         >
                           <img src={url} alt={`Preset ${idx}`} className="w-full h-full object-cover" />
@@ -934,117 +1299,12 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                     </div>
                   </div>
 
-                  {/* Next Step buttons */}
-                  <div className="pt-4 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setSignupStep(1)}
-                      className="text-xs font-mono uppercase tracking-wider text-white/70 hover:text-white"
-                    >
-                      Back
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSignupStep(3)}
-                      className="inline-flex items-center space-x-2 bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-bold py-3 px-5 text-xs uppercase tracking-wider font-mono cursor-pointer border-none"
-                    >
-                      <span>Continue to Preferences</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* STEP 3: ACADEMIC FOCUS & GOALS */}
-              {signupStep === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.25 }}
-                  className="space-y-5"
-                  id="student-signup-step3"
-                >
-                  {/* Grade Level Selection */}
-                  <div>
-                    <label className="block text-[10px] font-mono font-bold text-white/80 uppercase tracking-widest mb-2">
-                      Select Academic Level / Grade
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {['Class 9', 'Class 10', 'Class 11', 'Class 12', 'College'].map((lvl) => (
-                        <button
-                          key={lvl}
-                          type="button"
-                          onClick={() => setGradeLevel(lvl)}
-                          className={`py-2 px-3 text-xs font-mono font-semibold border transition-all cursor-pointer ${gradeLevel === lvl
-                              ? 'bg-[#FF5A5F]/20 border-[#FF5A5F] text-white'
-                              : 'bg-[#27272a] border-white/10 text-white/70 hover:border-white/30'
-                            }`}
-                        >
-                          {lvl}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Target Focus Session Slot */}
-                  <div>
-                    <label className="block text-[10px] font-mono font-bold text-white/80 uppercase tracking-widest mb-2">
-                      Target Daily Focus Slot
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { duration: '25', title: '25m Pomodoro' },
-                        { duration: '45', title: '45m Deep Work' },
-                        { duration: '60', title: '60m Sprint' },
-                      ].map((slot) => (
-                        <button
-                          key={slot.duration}
-                          type="button"
-                          onClick={() => setTargetFocusSlot(slot.duration)}
-                          className={`py-2.5 px-3 text-center border transition-all cursor-pointer ${targetFocusSlot === slot.duration
-                              ? 'bg-[#FF5A5F]/20 border-[#FF5A5F] text-white'
-                              : 'bg-[#27272a] border-white/10 text-white/70 hover:border-white/30'
-                            }`}
-                        >
-                          <p className="text-xs font-mono font-bold">{slot.title}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Preferred Subjects */}
-                  <div>
-                    <label className="block text-[10px] font-mono font-bold text-white/80 uppercase tracking-widest mb-2">
-                      Primary Target Subjects
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science'].map((sub) => {
-                        const isSelected = selectedSubjects.includes(sub);
-                        return (
-                          <button
-                            key={sub}
-                            type="button"
-                            onClick={() => toggleSubject(sub)}
-                            className={`py-1.5 px-3 text-xs font-medium border transition-all cursor-pointer ${isSelected
-                                ? 'bg-[#FF5A5F] border-[#FF5A5F] text-white'
-                                : 'bg-[#27272a] border-white/10 text-white/70 hover:border-white/30'
-                              }`}
-                          >
-                            {isSelected ? `✓ ${sub}` : `+ ${sub}`}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Submit Account Creation */}
-                  <div className="pt-4 flex items-center justify-between gap-4">
+                  {/* Complete Submit */}
+                  <div className="pt-4 flex items-center justify-between gap-4 border-t border-slate-800">
                     <button
                       type="button"
                       onClick={() => setSignupStep(2)}
-                      className="text-xs font-mono uppercase tracking-wider text-white/70 hover:text-white"
+                      className="text-xs font-semibold text-slate-400 hover:text-white"
                     >
                       Back
                     </button>
@@ -1052,7 +1312,7 @@ export const StudentAuth: React.FC<StudentAuthProps> = ({ mode, setCurrentRoute,
                       type="button"
                       disabled={loading}
                       onClick={handleFinalSignupSubmit}
-                      className="w-full inline-flex items-center justify-center space-x-2 bg-[#FF5A5F] hover:bg-[#FF5A5F]/90 text-white font-bold py-3.5 px-5 text-xs uppercase tracking-widest font-mono cursor-pointer border-none disabled:opacity-50"
+                      className="w-full inline-flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-5 text-xs uppercase tracking-widest font-mono cursor-pointer border-none disabled:opacity-50 shadow-lg shadow-indigo-600/30"
                     >
                       {loading ? (
                         <span>Creating Account...</span>

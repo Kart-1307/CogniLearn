@@ -7,25 +7,117 @@ export type Route =
   | 'teacher-dashboard'
   | 'student-dashboard';
 
+export type InstitutionTier = 'school' | 'college';
+
+export interface SchoolStudentProfile {
+  tier: 'school';
+  institutionName: string;
+  board: string;
+  standard: string;
+  schoolStream?: string;
+  section: string;
+  rollNo: string;
+  subjects: string[];
+  classCode?: string;
+}
+
+export interface CollegeStudentProfile {
+  tier: 'college';
+  institutionName: string;
+  department: string;
+  degree: string;
+  academicYear: string;
+  semester: string;
+  section: string;
+  rollNo: string;
+  subjects: string[];
+  classCode?: string;
+}
+
+export type StudentAcademicProfile = SchoolStudentProfile | CollegeStudentProfile;
+
+export interface SchoolTeacherProfile {
+  tier: 'school';
+  institutionName: string;
+  role: string;
+  board?: string;
+  staffIdNumber?: string;
+  primarySubjects: string[];
+}
+
+export interface CollegeTeacherProfile {
+  tier: 'college';
+  institutionName: string;
+  role: string;
+  department: string;
+  staffIdNumber?: string;
+  primarySubjects: string[];
+}
+
+export type TeacherProfessionalProfile = SchoolTeacherProfile | CollegeTeacherProfile;
+
+export interface Cohort {
+  id: string;
+  code: string;
+  name: string;
+  tier: InstitutionTier;
+  standard?: string;
+  department?: string;
+  schoolStream?: string;
+  academicYear: string;
+  semester?: string;
+  section: string;
+  subject: string;
+  room?: string;
+  teacherId?: string;
+  teacherName?: string;
+  studentCount?: number;
+  createdAt?: string;
+}
+
+export interface Enrollment {
+  id: string;
+  cohortId: string;
+  studentId: string;
+  studentName?: string;
+  studentEmail?: string;
+  rollNo: string;
+  enrolledSubjects: string[];
+  status: 'active' | 'inactive' | 'transferred';
+  cohort?: Cohort;
+  createdAt?: string;
+}
+
 export interface User {
   id?: string;
   _id?: string;
   fullName: string;
   email: string;
-  teacherType?: 'Class Teacher' | 'Subject Teacher' | 'Coordinator';
+  teacherType?: 'Class Teacher' | 'Subject Teacher' | 'Coordinator' | 'Professor' | 'HOD' | 'Dean' | 'Lab Assistant';
   role: 'teacher' | 'student';
   avatar?: string;
   xp?: number;
   totalHours?: number;
   completedSessions?: number;
   isDemo?: boolean;
-  // Extended Student Fields
+
+  // Structured Academic Profiles
+  tier?: InstitutionTier;
+  academicProfile?: StudentAcademicProfile;
+  teacherProfile?: TeacherProfessionalProfile;
+  cohorts?: Cohort[];
+  enrollments?: Enrollment[];
+
+  // Extended Student Fields (Backward Compatible)
   gradeLevel?: string;
   learningStyle?: 'Visual' | 'Auditory' | 'Kinesthetic' | 'Reading/Writing';
   curriculumTrack?: string;
   studySchedule?: string;
   guardianEmail?: string;
-  // Extended Teacher Fields
+  rollNo?: string;
+  enrolledSubjects?: string[];
+
+  // Extended Teacher Fields (Backward Compatible)
   institutionName?: string;
   teacherIdNumber?: string;
   department?: string;

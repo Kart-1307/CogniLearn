@@ -3,10 +3,13 @@ import { Route, User } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   School, ArrowLeft, Mail, Lock, User as UserIcon, AlertCircle, Eye, EyeOff,
-  ChevronDown, CheckCircle2, ShieldCheck, Activity, Users, Award, BarChart3, Sparkles
+  ChevronDown, CheckCircle2, ShieldCheck, Activity, Users, Award, BarChart3, Sparkles,
+  Building2, BookOpen, Plus, X
 } from 'lucide-react';
 
 import { api } from '../services/api';
+import { ACADEMIC_CATALOGS, getSchoolSubjects, getCollegeSubjects } from '../config/academicCatalogs';
+import { InstitutionTier } from '../types';
 
 interface TeacherAuthProps {
   mode: 'login' | 'signup';
@@ -31,13 +34,15 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
   }, [mode]);
 
   // Signup-specific states
+  const [tier, setTier] = useState<InstitutionTier>('school');
   const [fullName, setFullName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [teacherType, setTeacherType] = useState<'Class Teacher' | 'Subject Teacher' | 'Coordinator'>('Class Teacher');
-  const [institutionName, setInstitutionName] = useState('Kendriya Vidyalaya No. 1');
-  const [department, setDepartment] = useState('Science & Math');
-  const [teacherIdNumber, setTeacherIdNumber] = useState('KV-2026-88');
-  const [assignedClasses, setAssignedClasses] = useState<string[]>(['Class 10-A', 'Class 11-B']);
+  const [teacherType, setTeacherType] = useState<string>('Class Teacher');
+  const [institutionName, setInstitutionName] = useState('Delhi Public School, R.K. Puram');
+  const [department, setDepartment] = useState('Mathematics & Science');
+  const [teacherIdNumber, setTeacherIdNumber] = useState('DPS-FAC-104');
+  const [primarySubjects, setPrimarySubjects] = useState<string[]>(['Mathematics', 'Physics']);
+  const [customSubjectInput, setCustomSubjectInput] = useState('');
 
   const validateEmail = (emailStr: string) => {
     return /\S+@\S+\.\S+/.test(emailStr);
@@ -116,16 +121,27 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
     setLoading(true);
 
     try {
+      const teacherProfile = {
+        tier,
+        institutionName,
+        role: teacherType,
+        department,
+        staffIdNumber: teacherIdNumber || undefined,
+        primarySubjects,
+      };
+
       const res = await api.auth.register({
         fullName,
         email,
         password,
         role: 'teacher',
+        tier,
         teacherType,
         institutionName,
         department,
         teacherIdNumber,
-        assignedClasses,
+        teacherProfile,
+        assignedClasses: tier === 'school' ? ['Class 10-A', 'Class 10-B'] : ['3rd Year CSE-B'],
       });
       setLoading(false);
       onLoginSuccess(res.user);
@@ -136,19 +152,37 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
     }
   };
 
-  const fillMockData = () => {
-    setEmail('teacher@cognilearn.com');
-    setPassword('password123');
-    setFullName('Dr. Ramesh Kumar (Demo)');
-    setTeacherType('Subject Teacher');
+  const fillMockData = (track: 'school' | 'college' = 'school') => {
+    if (track === 'college') {
+      setEmail('college-teacher@cognilearn.com');
+      setPassword('password123');
+      setFullName('Prof. Priya Nair (Demo)');
+      setTier('college');
+      setTeacherType('Associate Professor');
+      setInstitutionName('Indian Institute of Information Technology');
+      setDepartment('Computer Science & Engineering');
+      setTeacherIdNumber('IIIT-FAC-882');
+      setPrimarySubjects(['Machine Learning', 'Data Structures & Algorithms']);
+    } else {
+      setEmail('teacher@cognilearn.com');
+      setPassword('password123');
+      setFullName('Dr. Ramesh Kumar (Demo)');
+      setTier('school');
+      setTeacherType('Class Teacher');
+      setInstitutionName('Delhi Public School, R.K. Puram');
+      setDepartment('Secondary Mathematics');
+      setTeacherIdNumber('DPS-STAFF-104');
+      setPrimarySubjects(['Mathematics', 'Physics']);
+    }
     setErrors({});
   };
 
-  const handleQuickDemoLogin = async () => {
+  const handleQuickDemoLogin = async (track: 'school' | 'college' = 'school') => {
     setLoading(true);
     setErrors({});
+    const targetEmail = track === 'college' ? 'college-teacher@cognilearn.com' : 'teacher@cognilearn.com';
     try {
-      const res = await api.auth.login({ email: 'teacher@cognilearn.com', password: 'password123', role: 'teacher' });
+      const res = await api.auth.login({ email: targetEmail, password: 'password123', role: 'teacher' });
       setLoading(false);
       onLoginSuccess({
         ...res.user,
@@ -157,16 +191,32 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
       setCurrentRoute('teacher-dashboard');
     } catch {
       setLoading(false);
-      onLoginSuccess({
-        id: 'mem-user-teacher-1',
-        fullName: 'Dr. Ramesh Kumar (Demo)',
-        email: 'teacher@cognilearn.com',
-        role: 'teacher',
-        teacherType: 'Subject Teacher',
-        isDemo: true,
-        institutionName: 'Delhi Public School',
-        assignedClasses: ['Class 11-A', 'Class 11-B', 'Class 12-A'],
-      });
+      if (track === 'college') {
+        onLoginSuccess({
+          id: 'mem-user-teacher-2',
+          fullName: 'Prof. Priya Nair (Demo)',
+          email: 'college-teacher@cognilearn.com',
+          role: 'teacher',
+          tier: 'college',
+          teacherType: 'Professor',
+          isDemo: true,
+          institutionName: 'Indian Institute of Information Technology',
+          department: 'Computer Science & Engineering',
+          assignedClasses: ['3rd Year CSE-B'],
+        });
+      } else {
+        onLoginSuccess({
+          id: 'mem-user-teacher-1',
+          fullName: 'Dr. Ramesh Kumar (Demo)',
+          email: 'teacher@cognilearn.com',
+          role: 'teacher',
+          tier: 'school',
+          teacherType: 'Class Teacher',
+          isDemo: true,
+          institutionName: 'Delhi Public School, R.K. Puram',
+          assignedClasses: ['Class 10-A', 'Class 10-B'],
+        });
+      }
       setCurrentRoute('teacher-dashboard');
     }
   };
@@ -313,9 +363,9 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="teacher@school.edu"
-                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.email
+                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.email
                         ? 'border border-rose-500'
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                       }`}
                   />
                 </div>
@@ -351,9 +401,9 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="••••••••"
-                    className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.password
+                    className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.password
                         ? 'border border-rose-500'
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                       }`}
                   />
                   <button
@@ -407,56 +457,224 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                 </button>
 
                 {/* Quick Mock Login Helper */}
-                <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-lg text-center space-y-2.5">
-                  <p className="text-xs font-semibold text-indigo-300">
-                    Sandbox Educator Demo (With Sample Records)
+                <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl text-center space-y-3">
+                  <p className="text-xs font-semibold text-slate-300 flex items-center justify-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Try Sandbox Educator Demos (With Pre-loaded Stats)</span>
                   </p>
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={handleQuickDemoLogin}
-                      className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 py-1.5 px-3.5 rounded-md text-xs font-semibold cursor-pointer transition-colors"
-                      id="btn-teacher-instant-demo"
+                      onClick={() => handleQuickDemoLogin('school')}
+                      className="inline-flex items-center justify-center space-x-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 py-2 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                      id="btn-teacher-instant-demo-school"
                     >
-                      <CheckCircle2 className="h-3.5 w-3.5 text-indigo-400" />
-                      <span>Instant Demo Login</span>
+                      <School className="h-3.5 w-3.5 text-indigo-400" />
+                      <span>School Teacher (Class 10-A)</span>
                     </button>
                     <button
                       type="button"
-                      onClick={fillMockData}
-                      className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 py-1.5 px-3.5 rounded-md text-xs font-medium cursor-pointer transition-colors"
-                      id="btn-teacher-mock-fill"
+                      onClick={() => handleQuickDemoLogin('college')}
+                      className="inline-flex items-center justify-center space-x-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 text-cyan-300 py-2 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                      id="btn-teacher-instant-demo-college"
                     >
-                      <span>Autofill Form</span>
+                      <Building2 className="h-3.5 w-3.5 text-cyan-400" />
+                      <span>College Faculty (B.Tech CSE)</span>
                     </button>
                   </div>
-                  <p className="text-[11px] text-slate-400">
-                    Demo login retains sample datasets. Newly created accounts start clean with 0 records.
-                  </p>
+                  <div className="flex justify-center gap-2 pt-1 border-t border-slate-800/80">
+                    <button
+                      type="button"
+                      onClick={() => fillMockData('school')}
+                      className="text-[11px] text-slate-400 hover:text-indigo-300 transition-colors"
+                    >
+                      Autofill School Credentials
+                    </button>
+                    <span className="text-slate-600">•</span>
+                    <button
+                      type="button"
+                      onClick={() => fillMockData('college')}
+                      className="text-[11px] text-slate-400 hover:text-cyan-300 transition-colors"
+                    >
+                      Autofill College Credentials
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>
           ) : (
             <form onSubmit={handleSignupSubmit} className="space-y-4" id="teacher-signup-form">
-              {/* Teacher Role Selector Cards */}
+              {/* Educator Track Switcher */}
               <div>
-                <label className="block text-xs font-semibold text-slate-200 mb-2">
-                  Select Educator Role
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  Select Educator Track
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['Class Teacher', 'Subject Teacher', 'Coordinator'] as const).map((role) => (
+                <div className="grid grid-cols-2 gap-2.5 p-1 bg-slate-900 rounded-xl border border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTier('school');
+                      setTeacherType(ACADEMIC_CATALOGS.school.teacherRoles[0]);
+                      setInstitutionName('Delhi Public School, R.K. Puram');
+                      setDepartment('Secondary Mathematics');
+                    }}
+                    className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                      tier === 'school'
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <School className="w-3.5 h-3.5" />
+                    <span>School (Class 6–12)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTier('college');
+                      setTeacherType(ACADEMIC_CATALOGS.college.teacherRoles[0]);
+                      setInstitutionName('Indian Institute of Information Technology');
+                      setDepartment('Computer Science & Engineering');
+                    }}
+                    className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                      tier === 'college'
+                        ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/30'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span>College / University</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Educator Designation / Role Selector */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                  Designation / Academic Role
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {(tier === 'school'
+                    ? ACADEMIC_CATALOGS.school.teacherRoles
+                    : ACADEMIC_CATALOGS.college.teacherRoles
+                  ).map((role) => (
                     <button
                       key={role}
                       type="button"
                       onClick={() => setTeacherType(role)}
-                      className={`p-2.5 rounded-lg text-center border transition-all cursor-pointer ${teacherType === role
-                          ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-semibold'
+                      className={`p-2 rounded-lg text-center border text-xs transition-all cursor-pointer ${
+                        teacherType === role
+                          ? tier === 'school'
+                            ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-semibold'
+                            : 'bg-cyan-600/20 border-cyan-500 text-cyan-300 font-semibold'
                           : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                        }`}
+                      }`}
                     >
-                      <p className="text-xs font-medium">{role}</p>
+                      <span>{role}</span>
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Institution and Department Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                    {tier === 'school' ? 'School Name' : 'College / University Name'}
+                  </label>
+                  <input
+                    type="text"
+                    value={institutionName}
+                    onChange={(e) => setInstitutionName(e.target.value)}
+                    placeholder={tier === 'school' ? 'e.g. Delhi Public School' : 'e.g. Indian Institute of Tech'}
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm border border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                    Department / Wing
+                  </label>
+                  <input
+                    type="text"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    placeholder={tier === 'school' ? 'e.g. Science & Math Wing' : 'e.g. Computer Science Dept'}
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm border border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* Staff ID & Primary Subjects */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                  Staff / Faculty ID (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={teacherIdNumber}
+                  onChange={(e) => setTeacherIdNumber(e.target.value)}
+                  placeholder="e.g. FAC-2026-104"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm border border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* Primary Subjects Selection */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-slate-200">
+                  Primary Teaching Subjects ({primarySubjects.length} selected)
+                </label>
+                <div className="flex flex-wrap gap-1.5 p-2.5 bg-slate-950/60 rounded-lg border border-slate-800">
+                  {primarySubjects.map((sub) => (
+                    <span
+                      key={sub}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-600/30 text-indigo-200 border border-indigo-500/40 text-xs"
+                    >
+                      {sub}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (primarySubjects.length > 1) {
+                            setPrimarySubjects(primarySubjects.filter((s) => s !== sub));
+                          }
+                        }}
+                        className="hover:text-white"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                {/* Catalog Suggested Pills */}
+                <div className="flex flex-wrap gap-1">
+                  {(tier === 'school'
+                    ? ['Mathematics', 'Physics', 'Chemistry', 'Computer Science', 'English Core', 'Biology']
+                    : ['Machine Learning', 'Data Structures & Algorithms', 'Operating Systems', 'Database Management', 'Computer Networks']
+                  ).map((sub) => {
+                    const isSelected = primarySubjects.includes(sub);
+                    return (
+                      <button
+                        key={sub}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            if (primarySubjects.length > 1) {
+                              setPrimarySubjects(primarySubjects.filter((s) => s !== sub));
+                            }
+                          } else {
+                            setPrimarySubjects([...primarySubjects, sub]);
+                          }
+                        }}
+                        className={`text-[11px] px-2 py-0.5 rounded transition-colors ${
+                          isSelected
+                            ? 'bg-indigo-500 text-white font-medium'
+                            : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                        }`}
+                      >
+                        {isSelected ? `✓ ${sub}` : `+ ${sub}`}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -484,9 +702,9 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="Enter full name"
-                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.fullName
+                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.fullName
                         ? 'border border-rose-500'
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                       }`}
                   />
                 </div>
@@ -522,9 +740,9 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="teacher@school.edu"
-                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.email
+                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.email
                         ? 'border border-rose-500'
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                       }`}
                   />
                 </div>
@@ -559,9 +777,9 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="At least 8 characters"
-                    className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.password
+                    className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.password
                         ? 'border border-rose-500'
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                       }`}
                   />
                   <button
@@ -604,9 +822,9 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="Re-enter password"
-                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-500 ${errors.confirmPassword
+                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.confirmPassword
                         ? 'border border-rose-500'
-                        : 'border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'
+                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
                       }`}
                   />
                 </div>

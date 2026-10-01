@@ -11,6 +11,7 @@ import studentRoutes from './routes/student';
 import baselineRoutes from './routes/baseline';
 import userRoutes from './routes/user';
 import reportRoutes from './routes/report';
+import cohortRoutes from './routes/cohorts';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -34,10 +35,10 @@ if (isProd) {
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-// Enable CORS and restrict JSON payload to 100KB to protect against payload-bloat DoS
+// Enable CORS and allow payloads up to 10MB to accommodate avatar uploads and biometric telemetry
 app.use(cors());
-app.use(express.json({ limit: '100kb' }));
-app.use(express.urlencoded({ limit: '100kb', extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Initialize Supabase backend
 getSupabase();
@@ -75,6 +76,7 @@ app.use('/api/student', studentRoutes);
 app.use('/api/baseline', baselineRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/report', reportRoutes);
+app.use('/api/cohorts', cohortRoutes);
 
 async function startServer() {
   // Vite middleware for local development / Static serve for production Node

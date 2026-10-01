@@ -38,6 +38,9 @@ router.put('/profile', authenticateToken, async (req: Request, res: Response): P
       if (updateData.teacherIdNumber !== undefined) dbPayload.teacher_id_number = updateData.teacherIdNumber;
       if (updateData.department !== undefined) dbPayload.department = updateData.department;
       if (updateData.assignedClasses !== undefined) dbPayload.assigned_classes = updateData.assignedClasses;
+      if (updateData.tier !== undefined) dbPayload.tier = updateData.tier;
+      if (updateData.academicProfile !== undefined) dbPayload.academic_profile = updateData.academicProfile;
+      if (updateData.teacherProfile !== undefined) dbPayload.teacher_profile = updateData.teacherProfile;
 
       const { data: updatedUser, error } = await supabase
         .from('users')

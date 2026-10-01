@@ -6,8 +6,13 @@ import {
   School, Calendar, Award, GraduationCap, ChevronRight,
   UserCheck, AlertCircle, Sparkles, TrendingUp, Plus, Trash2, CheckCircle2, Sliders,
   Camera, Video, Play, Pause, Bell, ShieldAlert, Volume2, VolumeX, PlusCircle, Check,
-  Lock, Mail, UserPlus, Info, ChevronDown, Clock, Square, History, SwitchCamera
+  Lock, Mail, UserPlus, Info, ChevronDown, Clock, Square, History, SwitchCamera,
+  Building2, Copy, KeyRound
 } from 'lucide-react';
+import {
+  SCHOOL_STANDARDS_AND_SUBJECTS,
+  COLLEGE_DEPARTMENTS,
+} from '../config/academicCatalogs';
 import { getMobileCompatibleCameraStream, attachStreamToVideo } from '../utils/cameraUtils';
 import { api } from '../services/api';
 import { StudentCameraFeed } from './StudentCameraFeed';
@@ -53,14 +58,28 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const studentsStorageKey = `cognilearn_teacher_students_${teacherStorageId}`;
   const reportsStorageKey = `cognilearn_teacher_diagnostic_history_${teacherStorageId}`;
 
+  const isCollege = user?.tier === 'college' || (user?.email && user.email.includes('college')) || (user?.teacherProfile && user.teacherProfile.tier === 'college');
+
   // --- 1. Multi-Class Handling States ---
   // Standard datasets only loaded for demo accounts; newly created accounts start clean
-  const [classes, setClasses] = useState<Array<{ id: string; name: string; room: string; strength: number; year: string }>>(() => {
+  const [classes, setClasses] = useState<Array<{
+    id: string;
+    code?: string;
+    name: string;
+    room: string;
+    strength: number;
+    year: string;
+    tier?: 'school' | 'college';
+    standard?: string;
+    department?: string;
+    section?: string;
+    subject?: string;
+  }>>(() => {
     const saved = localStorage.getItem(classesStorageKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) {
         // ignore
       }
@@ -68,11 +87,17 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     if (!isDemo) {
       return [];
     }
+    if (isCollege) {
+      return [
+        { id: 'cs-301-b', code: 'CS301-B', name: 'B.Tech CSE - Year 3 Section B', room: 'Lab 304', strength: 5, year: '2026-2027', tier: 'college', subject: 'Operating Systems', section: 'B', department: 'Computer Science & Engineering' },
+        { id: 'cs-402-a', code: 'CS402-A', name: 'B.Tech CSE - Year 4 Section A', room: 'LH 12', strength: 4, year: '2026-2027', tier: 'college', subject: 'Distributed Systems', section: 'A', department: 'Computer Science & Engineering' },
+      ];
+    }
     return [
-      { id: 'class-10-a', name: 'Class X-A', room: 'Room 102', strength: 5, year: '2026' },
-      { id: 'class-10-b', name: 'Class X-B', room: 'Room 104', strength: 4, year: '2026' },
-      { id: 'class-11-sci', name: 'Class XI-Science', room: 'Lab 2', strength: 5, year: '2026' },
-      { id: 'class-12-comm', name: 'Class XII-Commerce', room: 'Room 203', strength: 3, year: '2026' },
+      { id: 'class-10-a', code: 'KV10-A', name: 'Class 10-A Science & Tech', room: 'Room 102', strength: 5, year: '2026-2027', tier: 'school', subject: 'Mathematics & Science', section: 'A', standard: 'Class 10' },
+      { id: 'class-10-b', code: 'KV10-B', name: 'Class 10-B Science', room: 'Room 104', strength: 4, year: '2026-2027', tier: 'school', subject: 'Natural Science', section: 'B', standard: 'Class 10' },
+      { id: 'class-11-sci', code: 'KV11-S', name: 'Class 11-A Physics & Math', room: 'Lab 2', strength: 5, year: '2026-2027', tier: 'school', subject: 'Physics', section: 'A', standard: 'Class 11' },
+      { id: 'class-12-comm', code: 'KV12-C', name: 'Class 12-A Commerce', room: 'Room 203', strength: 3, year: '2026-2027', tier: 'school', subject: 'Business Studies', section: 'A', standard: 'Class 12' },
     ];
   });
 
@@ -84,8 +109,39 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         if (Array.isArray(parsed) && parsed.length > 0) return parsed[0].id;
       } catch (e) { }
     }
-    return isDemo ? 'class-10-a' : '';
+    return isDemo ? (isCollege ? 'cs-301-b' : 'class-10-a') : '';
   });
+
+  // Sync cohorts from backend on mount
+  useEffect(() => {
+    let isMounted = true;
+    api.cohorts.getMyCohorts()
+      .then((res) => {
+        if (isMounted && res?.cohorts && res.cohorts.length > 0) {
+          const mapped = res.cohorts.map((c: any) => ({
+            id: c.id,
+            code: c.code,
+            name: c.name,
+            room: c.room || 'General Room',
+            strength: c.studentCount || 0,
+            year: c.academicYear || '2026-2027',
+            tier: c.tier,
+            subject: c.subject,
+            section: c.section,
+            standard: c.standard,
+            department: c.department,
+          }));
+          setClasses(mapped);
+          if (!mapped.some((c: any) => c.id === activeClassId)) {
+            setActiveClassId(mapped[0].id);
+          }
+        }
+      })
+      .catch(() => {
+        // Backend offline fallback, retain current state
+      });
+    return () => { isMounted = false; };
+  }, []);
 
   useEffect(() => {
     if (classes.length > 0 && !classes.some(c => c.id === activeClassId)) {
@@ -95,11 +151,27 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     }
   }, [classes, activeClassId]);
 
-  // Interactive Class Creation State
+  // Interactive Class / Cohort Creation State
   const [showAddClassForm, setShowAddClassForm] = useState(false);
-  const [newClassName, setNewClassName] = useState('');
-  const [newClassRoom, setNewClassRoom] = useState('');
+  const [cohortTier, setCohortTier] = useState<'school' | 'college'>(isCollege ? 'college' : 'school');
+  const [cohortStandard, setCohortStandard] = useState<string>('Class 10');
+  const [cohortDepartment, setCohortDepartment] = useState<string>('Computer Science & Engineering');
+  const [cohortSection, setCohortSection] = useState<string>('A');
+  const [cohortSubject, setCohortSubject] = useState<string>('Mathematics');
+  const [cohortAcademicYear, setCohortAcademicYear] = useState<string>('2026-2027');
+  const [cohortSemester, setCohortSemester] = useState<string>('Semester 5');
+  const [cohortRoom, setCohortRoom] = useState<string>('Room 102');
+  const [cohortCreating, setCohortCreating] = useState<boolean>(false);
+  const [cohortError, setCohortError] = useState<string | null>(null);
   const [classSuccessMsg, setClassSuccessMsg] = useState('');
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  const handleCopyCode = (code: string) => {
+    if (!code) return;
+    navigator.clipboard.writeText(code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
 
   // --- 2. Interactive Detailed Student Roster State ---
   // Clean empty roster for new accounts; demo accounts retain sample datasets
@@ -245,12 +317,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     if (videoRef.current) {
       const video = videoRef.current;
       const canvas = document.createElement('canvas');
-      canvas.width = 480;
-      canvas.height = 480;
+      canvas.width = 320;
+      canvas.height = 320;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.drawImage(video, 0, 0, 480, 480);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+        ctx.drawImage(video, 0, 0, 320, 320);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
         setDetailedAvatar(dataUrl);
       }
       stopCamera();
@@ -261,8 +333,37 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setDetailedAvatar(reader.result as string);
+      reader.onload = (event) => {
+        const rawResult = event.target?.result as string;
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 320;
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            setDetailedAvatar(canvas.toDataURL('image/jpeg', 0.82));
+          } else {
+            setDetailedAvatar(rawResult);
+          }
+        };
+        img.onerror = () => setDetailedAvatar(rawResult);
+        img.src = rawResult;
       };
       reader.readAsDataURL(file);
     }
@@ -349,25 +450,65 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     setStudents(students.filter(s => s.id !== id));
   };
 
-  // Helper to add a Class
-  const handleAddClass = (e: React.FormEvent) => {
+  // Structured Cohort Creation Handler
+  const handleCreateCohort = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newClassName.trim()) return;
-    const newId = `class-${Date.now()}`;
-    const newClass = {
-      id: newId,
-      name: newClassName.trim(),
-      room: newClassRoom.trim() || 'Room TBD',
-      strength: 0,
-      year: '2026'
-    };
-    setClasses([...classes, newClass]);
-    setActiveClassId(newId);
-    setNewClassName('');
-    setNewClassRoom('');
-    setShowAddClassForm(false);
-    setClassSuccessMsg(`Successfully created classroom "${newClass.name}"!`);
-    setTimeout(() => setClassSuccessMsg(''), 4000);
+    setCohortCreating(true);
+    setCohortError(null);
+    try {
+      const isSchoolCohort = cohortTier === 'school';
+      const cohortName = isSchoolCohort
+        ? `${cohortStandard}-${cohortSection} (${cohortSubject})`
+        : `${cohortDepartment.split(' ')[0]} ${cohortSemester} Sec ${cohortSection} (${cohortSubject})`;
+
+      const payload = {
+        tier: cohortTier,
+        name: cohortName,
+        standard: isSchoolCohort ? cohortStandard : undefined,
+        department: !isSchoolCohort ? cohortDepartment : undefined,
+        academicYear: cohortAcademicYear,
+        semester: !isSchoolCohort ? cohortSemester : undefined,
+        section: cohortSection,
+        subject: cohortSubject,
+        room: cohortRoom.trim() || 'Room 101',
+      };
+
+      let newCode = `${isSchoolCohort ? 'SCH' : 'COL'}${cohortSection}${Math.floor(10 + Math.random() * 90)}`;
+      let createdCohort: any = null;
+
+      try {
+        const res = await api.cohorts.create(payload);
+        createdCohort = res.cohort;
+        if (createdCohort?.code) newCode = createdCohort.code;
+      } catch (err: any) {
+        console.warn('Backend cohort creation fallback:', err);
+      }
+
+      const newId = createdCohort?.id || `class-${Date.now()}`;
+      const newClassItem = {
+        id: newId,
+        code: newCode,
+        name: createdCohort?.name || cohortName,
+        room: createdCohort?.room || cohortRoom.trim() || 'Room 101',
+        strength: 0,
+        year: cohortAcademicYear,
+        tier: cohortTier,
+        standard: isSchoolCohort ? cohortStandard : undefined,
+        department: !isSchoolCohort ? cohortDepartment : undefined,
+        section: cohortSection,
+        subject: cohortSubject,
+      };
+
+      setClasses(prev => [newClassItem, ...prev]);
+      setActiveClassId(newId);
+      setShowAddClassForm(false);
+      setClassSuccessMsg(`Successfully initialized "${newClassItem.name}" with Join Code: ${newClassItem.code}!`);
+      setTimeout(() => setClassSuccessMsg(''), 5000);
+    } catch (err: any) {
+      setCohortError(err.message || 'Failed to create cohort');
+    } finally {
+      setCohortCreating(false);
+    }
   };
 
   // --- 3. Room Mode / 5-Cam Live Grid State ---
@@ -444,10 +585,13 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   // Get active class details
   const activeClass = classes.find(c => c.id === activeClassId) || classes[0] || {
     id: '',
+    code: isCollege ? 'CS301-B' : 'KV10-A',
     name: 'No Class Selected',
     room: '-',
     strength: 0,
-    year: '2026',
+    year: '2026-2027',
+    tier: isCollege ? 'college' : 'school',
+    subject: 'General',
   };
 
   // Helper to get students for the active class (auto-padded with demo profiles ONLY for demo accounts)
@@ -854,11 +998,13 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         {/* Institution Info Card */}
         <div className="saas-card flex items-center space-x-3 p-3.5 rounded-xl self-start">
           <div className="p-2.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-            <School className="h-5 w-5" />
+            {isCollege ? <Building2 className="h-5 w-5" /> : <School className="h-5 w-5" />}
           </div>
           <div>
             <p className="text-[9px] font-semibold uppercase tracking-wider font-mono text-slate-400">Institution</p>
-            <p className="text-xs font-semibold text-white">Kendriya Vidyalaya No. 1</p>
+            <p className="text-xs font-semibold text-white">
+              {user?.teacherProfile?.institutionName || (isDemo ? (isCollege ? 'National Institute of Technology' : 'Kendriya Vidyalaya No. 1') : 'Academic Institution')}
+            </p>
           </div>
         </div>
       </div>
@@ -866,17 +1012,29 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       {/* Profile Info Card */}
       <div className="saas-card p-6 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 rounded-2xl">
         <div className="flex items-center space-x-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center font-bold text-xl tracking-tight shadow-md">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center font-bold text-xl tracking-tight shadow-md shrink-0">
             {teacherName.split(' ').map(n => n[0]).join('')}
           </div>
           <div>
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-xl font-bold text-white tracking-tight">{teacherName}</h2>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                {teacherType}
+                {user?.teacherProfile?.role || teacherType}
+              </span>
+              <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold border ${
+                isCollege
+                  ? 'bg-purple-500/10 text-purple-300 border-purple-500/20'
+                  : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'
+              }`}>
+                {isCollege ? <Building2 className="h-3 w-3" /> : <School className="h-3 w-3" />}
+                <span>{isCollege ? 'Higher Education Faculty' : 'School Educator (6–12)'}</span>
               </span>
             </div>
-            <p className="text-xs font-mono font-medium mt-1 text-slate-400">{teacherEmail}</p>
+            <p className="text-xs font-mono font-medium mt-1 text-slate-400">
+              {teacherEmail} • <span className="text-slate-300">
+                {isCollege ? (user?.teacherProfile?.tier === 'college' ? user.teacherProfile.department : 'Computer Science & Engineering') : `Board: ${user?.teacherProfile?.tier === 'school' ? user.teacherProfile.board || 'CBSE' : 'CBSE'}`}
+              </span>
+            </p>
           </div>
         </div>
 
@@ -1001,33 +1159,183 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               </div>
             </div>
 
-            {/* Expander to create a classroom */}
+            {/* Expander to create a classroom cohort */}
             {showAddClassForm && (
-              <form onSubmit={handleAddClass} className="mt-6 p-5 rounded-xl border border-slate-800 bg-slate-900/60 space-y-4 animate-fade-in text-xs">
-                <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider font-mono">Initialize Classroom</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Class Segment Name</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Class XI-Science"
-                      value={newClassName}
-                      onChange={(e) => setNewClassName(e.target.value)}
-                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
-                    />
+              <form onSubmit={handleCreateCohort} className="mt-6 p-5 rounded-xl border border-slate-800 bg-slate-900/60 space-y-4 animate-fade-in text-xs">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider font-mono flex items-center space-x-2">
+                    <Plus className="h-4 w-4" />
+                    <span>Initialize Academic Cohort</span>
+                  </h4>
+                  <span className="text-[10px] font-mono text-slate-400">Generates unique 6-character Join Code</span>
+                </div>
+
+                {cohortError && (
+                  <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center space-x-2">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{cohortError}</span>
                   </div>
+                )}
+
+                {/* Track Selector */}
+                <div>
+                  <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">
+                    Institution Tier / Track
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCohortTier('school')}
+                      className={`p-2.5 rounded-lg border text-left flex items-center space-x-2 cursor-pointer transition-all ${
+                        cohortTier === 'school'
+                          ? 'bg-indigo-600/20 border-indigo-500 text-white'
+                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                      }`}
+                    >
+                      <School className="h-4 w-4 text-indigo-400 shrink-0" />
+                      <div>
+                        <p className="font-bold text-xs">School Track</p>
+                        <p className="text-[10px] text-slate-400">Classes 6 to 12</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCohortTier('college')}
+                      className={`p-2.5 rounded-lg border text-left flex items-center space-x-2 cursor-pointer transition-all ${
+                        cohortTier === 'college'
+                          ? 'bg-purple-600/20 border-purple-500 text-white'
+                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                      }`}
+                    >
+                      <Building2 className="h-4 w-4 text-purple-400 shrink-0" />
+                      <div>
+                        <p className="font-bold text-xs">College Track</p>
+                        <p className="text-[10px] text-slate-400">Higher Education</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {cohortTier === 'school' ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Standard / Grade</label>
+                      <select
+                        value={cohortStandard}
+                        onChange={(e) => {
+                          setCohortStandard(e.target.value);
+                          const subjects = SCHOOL_STANDARDS_AND_SUBJECTS[e.target.value as keyof typeof SCHOOL_STANDARDS_AND_SUBJECTS] || [];
+                          if (subjects.length > 0) setCohortSubject(subjects[0]);
+                        }}
+                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
+                      >
+                        {Object.keys(SCHOOL_STANDARDS_AND_SUBJECTS).map((std) => (
+                          <option key={std} value={std}>{std}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Section</label>
+                      <select
+                        value={cohortSection}
+                        onChange={(e) => setCohortSection(e.target.value)}
+                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
+                      >
+                        {['A', 'B', 'C', 'D', 'E'].map(sec => <option key={sec} value={sec}>Section {sec}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Subject</label>
+                      <select
+                        value={cohortSubject}
+                        onChange={(e) => setCohortSubject(e.target.value)}
+                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
+                      >
+                        {(SCHOOL_STANDARDS_AND_SUBJECTS[cohortStandard as keyof typeof SCHOOL_STANDARDS_AND_SUBJECTS] || ['Mathematics', 'Science', 'English']).map(subj => (
+                          <option key={subj} value={subj}>{subj}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Department</label>
+                      <select
+                        value={cohortDepartment}
+                        onChange={(e) => setCohortDepartment(e.target.value)}
+                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500 truncate"
+                      >
+                        {COLLEGE_DEPARTMENTS.map((dept) => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Semester & Section</label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <select
+                          value={cohortSemester}
+                          onChange={(e) => setCohortSemester(e.target.value)}
+                          className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-2 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
+                        >
+                          {['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8'].map(sem => (
+                            <option key={sem} value={sem}>{sem}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={cohortSection}
+                          onChange={(e) => setCohortSection(e.target.value)}
+                          className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-2 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
+                        >
+                          {['A', 'B', 'C', 'D'].map(sec => <option key={sec} value={sec}>Sec {sec}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Course / Subject</label>
+                      <input
+                        type="text"
+                        required
+                        value={cohortSubject}
+                        onChange={(e) => setCohortSubject(e.target.value)}
+                        placeholder="e.g. Operating Systems"
+                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Room / Lab Number</label>
                     <input
                       type="text"
-                      placeholder="e.g. Chemistry Lab 3"
-                      value={newClassRoom}
-                      onChange={(e) => setNewClassRoom(e.target.value)}
+                      placeholder="e.g. Room 204 or Systems Lab 3"
+                      value={cohortRoom}
+                      onChange={(e) => setCohortRoom(e.target.value)}
+                      className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 text-slate-300">Academic Year</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 2026-2027"
+                      value={cohortAcademicYear}
+                      onChange={(e) => setCohortAcademicYear(e.target.value)}
                       className="w-full text-xs border border-slate-700 bg-slate-900 text-white rounded-lg px-3 py-2.5 outline-none font-medium focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
+
+                <div className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-slate-300 text-[11px] flex items-center justify-between">
+                  <span>
+                    Cohort Name: <strong className="text-white font-mono">{cohortTier === 'school' ? `${cohortStandard}-${cohortSection} (${cohortSubject})` : `${cohortDepartment.split(' ')[0]} ${cohortSemester} Sec ${cohortSection} (${cohortSubject})`}</strong>
+                  </span>
+                  <span className="text-indigo-400 font-mono text-[10px]">Unique Join Code auto-allocated</span>
+                </div>
+
                 <div className="flex justify-end space-x-2 pt-2">
                   <button
                     type="button"
@@ -1038,42 +1346,49 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold cursor-pointer font-mono uppercase tracking-wider shadow-md transition-colors"
+                    disabled={cohortCreating}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-bold cursor-pointer font-mono uppercase tracking-wider shadow-md transition-colors flex items-center space-x-1.5"
                   >
-                    Create Classroom
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>{cohortCreating ? 'Creating...' : 'Initialize Cohort'}</span>
                   </button>
                 </div>
               </form>
             )}
 
             {/* Quick overview metric pills for selected class */}
-            <div className="mt-6 pt-4 border-t border-slate-700/50 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-              <div className={`p-3 rounded-xl border-2 ${isDark ? 'bg-[#0F172A] border-slate-700' : 'bg-[#F8F7F4] border-[#1C1B1A]/20'
-                }`}>
-                <span className={`text-[9px] font-mono font-bold uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-[#1C1B1A]/70'
-                  }`}>Class Segment</span>
-                <span className={`font-extrabold text-sm mt-0.5 block ${isDark ? 'text-white' : 'text-[#1C1B1A]'
-                  }`}>{activeClass.name}</span>
+            <div className="mt-6 pt-4 border-t border-slate-700/50 grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+              <div className="p-3 rounded-xl border border-slate-700 bg-slate-900/60">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider block text-slate-400">Class Segment</span>
+                <span className="font-bold text-sm mt-0.5 block text-white truncate">{activeClass.name}</span>
               </div>
-              <div className={`p-3 rounded-xl border-2 ${isDark ? 'bg-[#0F172A] border-slate-700' : 'bg-[#F8F7F4] border-[#1C1B1A]/20'
-                }`}>
-                <span className={`text-[9px] font-mono font-bold uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-[#1C1B1A]/70'
-                  }`}>Assigned Location</span>
-                <span className={`font-extrabold text-sm mt-0.5 block ${isDark ? 'text-white' : 'text-[#1C1B1A]'
-                  }`}>{activeClass.room}</span>
+              <div className="p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider block text-indigo-300">Join Code</span>
+                <div className="flex items-center space-x-2 mt-0.5">
+                  <span className="font-mono font-bold text-white text-sm">{activeClass.code || 'KV10-A'}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyCode(activeClass.code || 'KV10-A')}
+                    className="p-1 text-indigo-400 hover:text-white transition-colors cursor-pointer"
+                    title="Copy 6-char Class Code for Students"
+                  >
+                    {copiedCode ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
               </div>
-              <div className={`p-3 rounded-xl border-2 ${isDark ? 'bg-[#0F172A] border-slate-700' : 'bg-[#F8F7F4] border-[#1C1B1A]/20'
-                }`}>
-                <span className={`text-[9px] font-mono font-bold uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-[#1C1B1A]/70'
-                  }`}>Active Pupils</span>
+              <div className="p-3 rounded-xl border border-slate-700 bg-slate-900/60">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider block text-slate-400">Assigned Location</span>
+                <span className="font-bold text-sm mt-0.5 block text-white truncate">{activeClass.room}</span>
+              </div>
+              <div className="p-3 rounded-xl border border-slate-700 bg-slate-900/60">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider block text-slate-400">Active Pupils</span>
                 <span className="font-extrabold text-[#FF5A5F] text-sm mt-0.5 block font-mono">{students.filter(s => s.classId === activeClassId).length} Registered</span>
               </div>
-              <div className={`p-3 rounded-xl border-2 ${isDark ? 'bg-[#0F172A] border-slate-700' : 'bg-[#F8F7F4] border-[#1C1B1A]/20'
-                }`}>
-                <span className={`text-[9px] font-mono font-bold uppercase tracking-wider block ${isDark ? 'text-slate-400' : 'text-[#1C1B1A]/70'
-                  }`}>Academic Session</span>
-                <span className={`font-extrabold text-sm mt-0.5 block ${isDark ? 'text-white' : 'text-[#1C1B1A]'
-                  }`}>{activeClass.year} / CBSE</span>
+              <div className="p-3 rounded-xl border border-slate-700 bg-slate-900/60 col-span-2 sm:col-span-1">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider block text-slate-400">Track & Session</span>
+                <span className="font-bold text-sm mt-0.5 block text-white truncate">
+                  {activeClass.tier === 'college' ? 'Higher Ed' : 'School 6–12'} • {activeClass.year || '2026-2027'}
+                </span>
               </div>
             </div>
           </div>

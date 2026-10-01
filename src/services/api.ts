@@ -73,6 +73,11 @@ export const api = {
       role: 'student' | 'teacher';
       teacherType?: string;
       avatar?: string | null;
+      tier?: string;
+      academicProfile?: any;
+      teacherProfile?: any;
+      rollNo?: string;
+      enrolledSubjects?: string[];
       gradeLevel?: string;
       learningStyle?: string;
       curriculumTrack?: string;
@@ -264,6 +269,73 @@ export const api = {
       });
       const data = await safeParseJson(response);
       return data;
+    },
+  },
+
+  cohorts: {
+    verifyCode: async (code: string) => {
+      const response = await fetch(`${API_BASE}/cohorts/verify/${encodeURIComponent(code)}`);
+      const data = await safeParseJson(response);
+      if (!response.ok) throw new Error(data.message || 'Cohort not found');
+      return data.cohort;
+    },
+
+    verify: async (code: string) => {
+      const response = await fetch(`${API_BASE}/cohorts/verify/${encodeURIComponent(code)}`);
+      const data = await safeParseJson(response);
+      if (!response.ok) throw new Error(data.message || 'Cohort not found');
+      return data.cohort;
+    },
+
+    join: async (code: string, rollNo: string) => {
+      const response = await fetch(`${API_BASE}/cohorts/join`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ code, rollNo }),
+      });
+      const data = await safeParseJson(response);
+      if (!response.ok) throw new Error(data.message || 'Failed to join class cohort');
+      return data;
+    },
+
+    create: async (cohortData: {
+      tier: 'school' | 'college';
+      name: string;
+      standard?: string;
+      department?: string;
+      schoolStream?: string;
+      academicYear: string;
+      semester?: string;
+      section: string;
+      subject: string;
+      room?: string;
+    }) => {
+      const response = await fetch(`${API_BASE}/cohorts`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(cohortData),
+      });
+      const data = await safeParseJson(response);
+      if (!response.ok) throw new Error(data.message || 'Failed to create cohort');
+      return data;
+    },
+
+    getMyCohorts: async () => {
+      const response = await fetch(`${API_BASE}/cohorts/my`, {
+        headers: getAuthHeaders(),
+      });
+      const data = await safeParseJson(response);
+      if (!response.ok) throw new Error(data.message || 'Failed to fetch cohorts');
+      return data;
+    },
+
+    getCohortStudents: async (cohortId: string) => {
+      const response = await fetch(`${API_BASE}/cohorts/${cohortId}/students`, {
+        headers: getAuthHeaders(),
+      });
+      const data = await safeParseJson(response);
+      if (!response.ok) throw new Error(data.message || 'Failed to fetch class roster');
+      return data.students;
     },
   },
 };
