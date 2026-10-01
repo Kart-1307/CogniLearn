@@ -3,9 +3,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { getSupabase, isSupabaseConfigured, mapUserFromDB } from '../supabase';
 import { memoryStore } from '../memoryStore';
+import { JWT_SECRET } from '../authMiddleware';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'cognilearn_super_secret_jwt_key_2026';
 
 // Register endpoint
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
@@ -13,13 +13,18 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     const { 
       fullName, email, password, role, teacherType, avatar,
       gradeLevel, learningStyle, curriculumTrack, studySchedule, guardianEmail,
-      institutionName, teacherIdNumber, department, assignedClasses
+      institutionName, teacherIdNumber, department, assignedClasses,
+      tier, academicProfile, teacherProfile, rollNo, enrolledSubjects
     } = req.body;
 
     if (!fullName || !email || !password || !role) {
       res.status(400).json({ message: 'Full name, email, password, and role are required' });
       return;
     }
+
+    const determinedTier = tier || (role === 'teacher' 
+      ? (department?.toLowerCase().includes('eng') || teacherType === 'Professor' ? 'college' : 'school')
+      : (gradeLevel?.toLowerCase().includes('college') ? 'college' : 'school'));
 
     const supabase = getSupabase();
 
@@ -48,14 +53,17 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
         xp: 0,
         total_hours: 0,
         completed_sessions: 0,
-        grade_level: gradeLevel || 'Class 11',
+        tier: determinedTier,
+        academic_profile: academicProfile || {},
+        teacher_profile: teacherProfile || {},
+        grade_level: gradeLevel || (determinedTier === 'college' ? 'College 1st Year' : 'Class 10'),
         learning_style: learningStyle || 'Visual',
-        curriculum_track: curriculumTrack || 'CBSE',
+        curriculum_track: curriculumTrack || (determinedTier === 'college' ? 'Autonomous University' : 'CBSE'),
         study_schedule: studySchedule || 'Morning Focus',
         guardian_email: guardianEmail || '',
         institution_name: institutionName || '',
         teacher_id_number: teacherIdNumber || '',
-        department: department || 'Science & Math',
+        department: department || '',
         assigned_classes: assignedClasses || [],
       };
 
@@ -107,9 +115,14 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       totalHours: 0,
       completedSessions: 0,
       isDemo: false,
-      gradeLevel,
+      tier: determinedTier,
+      academicProfile: academicProfile || null,
+      teacherProfile: teacherProfile || null,
+      rollNo: rollNo || academicProfile?.rollNo || '',
+      enrolledSubjects: enrolledSubjects || academicProfile?.subjects || [],
+      gradeLevel: gradeLevel || (determinedTier === 'college' ? 'College 1st Year' : 'Class 10'),
       learningStyle,
-      curriculumTrack,
+      curriculumTrack: curriculumTrack || (determinedTier === 'college' ? 'Autonomous University' : 'CBSE'),
       studySchedule,
       guardianEmail,
       institutionName,
@@ -124,7 +137,8 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       { expiresIn: '7d' }
     );
 
-    res.status(201).json({ token, user: newMemUser });
+    const { passwordHash: _, ...userWithoutPass } = newMemUser;
+    res.status(201).json({ token, user: userWithoutPass });
   } catch (error) {
     console.error('[Auth Register Error]:', error);
     res.status(500).json({ message: 'Internal server error during registration' });
@@ -142,7 +156,12 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     }
 
     const cleanEmail = email.toLowerCase().trim();
-    const isDemoAccount = cleanEmail === 'student@cognilearn.com' || cleanEmail === 'teacher@cognilearn.com';
+    const isDemoAccount = [
+      'student@cognilearn.com',
+      'teacher@cognilearn.com',
+      'college-student@cognilearn.com',
+      'college-teacher@cognilearn.com'
+    ].includes(cleanEmail);
 
     const supabase = getSupabase();
 
@@ -210,18 +229,13 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       { expiresIn: '7d' }
     );
 
+    const { passwordHash: _, ...userWithoutPass } = memUser;
+
     res.json({
       token,
       user: {
+        ...userWithoutPass,
         id: memUser._id,
-        fullName: memUser.fullName,
-        email: memUser.email,
-        role: memUser.role,
-        teacherType: memUser.teacherType,
-        avatar: memUser.avatar,
-        xp: memUser.xp,
-        totalHours: memUser.totalHours,
-        completedSessions: memUser.completedSessions,
       },
     });
   } catch (error) {

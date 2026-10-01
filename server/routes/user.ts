@@ -1,27 +1,9 @@
 import express, { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
 import { getSupabase, mapUserFromDB } from '../supabase';
 import { memoryStore } from '../memoryStore';
+import { authenticateToken } from '../authMiddleware';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'cognilearn_super_secret_jwt_key_2026';
-
-// Middleware to extract user ID from auth header
-const authenticateToken = (req: Request, res: Response, next: express.NextFunction) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ message: 'Unauthorized access' });
-    return;
-  }
-  const token = authHeader.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; role: string };
-    (req as any).userId = decoded.id;
-    next();
-  } catch (err) {
-    res.status(401).json({ message: 'Invalid or expired token' });
-  }
-};
 
 // PUT /api/user/profile - Update profile details
 router.put('/profile', authenticateToken, async (req: Request, res: Response): Promise<void> => {
@@ -56,6 +38,9 @@ router.put('/profile', authenticateToken, async (req: Request, res: Response): P
       if (updateData.teacherIdNumber !== undefined) dbPayload.teacher_id_number = updateData.teacherIdNumber;
       if (updateData.department !== undefined) dbPayload.department = updateData.department;
       if (updateData.assignedClasses !== undefined) dbPayload.assigned_classes = updateData.assignedClasses;
+      if (updateData.tier !== undefined) dbPayload.tier = updateData.tier;
+      if (updateData.academicProfile !== undefined) dbPayload.academic_profile = updateData.academicProfile;
+      if (updateData.teacherProfile !== undefined) dbPayload.teacher_profile = updateData.teacherProfile;
 
       const { data: updatedUser, error } = await supabase
         .from('users')

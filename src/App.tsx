@@ -1,15 +1,36 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { Route, User } from './types';
 import { Navbar } from './components/Navbar';
 import { LandingPage } from './components/LandingPage';
-import { TeacherAuth } from './components/TeacherAuth';
-import { StudentAuth } from './components/StudentAuth';
-import { TeacherDashboard } from './components/TeacherDashboard';
-import { StudentDashboard } from './components/StudentDashboard';
-import { AccountSettingsModal } from './components/AccountSettingsModal';
-import { ResetDatabaseModal } from './components/ResetDatabaseModal';
 import { AnimatePresence, motion } from 'motion/react';
 import { api } from './services/api';
+
+// Route-level code-splitting: Heavy modules loaded asynchronously on-demand
+const TeacherDashboard = lazy(() =>
+  import('./components/TeacherDashboard').then((m) => ({ default: m.TeacherDashboard }))
+);
+const StudentDashboard = lazy(() =>
+  import('./components/StudentDashboard').then((m) => ({ default: m.StudentDashboard }))
+);
+const TeacherAuth = lazy(() =>
+  import('./components/TeacherAuth').then((m) => ({ default: m.TeacherAuth }))
+);
+const StudentAuth = lazy(() =>
+  import('./components/StudentAuth').then((m) => ({ default: m.StudentAuth }))
+);
+const AccountSettingsModal = lazy(() =>
+  import('./components/AccountSettingsModal').then((m) => ({ default: m.AccountSettingsModal }))
+);
+const ResetDatabaseModal = lazy(() =>
+  import('./components/ResetDatabaseModal').then((m) => ({ default: m.ResetDatabaseModal }))
+);
+
+const ViewLoader = () => (
+  <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-3">
+    <div className="w-10 h-10 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+    <span className="text-xs font-mono text-slate-400 uppercase tracking-widest">Loading Module...</span>
+  </div>
+);
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<Route>('landing');
@@ -20,7 +41,8 @@ export default function App() {
   // Restore authenticated session from JWT token on initial app load
   useEffect(() => {
     let isMounted = true;
-    api.auth.getMe()
+    api.auth
+      .getMe()
       .then((existingUser) => {
         if (isMounted && existingUser) {
           setUser(existingUser);
@@ -32,7 +54,9 @@ export default function App() {
         }
       })
       .catch(() => {});
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleLogout = () => {
@@ -83,11 +107,13 @@ export default function App() {
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.25 }}
           >
-            <TeacherAuth
-              mode="login"
-              setCurrentRoute={setCurrentRoute}
-              onLoginSuccess={handleLoginSuccess}
-            />
+            <Suspense fallback={<ViewLoader />}>
+              <TeacherAuth
+                mode="login"
+                setCurrentRoute={setCurrentRoute}
+                onLoginSuccess={handleLoginSuccess}
+              />
+            </Suspense>
           </motion.div>
         );
       case 'teacher-signup':
@@ -99,11 +125,13 @@ export default function App() {
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.25 }}
           >
-            <TeacherAuth
-              mode="signup"
-              setCurrentRoute={setCurrentRoute}
-              onLoginSuccess={handleLoginSuccess}
-            />
+            <Suspense fallback={<ViewLoader />}>
+              <TeacherAuth
+                mode="signup"
+                setCurrentRoute={setCurrentRoute}
+                onLoginSuccess={handleLoginSuccess}
+              />
+            </Suspense>
           </motion.div>
         );
       case 'student-login':
@@ -115,11 +143,13 @@ export default function App() {
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.25 }}
           >
-            <StudentAuth
-              mode="login"
-              setCurrentRoute={setCurrentRoute}
-              onLoginSuccess={handleLoginSuccess}
-            />
+            <Suspense fallback={<ViewLoader />}>
+              <StudentAuth
+                mode="login"
+                setCurrentRoute={setCurrentRoute}
+                onLoginSuccess={handleLoginSuccess}
+              />
+            </Suspense>
           </motion.div>
         );
       case 'student-signup':
@@ -131,11 +161,13 @@ export default function App() {
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.25 }}
           >
-            <StudentAuth
-              mode="signup"
-              setCurrentRoute={setCurrentRoute}
-              onLoginSuccess={handleLoginSuccess}
-            />
+            <Suspense fallback={<ViewLoader />}>
+              <StudentAuth
+                mode="signup"
+                setCurrentRoute={setCurrentRoute}
+                onLoginSuccess={handleLoginSuccess}
+              />
+            </Suspense>
           </motion.div>
         );
       case 'teacher-dashboard':
@@ -147,11 +179,13 @@ export default function App() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <TeacherDashboard
-              user={user}
-              setCurrentRoute={setCurrentRoute}
-              onLogout={handleLogout}
-            />
+            <Suspense fallback={<ViewLoader />}>
+              <TeacherDashboard
+                user={user}
+                setCurrentRoute={setCurrentRoute}
+                onLogout={handleLogout}
+              />
+            </Suspense>
           </motion.div>
         );
       case 'student-dashboard':
@@ -163,11 +197,13 @@ export default function App() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <StudentDashboard
-              user={user}
-              setCurrentRoute={setCurrentRoute}
-              onLogout={handleLogout}
-            />
+            <Suspense fallback={<ViewLoader />}>
+              <StudentDashboard
+                user={user}
+                setCurrentRoute={setCurrentRoute}
+                onLogout={handleLogout}
+              />
+            </Suspense>
           </motion.div>
         );
       default:
@@ -190,27 +226,31 @@ export default function App() {
         onOpenResetModal={() => setIsResetModalOpen(true)}
       />
       <main className="relative">
-        <AnimatePresence mode="wait">
-          {renderContent()}
-        </AnimatePresence>
+        <AnimatePresence mode="wait">{renderContent()}</AnimatePresence>
       </main>
 
-      {user && (
-        <AccountSettingsModal
-          user={user}
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          onUpdateUser={handleUpdateUser}
-          onAccountDeleted={handleAccountDeleted}
-          onOpenResetModal={() => setIsResetModalOpen(true)}
-        />
+      {user && isSettingsOpen && (
+        <Suspense fallback={null}>
+          <AccountSettingsModal
+            user={user}
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            onUpdateUser={handleUpdateUser}
+            onAccountDeleted={handleAccountDeleted}
+            onOpenResetModal={() => setIsResetModalOpen(true)}
+          />
+        </Suspense>
       )}
 
-      <ResetDatabaseModal
-        isOpen={isResetModalOpen}
-        onClose={() => setIsResetModalOpen(false)}
-        onResetComplete={handleResetComplete}
-      />
+      {isResetModalOpen && (
+        <Suspense fallback={null}>
+          <ResetDatabaseModal
+            isOpen={isResetModalOpen}
+            onClose={() => setIsResetModalOpen(false)}
+            onResetComplete={handleResetComplete}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

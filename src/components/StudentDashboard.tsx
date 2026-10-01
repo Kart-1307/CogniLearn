@@ -4,7 +4,8 @@ import { motion } from 'motion/react';
 import {
   Clock, Activity, BarChart2, Award, LogOut,
   Flame, BookOpen, Star, Sparkles, ChevronRight, Play, Pause, RotateCcw, Check, Trash2, Camera,
-  FileText, Square, History, Eye, CheckCircle2, ListFilter
+  FileText, Square, History, Eye, CheckCircle2, ListFilter,
+  Building2, School, KeyRound, Plus, X, Search, AlertCircle
 } from 'lucide-react';
 
 import { api } from '../services/api';
@@ -59,6 +60,220 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       });
     return () => { isMounted = false; };
   }, []);
+
+  // Enrolled Cohorts & Academic Track State
+  const [enrolledCohorts, setEnrolledCohorts] = useState<any[]>([]);
+  const [isLoadingCohorts, setIsLoadingCohorts] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinCodeInput, setJoinCodeInput] = useState('');
+  const [joinRollNoInput, setJoinRollNoInput] = useState(user?.rollNo || '');
+  const [verifiedCohort, setVerifiedCohort] = useState<any | null>(null);
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [joinSuccess, setJoinSuccess] = useState<string | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<string>('Mathematics');
+
+  const isCollege = user?.tier === 'college' || (user?.email && user.email.includes('college')) || (user?.academicProfile && user.academicProfile.tier === 'college');
+
+  // Fetch enrolled cohorts with demo fallback
+  const fetchEnrolledCohorts = async () => {
+    setIsLoadingCohorts(true);
+    try {
+      const res = await api.cohorts.getMyCohorts();
+      if (res?.enrollments && res.enrollments.length > 0) {
+        setEnrolledCohorts(res.enrollments);
+      } else if (isDemo) {
+        if (isCollege) {
+          setEnrolledCohorts([
+            {
+              id: 'enr-demo-college',
+              rollNo: user?.rollNo || '22CS084',
+              enrolledSubjects: ['Operating Systems', 'Database Management', 'Data Structures & Algorithms'],
+              cohort: {
+                id: 'cohort-cs301',
+                code: 'CS301-B',
+                name: 'B.Tech CSE - Year 3 Section B',
+                tier: 'college',
+                department: 'Computer Science & Engineering',
+                semester: 'Semester 5',
+                section: 'B',
+                subject: 'Operating Systems & System Architecture',
+                academicYear: '2026-2027',
+                room: 'Lab-304',
+                teacherName: 'Dr. Suresh Rao',
+              },
+            },
+          ]);
+        } else {
+          setEnrolledCohorts([
+            {
+              id: 'enr-demo-school',
+              rollNo: user?.rollNo || '14',
+              enrolledSubjects: ['Mathematics', 'Physics', 'Chemistry', 'English'],
+              cohort: {
+                id: 'cohort-kv10a',
+                code: 'KV10-A',
+                name: 'Class 10-A Science & Tech',
+                tier: 'school',
+                standard: 'Class 10',
+                section: 'A',
+                subject: 'Mathematics & Natural Sciences',
+                academicYear: '2026-2027',
+                room: 'Room 204',
+                teacherName: 'Vikramaditya Sharma',
+              },
+            },
+          ]);
+        }
+      }
+    } catch {
+      if (isDemo) {
+        if (isCollege) {
+          setEnrolledCohorts([
+            {
+              id: 'enr-demo-college',
+              rollNo: user?.rollNo || '22CS084',
+              enrolledSubjects: ['Operating Systems', 'Database Management'],
+              cohort: {
+                id: 'cohort-cs301',
+                code: 'CS301-B',
+                name: 'B.Tech CSE - Year 3 Section B',
+                tier: 'college',
+                department: 'Computer Science & Engineering',
+                semester: 'Semester 5',
+                section: 'B',
+                subject: 'Operating Systems & System Architecture',
+                academicYear: '2026-2027',
+                room: 'Lab-304',
+                teacherName: 'Dr. Suresh Rao',
+              },
+            },
+          ]);
+        } else {
+          setEnrolledCohorts([
+            {
+              id: 'enr-demo-school',
+              rollNo: user?.rollNo || '14',
+              enrolledSubjects: ['Mathematics', 'Physics', 'Chemistry'],
+              cohort: {
+                id: 'cohort-kv10a',
+                code: 'KV10-A',
+                name: 'Class 10-A Science & Tech',
+                tier: 'school',
+                standard: 'Class 10',
+                section: 'A',
+                subject: 'Mathematics & Natural Sciences',
+                academicYear: '2026-2027',
+                room: 'Room 204',
+                teacherName: 'Vikramaditya Sharma',
+              },
+            },
+          ]);
+        }
+      }
+    } finally {
+      setIsLoadingCohorts(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEnrolledCohorts();
+  }, [user?.id, user?.tier]);
+
+  const handleVerifyCode = async () => {
+    if (!joinCodeInput.trim()) {
+      setJoinError('Please enter a 6-character class code');
+      return;
+    }
+    setJoinLoading(true);
+    setJoinError(null);
+    try {
+      const cohort = await api.cohorts.verify(joinCodeInput.trim().toUpperCase());
+      setVerifiedCohort(cohort);
+      if (!joinRollNoInput && user?.rollNo) {
+        setJoinRollNoInput(user.rollNo);
+      }
+    } catch (err: any) {
+      setVerifiedCohort(null);
+      setJoinError(err.message || 'Class code not found');
+    } finally {
+      setJoinLoading(false);
+    }
+  };
+
+  const handleJoinCohortSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCodeInput.trim() || !joinRollNoInput.trim()) {
+      setJoinError('Both class code and roll number are required');
+      return;
+    }
+    setJoinLoading(true);
+    setJoinError(null);
+    try {
+      const res = await api.cohorts.join(joinCodeInput.trim().toUpperCase(), joinRollNoInput.trim());
+      setJoinSuccess(res.message || 'Successfully enrolled in class cohort!');
+      await fetchEnrolledCohorts();
+      setTimeout(() => {
+        setShowJoinModal(false);
+        setJoinSuccess(null);
+        setVerifiedCohort(null);
+        setJoinCodeInput('');
+      }, 1500);
+    } catch (err: any) {
+      setJoinError(err.message || 'Failed to join class');
+    } finally {
+      setJoinLoading(false);
+    }
+  };
+
+  // Academic display resolution
+  const academicDisplay = (() => {
+    if (isCollege) {
+      const prof = user?.academicProfile?.tier === 'college' ? user.academicProfile : null;
+      const dept = prof?.department || 'Computer Science & Engineering';
+      const deg = prof?.degree || 'B.Tech';
+      const year = prof?.academicYear || 'Year 3 (Sem 5)';
+      const sec = prof?.section || 'B';
+      const roll = user?.rollNo || prof?.rollNo || (isDemo ? '22CS084' : 'N/A');
+      const inst = prof?.institutionName || (isDemo ? 'National Institute of Technology' : 'Engineering College');
+      return {
+        tier: 'college' as const,
+        badgeText: 'Higher Education Track',
+        headline: `${deg} in ${dept}`,
+        subline: `${year} • Section ${sec} • USN/Roll: ${roll}`,
+        institution: inst,
+        rollNo: roll,
+      };
+    } else {
+      const prof = user?.academicProfile?.tier === 'school' ? user.academicProfile : null;
+      const std = prof?.standard || user?.gradeLevel || 'Class 10';
+      const sec = prof?.section || 'A';
+      const board = prof?.board || 'CBSE';
+      const roll = user?.rollNo || prof?.rollNo || (isDemo ? '14' : 'N/A');
+      const inst = prof?.institutionName || (isDemo ? 'Kendriya Vidyalaya No. 1' : 'Secondary School');
+      return {
+        tier: 'school' as const,
+        badgeText: 'School Track (6–12)',
+        headline: `${std} - Section ${sec}`,
+        subline: `Roll: ${roll} • Board: ${board}`,
+        institution: inst,
+        rollNo: roll,
+      };
+    }
+  })();
+
+  // Available subjects for tagging diagnostics
+  const availableSubjects = Array.from(
+    new Set([
+      ...(user?.enrolledSubjects || []),
+      ...(user?.academicProfile?.subjects || []),
+      ...enrolledCohorts.flatMap((e: any) => e.enrolledSubjects || [e.cohort?.subject].filter(Boolean)),
+      'Mathematics',
+      'Physics',
+      'Chemistry',
+      'Computer Science',
+    ].filter(Boolean))
+  );
 
   // 1. Study Sessions Timer State
   const [timerDuration, setTimerDuration] = useState(25); // in minutes
@@ -300,12 +515,69 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     setIsTracking(true);
   };
 
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+
   // Handler to Stop Attention Diagnostic Tracking (Automatic Completion or Manual Stop)
-  const handleStopDiagnostic = (status: 'Completed' | 'Manually Stopped') => {
+  const handleStopDiagnostic = async (status: 'Completed' | 'Manually Stopped') => {
     setIsTracking(false);
+    setIsGeneratingAI(true);
     const now = Date.now();
     const startTime = diagnosticStartTimestamp || now;
     const elapsedSeconds = Math.max(1, Math.round((now - startTime) / 1000));
+
+    const metrics = {
+      avgFocusScore: focusScore,
+      peakFocusScore: Math.min(99, focusScore + 7),
+      minFocusScore: Math.max(52, focusScore - 14),
+      optimalFocusPercent: Math.round(focusScore * 0.85),
+      moderateFocusPercent: Math.round((100 - focusScore) * 0.6),
+      distractedPercent: Math.max(0, 100 - Math.round(focusScore * 0.85) - Math.round((100 - focusScore) * 0.6)),
+      gazeShiftsCount: Math.floor(elapsedSeconds / 50) + 1,
+      meshQuality: 'Optimal (68 Coordinates)',
+    };
+
+    let observations = [
+      `Maintained average focus score of ${focusScore}% during the ${status === 'Completed' ? 'full session' : 'tracked period'}.`,
+      `Gaze tracking stayed within primary target threshold with ${Math.floor(elapsedSeconds / 50) + 1} vector drift alerts recorded.`,
+      `Facial landmark wireframe mesh remained synchronized across 68 coordinate points.`,
+    ];
+    let recommendations = [
+      'Take a 5-minute cognitive rest before starting your next intensive study block.',
+      'Maintain adequate room illumination to minimize eye strain.',
+      'Optimal focal intervals achieved; continue tracking session trends.',
+    ];
+    let aiActionPlan: string[] | undefined = undefined;
+
+    // Call Gemini API for AI-based report generation
+    try {
+      const aiRes = await api.report.generateAIReport({
+        isClassroom: false,
+        telemetry: {
+          studentName,
+          sessionTitle: diagnosticSessionTitle || 'Attention Diagnostic Session',
+          configuredDurationMinutes: diagnosticDuration,
+          actualDurationSeconds: elapsedSeconds,
+          status,
+          metrics,
+        },
+      });
+
+      if (aiRes?.aiGenerated && aiRes?.report) {
+        if (Array.isArray(aiRes.report.observations) && aiRes.report.observations.length > 0) {
+          observations = aiRes.report.observations;
+        }
+        if (Array.isArray(aiRes.report.recommendations) && aiRes.report.recommendations.length > 0) {
+          recommendations = aiRes.report.recommendations;
+        }
+        if (Array.isArray(aiRes.report.aiActionPlan) && aiRes.report.aiActionPlan.length > 0) {
+          aiActionPlan = aiRes.report.aiActionPlan;
+        }
+      }
+    } catch (err) {
+      console.warn('[CogniLearn] AI report API call failed or unavailable; using fallback report rules:', err);
+    } finally {
+      setIsGeneratingAI(false);
+    }
 
     const report: StudentDiagnosticReport = {
       id: `diag-student-${Date.now()}`,
@@ -317,26 +589,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       configuredDurationMinutes: diagnosticDuration,
       actualDurationSeconds: elapsedSeconds,
       status,
-      metrics: {
-        avgFocusScore: focusScore,
-        peakFocusScore: Math.min(99, focusScore + 7),
-        minFocusScore: Math.max(52, focusScore - 14),
-        optimalFocusPercent: Math.round(focusScore * 0.85),
-        moderateFocusPercent: Math.round((100 - focusScore) * 0.6),
-        distractedPercent: Math.max(0, 100 - Math.round(focusScore * 0.85) - Math.round((100 - focusScore) * 0.6)),
-        gazeShiftsCount: Math.floor(elapsedSeconds / 50) + 1,
-        meshQuality: 'Optimal (68 Coordinates)',
-      },
-      observations: [
-        `Maintained average focus score of ${focusScore}% during the ${status === 'Completed' ? 'full session' : 'tracked period'}.`,
-        `Gaze tracking stayed within primary target threshold with ${Math.floor(elapsedSeconds / 50) + 1} vector drift alerts recorded.`,
-        `Facial landmark wireframe mesh remained synchronized across 68 coordinate points.`,
-      ],
-      recommendations: [
-        'Take a 5-minute cognitive rest before starting your next intensive study block.',
-        'Maintain adequate room illumination to minimize eye strain.',
-        'Optimal focal intervals achieved; continue tracking session trends.',
-      ],
+      metrics,
+      observations,
+      recommendations,
+      aiActionPlan,
+      subjectName: selectedSubject || 'Mathematics',
     };
 
     setLatestReport(report);
@@ -573,39 +830,126 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       </div>
 
       {/* Profile Details Container */}
-      <div className="saas-card p-6 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 rounded-2xl">
-        <div className="flex items-center space-x-4">
-          {user?.avatar ? (
-            <img
-              src={user.avatar}
-              alt={studentName}
-              className="w-14 h-14 object-cover border-2 border-indigo-500/30 rounded-full"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center font-bold text-xl tracking-tight shadow-md">
-              {studentName.split(' ').map(n => n[0]).join('')}
+      <div className="saas-card p-6 mb-8 rounded-2xl flex flex-col gap-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div className="flex items-start sm:items-center space-x-4">
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt={studentName}
+                className="w-14 h-14 object-cover border-2 border-indigo-500/30 rounded-2xl"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center font-bold text-xl tracking-tight shadow-md shrink-0">
+                {studentName.split(' ').map((n) => n[0]).join('')}
+              </div>
+            )}
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-xl font-bold text-white tracking-tight">{studentName}</h2>
+                <span className="inline-flex items-center px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Active Student
+                </span>
+                <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded-full font-semibold border ${
+                  academicDisplay.tier === 'college'
+                    ? 'bg-purple-500/10 text-purple-300 border-purple-500/20'
+                    : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'
+                }`}>
+                  {academicDisplay.tier === 'college' ? <Building2 className="h-3 w-3" /> : <School className="h-3 w-3" />}
+                  <span>{academicDisplay.badgeText}</span>
+                </span>
+              </div>
+              <p className="text-xs font-mono mt-1 font-medium text-slate-400">{studentEmail}</p>
             </div>
-          )}
-          <div>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h2 className="text-xl font-bold text-white tracking-tight">{studentName}</h2>
-              <span className="inline-flex items-center px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Active Student
-              </span>
-            </div>
-            <p className="text-xs font-mono mt-1 font-medium text-slate-400">{studentEmail}</p>
+          </div>
+
+          <div className="flex items-center gap-2.5 self-start sm:self-center">
+            <button
+              onClick={() => {
+                setShowJoinModal(true);
+                setJoinError(null);
+                setJoinSuccess(null);
+              }}
+              className="inline-flex items-center justify-center space-x-2 border border-indigo-500/40 hover:border-indigo-500 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-mono font-semibold uppercase tracking-wider py-2.5 px-4 rounded-xl transition-all cursor-pointer shadow-sm"
+              id="student-dashboard-join-class"
+            >
+              <KeyRound className="h-3.5 w-3.5 text-indigo-400" />
+              <span>Join Class</span>
+            </button>
+
+            <button
+              onClick={onLogout}
+              className="inline-flex items-center justify-center space-x-2 border border-slate-700 hover:border-slate-600 bg-slate-800/80 hover:bg-slate-800 text-slate-200 text-xs font-mono font-medium uppercase tracking-wider py-2.5 px-4 rounded-xl transition-all cursor-pointer"
+              id="student-dashboard-logout"
+            >
+              <LogOut className="h-4 w-4 text-indigo-400" />
+              <span>Logout</span>
+            </button>
           </div>
         </div>
 
-        <button
-          onClick={onLogout}
-          className="inline-flex items-center justify-center space-x-2 border border-slate-700 hover:border-slate-600 bg-slate-800/80 hover:bg-slate-800 text-slate-200 text-xs font-mono font-medium uppercase tracking-wider py-2.5 px-4 rounded-xl transition-all cursor-pointer self-start sm:self-center"
-          id="student-dashboard-logout"
-        >
-          <LogOut className="h-4 w-4 text-indigo-400" />
-          <span>Logout</span>
-        </button>
+        {/* Academic Details Pill Bar */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-slate-800/80 text-xs">
+          <div className="flex items-center space-x-3 bg-slate-900/60 border border-slate-800/80 px-3.5 py-2.5 rounded-xl">
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 shrink-0">
+              {academicDisplay.tier === 'college' ? <Building2 className="h-4 w-4" /> : <School className="h-4 w-4" />}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold truncate">
+                {academicDisplay.institution}
+              </p>
+              <p className="text-white font-medium truncate mt-0.5">
+                {academicDisplay.headline}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3 bg-slate-900/60 border border-slate-800/80 px-3.5 py-2.5 rounded-xl">
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 shrink-0">
+              <KeyRound className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                Classroom Standing
+              </p>
+              <p className="text-white font-medium truncate mt-0.5">
+                {academicDisplay.subline}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between bg-slate-900/60 border border-slate-800/80 px-3.5 py-2.5 rounded-xl">
+            <div className="flex items-center space-x-3 min-w-0">
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 shrink-0">
+                <BookOpen className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                  Enrolled Cohorts
+                </p>
+                <p className="text-white font-medium truncate mt-0.5">
+                  {enrolledCohorts.length > 0
+                    ? `${enrolledCohorts.length} Active Class${enrolledCohorts.length > 1 ? 'es' : ''}`
+                    : 'No joined classes'}
+                </p>
+              </div>
+            </div>
+            {enrolledCohorts.length > 0 && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                {enrolledCohorts.slice(0, 2).map((item: any, idx: number) => (
+                  <span
+                    key={item.id || idx}
+                    className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/30 text-indigo-300"
+                    title={item.cohort?.name || 'Class Cohort'}
+                  >
+                    {item.cohort?.code || 'CLASS'}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Notice Board */}
@@ -746,12 +1090,31 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   <label className="text-[9px] font-mono font-bold uppercase tracking-wider block text-slate-300">
                     Session Topic / Subject
                   </label>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {availableSubjects.slice(0, 5).map((subj) => (
+                      <button
+                        key={subj}
+                        type="button"
+                        onClick={() => {
+                          setSelectedSubject(subj);
+                          setDiagnosticSessionTitle(`${subj} Focus Diagnostic`);
+                        }}
+                        className={`px-2 py-0.5 text-[9px] font-mono font-semibold rounded-md border transition-all cursor-pointer ${
+                          selectedSubject === subj
+                            ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/50'
+                            : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
+                        }`}
+                      >
+                        {subj}
+                      </button>
+                    ))}
+                  </div>
                   <input
                     type="text"
                     value={diagnosticSessionTitle}
                     onChange={(e) => setDiagnosticSessionTitle(e.target.value)}
                     placeholder="Enter session topic..."
-                    className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:border-indigo-500 rounded-lg font-medium transition-colors"
+                    className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
                   />
                 </div>
 
@@ -801,7 +1164,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         placeholder="Minutes (e.g. 25)..."
                         value={customDurationInput}
                         onChange={(e) => setCustomDurationInput(e.target.value)}
-                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-1.5 outline-none focus:border-indigo-500 rounded-lg font-medium transition-colors"
+                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
                       />
                     </div>
                   )}
@@ -888,7 +1251,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
             {/* Generate / View Latest Report Option */}
             {latestReport && !isTracking && (
-              <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-white">
+              <div className="mt-3 pt-3 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-white">
                 <div className="text-[10px] font-mono">
                   <span className="font-bold block text-indigo-300">Latest Diagnostic Ready</span>
                   <span className="font-sans font-medium text-slate-300">{latestReport.status} • {latestReport.metrics.avgFocusScore}% Focus</span>
@@ -954,7 +1317,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   placeholder="Add custom task objective..."
                   value={newTaskText}
                   onChange={(e) => setNewTaskText(e.target.value)}
-                  className="flex-1 text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:border-sky-500 rounded-lg font-medium transition-colors"
+                  className="flex-1 text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:ring-1 focus:ring-sky-500 rounded-lg font-medium transition-colors"
                 />
                 <button
                   type="submit"
@@ -1270,6 +1633,129 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         studentName={studentName}
         isDark={isDark}
       />
+
+      {/* Join Cohort Modal */}
+      {showJoinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="saas-card w-full max-w-md p-6 rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl relative">
+            <button
+              onClick={() => {
+                setShowJoinModal(false);
+                setVerifiedCohort(null);
+                setJoinError(null);
+                setJoinSuccess(null);
+              }}
+              className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="flex items-center space-x-3 mb-5">
+              <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                <KeyRound className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white tracking-tight">Join Class Cohort</h3>
+                <p className="text-xs text-slate-400">Enter your 6-character class code & roll number</p>
+              </div>
+            </div>
+
+            {joinError && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center space-x-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{joinError}</span>
+              </div>
+            )}
+
+            {joinSuccess && (
+              <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center space-x-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <span>{joinSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleJoinCohortSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-300 block mb-1.5">
+                  Class Join Code (6 characters)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    maxLength={10}
+                    value={joinCodeInput}
+                    onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
+                    placeholder="e.g. KV10-A or CS301"
+                    className="flex-1 px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-sm tracking-wider uppercase focus:outline-none focus:border-indigo-500 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyCode}
+                    disabled={joinLoading || !joinCodeInput.trim()}
+                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white font-mono text-xs uppercase font-semibold rounded-xl border border-slate-700 transition-all cursor-pointer flex items-center space-x-1.5"
+                  >
+                    <Search className="h-3.5 w-3.5" />
+                    <span>Verify</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Verified Cohort Preview */}
+              {verifiedCohort && (
+                <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-xs space-y-1">
+                  <div className="flex items-center justify-between font-mono">
+                    <span className="font-bold text-white text-sm">{verifiedCohort.name}</span>
+                    <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-[10px] uppercase font-bold">
+                      {verifiedCohort.tier}
+                    </span>
+                  </div>
+                  <p className="text-indigo-200">
+                    Subject: <span className="font-semibold text-white">{verifiedCohort.subject}</span>
+                  </p>
+                  <p className="text-slate-400 text-[11px]">
+                    Instructor: {verifiedCohort.teacherName} • Room: {verifiedCohort.room || 'General'}
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-300 block mb-1.5">
+                  Your Roll Number / Student ID in this Cohort
+                </label>
+                <input
+                  type="text"
+                  value={joinRollNoInput}
+                  onChange={(e) => setJoinRollNoInput(e.target.value)}
+                  placeholder="e.g. 14 or 22CS084"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                  required
+                />
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Unique to this cohort. Used on class attendance and focus rosters.
+                </p>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowJoinModal(false)}
+                  className="px-4 py-2 border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs uppercase font-semibold rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={joinLoading || !joinCodeInput.trim() || !joinRollNoInput.trim()}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-indigo-600/30 flex items-center space-x-1.5"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>{joinLoading ? 'Joining...' : 'Confirm Join'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 
+import { AcademicProfileForm } from './common/AcademicProfileForm';
+
 interface AccountSettingsModalProps {
   user: User;
   isOpen: boolean;
@@ -28,12 +30,11 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
 
   // Form State
   const [fullName, setFullName] = useState(user.fullName || '');
-  const [gradeLevel, setGradeLevel] = useState(user.gradeLevel || 'Class 11');
-  const [learningStyle, setLearningStyle] = useState(user.learningStyle || 'Visual');
-  const [curriculumTrack, setCurriculumTrack] = useState(user.curriculumTrack || 'CBSE');
-  const [institutionName, setInstitutionName] = useState(user.institutionName || 'Kendriya Vidyalaya');
-  const [department, setDepartment] = useState(user.department || 'Science & Math');
   const [avatar, setAvatar] = useState(user.avatar || '');
+  const [academicProfileState, setAcademicProfileState] = useState<any>(
+    user.role === 'student' ? user.academicProfile : user.teacherProfile
+  );
+  const [isProfileValid, setIsProfileValid] = useState(true);
 
   // Danger Zone Deletion Verification State
   const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
@@ -46,6 +47,11 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isProfileValid) {
+      setErrorMsg('Please resolve profile validation errors before saving.');
+      return;
+    }
+
     setIsSaving(true);
     setErrorMsg('');
     setSaveSuccessMsg(false);
@@ -53,13 +59,20 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
     const updatePayload: Partial<User> = {
       fullName,
       avatar: avatar || undefined,
+      tier: academicProfileState?.tier || user.tier || 'school',
       ...(user.role === 'student' ? {
-        gradeLevel,
-        learningStyle: learningStyle as any,
-        curriculumTrack,
+        academicProfile: academicProfileState,
+        gradeLevel: academicProfileState?.standard || (academicProfileState?.department ? `${academicProfileState.department} (${academicProfileState.semester || 'College'})` : user.gradeLevel),
+        rollNo: academicProfileState?.rollNo || user.rollNo,
+        enrolledSubjects: academicProfileState?.subjects || user.enrolledSubjects,
+        curriculumTrack: academicProfileState?.board || user.curriculumTrack,
+        institutionName: academicProfileState?.institutionName || user.institutionName,
       } : {
-        institutionName,
-        department,
+        teacherProfile: academicProfileState,
+        teacherType: academicProfileState?.role || user.teacherType,
+        institutionName: academicProfileState?.institutionName || user.institutionName,
+        department: academicProfileState?.department || user.department,
+        teacherIdNumber: academicProfileState?.staffIdNumber || user.teacherIdNumber,
       }),
     };
 
@@ -169,99 +182,32 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
-              {/* Student Specific Fields */}
-              {user.role === 'student' && (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-400 mb-1.5">
-                        Grade Level
-                      </label>
-                      <select
-                        value={gradeLevel}
-                        onChange={(e) => setGradeLevel(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
-                      >
-                        <option value="Class 9">Class 9</option>
-                        <option value="Class 10">Class 10</option>
-                        <option value="Class 11">Class 11</option>
-                        <option value="Class 12">Class 12</option>
-                        <option value="College">College / Undergrad</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-400 mb-1.5">
-                        Learning Style
-                      </label>
-                      <select
-                        value={learningStyle}
-                        onChange={(e) => setLearningStyle(e.target.value as any)}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
-                      >
-                        <option value="Visual">Visual (Graphics & Maps)</option>
-                        <option value="Auditory">Auditory (Lectures & Audio)</option>
-                        <option value="Kinesthetic">Kinesthetic (Hands-on)</option>
-                        <option value="Reading/Writing">Reading & Writing</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-400 mb-1.5">
-                      Target Exam Track
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {['CBSE', 'ICSE', 'JEE/NEET', 'SAT', 'State Board'].map((track) => (
-                        <button
-                          key={track}
-                          type="button"
-                          onClick={() => setCurriculumTrack(track)}
-                          className={`py-1.5 px-3 rounded-lg border text-xs font-mono font-medium transition-all cursor-pointer ${curriculumTrack === track
-                              ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
-                              : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-                            }`}
-                        >
-                          {track}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Teacher Specific Fields */}
-              {user.role === 'teacher' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-400 mb-1.5">
-                      Institution Name
-                    </label>
-                    <input
-                      type="text"
-                      value={institutionName}
-                      onChange={(e) => setInstitutionName(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-400 mb-1.5">
-                      Department
-                    </label>
-                    <input
-                      type="text"
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-              )}
+              {/* Academic Profile & Institution Configuration */}
+              <div className="pt-2">
+                <AcademicProfileForm
+                  mode={user.role}
+                  initialTier={user.tier || (user.gradeLevel?.toLowerCase().includes('college') ? 'college' : 'school')}
+                  initialData={{
+                    tier: user.tier || (user.gradeLevel?.toLowerCase().includes('college') ? 'college' : 'school'),
+                    institutionName: user.institutionName,
+                    standard: user.gradeLevel,
+                    rollNo: user.rollNo || (user.academicProfile as any)?.rollNo,
+                    subjects: user.enrolledSubjects || (user.academicProfile as any)?.subjects,
+                    department: user.department,
+                    role: user.teacherType,
+                    ...((user.role === 'student' ? user.academicProfile : user.teacherProfile) || {}),
+                  }}
+                  onChange={(profile, isValid) => {
+                    setAcademicProfileState(profile);
+                    setIsProfileValid(isValid);
+                  }}
+                  disabled={isSaving}
+                />
+              </div>
 
               <div className="pt-4 border-t border-slate-800 flex justify-end">
                 <button
@@ -297,7 +243,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                   value={deleteConfirmationText}
                   onChange={(e) => setDeleteConfirmationText(e.target.value)}
                   placeholder="DELETE MY ACCOUNT"
-                  className="w-full bg-slate-900 border border-rose-900/60 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-500 font-mono tracking-wide"
+                  className="w-full bg-slate-900 border border-rose-900/60 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-rose-500 font-mono tracking-wide"
                 />
               </div>
 

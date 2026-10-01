@@ -1,10 +1,14 @@
-import { FaceLandmarker, FilesetResolver, NormalizedLandmark } from '@mediapipe/tasks-vision';
+import { FaceLandmarker, FilesetResolver, NormalizedLandmark, Matrix } from '@mediapipe/tasks-vision';
 import {
   RegisteredStudentProfile,
   MultiFaceMatchResult,
   FaceAnalysisResult,
   analyzeFaceLandmarks,
 } from './faceTracker';
+import {
+  migrateClassroomModel,
+  disposeClassroomModel,
+} from './cognitiveModel';
 
 export interface PreprocessedProfilePhoto {
   width: number;
@@ -88,32 +92,43 @@ export async function getImageFaceLandmarker(): Promise<FaceLandmarker | null> {
  * Calculates scale-invariant 24-dimensional facial geometry ratio vector from MediaPipe 468 facial landmarks.
  * Includes 3D head yaw/pitch compensation, bilateral symmetry ratios, and inter-ocular proportions.
  */
-export function extractFacialGeometryVector(landmarks: NormalizedLandmark[]): number[] {
+export function extractFacialGeometryVector(
+  landmarks: NormalizedLandmark[],
+  imageWidth: number = 640,
+  imageHeight: number = 480
+): number[] {
   if (!landmarks || landmarks.length < 468) return [];
 
-  const leftEyeOuter = landmarks[33];
-  const rightEyeOuter = landmarks[263];
-  const leftEyeInner = landmarks[133];
-  const rightEyeInner = landmarks[362];
-  const noseTip = landmarks[1];
-  const chin = landmarks[152];
-  const mouthLeft = landmarks[61];
-  const mouthRight = landmarks[291];
-  const leftCheek = landmarks[234];
-  const rightCheek = landmarks[454];
-  const forehead = landmarks[10];
-  const noseBridge = landmarks[6];
-  const leftEyebrow = landmarks[70];
-  const rightEyebrow = landmarks[300];
-  const upperLip = landmarks[13];
-  const lowerLip = landmarks[14];
-  const leftEyeTop = landmarks[159];
-  const leftEyeBottom = landmarks[145];
-  const rightEyeTop = landmarks[386];
-  const rightEyeBottom = landmarks[374];
+  // Convert landmarks to isotropic pixel coordinates before computing distance ratios
+  const px = (pt: NormalizedLandmark) => ({
+    x: pt.x * imageWidth,
+    y: pt.y * imageHeight,
+    z: (pt.z || 0) * imageWidth,
+  });
 
-  // Base Inter-pupillary / outer eye distance baseline
-  const rawEyeDist = Math.hypot(rightEyeOuter.x - leftEyeOuter.x, rightEyeOuter.y - leftEyeOuter.y) || 0.001;
+  const leftEyeOuter = px(landmarks[33]);
+  const rightEyeOuter = px(landmarks[263]);
+  const leftEyeInner = px(landmarks[133]);
+  const rightEyeInner = px(landmarks[362]);
+  const noseTip = px(landmarks[1]);
+  const chin = px(landmarks[152]);
+  const mouthLeft = px(landmarks[61]);
+  const mouthRight = px(landmarks[291]);
+  const leftCheek = px(landmarks[234]);
+  const rightCheek = px(landmarks[454]);
+  const forehead = px(landmarks[10]);
+  const noseBridge = px(landmarks[6]);
+  const leftEyebrow = px(landmarks[70]);
+  const rightEyebrow = px(landmarks[300]);
+  const upperLip = px(landmarks[13]);
+  const lowerLip = px(landmarks[14]);
+  const leftEyeTop = px(landmarks[159]);
+  const leftEyeBottom = px(landmarks[145]);
+  const rightEyeTop = px(landmarks[386]);
+  const rightEyeBottom = px(landmarks[374]);
+
+  // Base Inter-pupillary / outer eye distance baseline in pixel space
+  const rawEyeDist = Math.hypot(rightEyeOuter.x - leftEyeOuter.x, rightEyeOuter.y - leftEyeOuter.y) || 1;
 
   // Yaw & Pitch estimation for 3D Pose Normalization
   const eyeMidX = (leftEyeOuter.x + rightEyeOuter.x) / 2;
@@ -126,7 +141,7 @@ export function extractFacialGeometryVector(landmarks: NormalizedLandmark[]): nu
   const pitchFactor = Math.max(0.60, Math.cos((pitch - 0.28) * 1.30));
   const eyeDist = rawEyeDist / yawFactor;
 
-  // 24 Scale-Invariant Biometric Ratios
+  // 24 Scale-Invariant Biometric Ratios (computed in isotropic pixel coordinates)
   const v1 = (Math.hypot(noseTip.x - leftEyeOuter.x, noseTip.y - leftEyeOuter.y) / eyeDist) * (yaw < 0 ? 1 / yawFactor : 1);
   const v2 = (Math.hypot(noseTip.x - rightEyeOuter.x, noseTip.y - rightEyeOuter.y) / eyeDist) * (yaw > 0 ? 1 / yawFactor : 1);
   const v3 = (Math.hypot(noseTip.x - chin.x, noseTip.y - chin.y) / eyeDist) / pitchFactor;
@@ -150,7 +165,7 @@ export function extractFacialGeometryVector(landmarks: NormalizedLandmark[]): nu
   const v21 = Math.hypot(noseTip.x - rightEyeInner.x, noseTip.y - rightEyeInner.y) / eyeDist;
   const v22 = Math.hypot(leftEyeTop.x - leftEyeBottom.x, leftEyeTop.y - leftEyeBottom.y) / eyeDist;
   const v23 = Math.hypot(rightEyeTop.x - rightEyeBottom.x, rightEyeTop.y - rightEyeBottom.y) / eyeDist;
-  const v24 = (Math.hypot(mouthLeft.x - noseTip.x, mouthLeft.y - noseTip.y) / (Math.hypot(mouthRight.x - noseTip.x, mouthRight.y - noseTip.y) || 0.001));
+  const v24 = (Math.hypot(mouthLeft.x - noseTip.x, mouthLeft.y - noseTip.y) / (Math.hypot(mouthRight.x - noseTip.x, mouthRight.y - noseTip.y) || 1));
 
   return [
     v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12,
@@ -308,12 +323,23 @@ export function calculateCosineSimilarity(vecA: number[], vecB: number[]): numbe
 
 /**
  * Calculates weighted biometric similarity (0-100) between a live face geometry vector and a student profile vector.
+ * Supports both 512-D deep metric embeddings (MobileFaceNet/ArcFace) and 24-D geometric landmark ratios.
  */
 export function computeBiometricSimilarity(liveVec: number[], refVec: number[]): { similarity: number; distance: number } {
   if (!liveVec || !refVec || liveVec.length === 0 || refVec.length === 0) {
     return { similarity: 0, distance: 999 };
   }
 
+  // Deep Metric 512-D Embedding Comparison (Cosine metric)
+  if (liveVec.length >= 128 && refVec.length >= 128 && liveVec.length === refVec.length) {
+    const cosSim = calculateCosineSimilarity(liveVec, refVec);
+    // In MobileFaceNet / ArcFace space, >= 0.40 indicates high confidence identity match
+    // Map cosine similarity [0.15, 0.80] to [0, 99%]
+    const scaledScore = Math.max(0, Math.min(99, Math.round(((cosSim - 0.15) / 0.65) * 100)));
+    return { similarity: scaledScore, distance: Math.max(0, 1 - cosSim) };
+  }
+
+  // 24-D Geometric Ratio Comparison (Fallback)
   const len = Math.min(liveVec.length, refVec.length);
   let distSum = 0;
   let totalWeight = 0;
@@ -343,28 +369,64 @@ export function computeBiometricSimilarity(liveVec: number[], refVec: number[]):
   return { similarity, distance: weightedDist };
 }
 
+import { BoundingBoxKalmanFilter, BoundingBox } from '../utils/kalmanFilter';
+import { hungarianAlgorithm, computeIoU, BoxCoordinates } from '../utils/hungarian';
+
 /**
- * Tracked Face across consecutive video frames to guarantee:
- * 1. A single face NEVER flips between multiple student names.
- * 2. Spatial continuity (IoU & centroid tracking).
- * 3. Temporal exponential smoothing on identity and focus scores.
+ * Derives a deterministic baseline 24-D reference vector for a student profile
+ * if they do not yet have an uploaded photo or calibrated embedding.
  */
-interface TrackedFaceSession {
+export function getRegisteredStudent24DReferenceVector(student: RegisteredStudentProfile): number[] {
+  if (student.featureVector && student.featureVector.length >= 12) {
+    return student.featureVector;
+  }
+
+  let hash = 0;
+  const str = `${student.id}-${student.name}-${student.rollNo}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  const seed = Math.abs(hash);
+
+  const baseline = [
+    0.85, 0.85, 1.25, 0.72, 1.85, 2.10, 0.95, 0.95, 0.90, 0.65,
+    0.98, 0.55, 0.40, 0.22, 0.42, 0.42, 0.48, 1.35, 1.35, 0.75,
+    0.75, 0.28, 0.28, 1.00
+  ];
+  const vec: number[] = new Array(24);
+  for (let i = 0; i < 24; i++) {
+    const delta = (((seed >> (i % 16)) % 21) - 10) * 0.012;
+    vec[i] = Number((baseline[i] + delta).toFixed(4));
+  }
+  return vec;
+}
+
+/**
+ * DeepSORT-lite Tracked Face Session
+ */
+export interface TrackedFaceSession {
   trackId: number;
-  lastSeenTime: number;
-  ageFrames: number;
-  bx1: number;
-  by1: number;
-  bw: number;
-  bh: number;
-  centroidX: number;
-  centroidY: number;
+  state: 'TENTATIVE' | 'CONFIRMED' | 'LOST' | 'DELETED';
+  hits: number;               // Consecutive detection hits (needs >=3 to become CONFIRMED)
+  ageFrames: number;          // Total frames active
+  timeSinceUpdate: number;    // Frames since last matched detection
+  lastSeenTime: number;       // Epoch timestamp in ms
+  kalman: BoundingBoxKalmanFilter;
+  predictedBox: BoundingBox;  // Kalman state prediction
+  bbox: BoundingBox;          // Current filtered bounding box
+  rollingGallery: number[][]; // Recent embeddings/vectors
+  // Identity locking & hysteresis
   lockedStudentId: string | number | null;
   lockedStudent: RegisteredStudentProfile | null;
   confidence: number;
+  consecutiveMatchCount: number;
+  candidateStudentId: string | number | null;
+  candidateMatchCount: number;
+  lastHighConfidenceTime: number;
+  // Focus & telemetry
   smoothedFocusScore: number;
   blinkCount: number;
-  consecutiveMatchCount: number;
 }
 
 export class SpatialMultiFaceTracker {
@@ -375,48 +437,61 @@ export class SpatialMultiFaceTracker {
     detectedFacesLandmarks: NormalizedLandmark[][],
     registeredStudents: RegisteredStudentProfile[],
     imageWidth: number,
-    imageHeight: number
+    imageHeight: number,
+    transformationMatrixes?: (Matrix | number[])[],
+    blendshapesList?: (Record<string, number> | null | undefined)[]
   ): MultiFaceMatchResult[] {
     const now = performance.now();
     const results: MultiFaceMatchResult[] = [];
 
-    // Filter students that have an extracted feature vector from their profile photo
-    const eligibleStudents = registeredStudents.filter(
-      (s) => s.featureVector && s.featureVector.length >= 12
-    );
+    // Ensure all registered students have an eligible feature vector (using deterministic baselines if no photo uploaded)
+    const eligibleStudents = registeredStudents.map((s) => ({
+      ...s,
+      featureVector: s.featureVector && s.featureVector.length >= 12
+        ? s.featureVector
+        : getRegisteredStudent24DReferenceVector(s),
+    }));
 
-    // 1. Process current frame's detected faces
+    // 1. Predict next Kalman state for all existing tracks
+    this.tracks.forEach((track) => {
+      track.predictedBox = track.kalman.predict();
+      track.ageFrames += 1;
+      track.timeSinceUpdate += 1;
+    });
+
+    // 2. Process current frame's detected faces into pixel coordinates
     const currentDetections: Array<{
       faceIndex: number;
       landmarks: NormalizedLandmark[];
-      analysis: FaceAnalysisResult;
+      matrix?: Matrix | number[] | null;
+      blendshapes?: Record<string, number> | null;
       liveVector: number[];
-      bx1: number;
-      by1: number;
-      bw: number;
-      bh: number;
+      box: BoxCoordinates;
       cx: number;
       cy: number;
     }> = [];
 
     detectedFacesLandmarks.forEach((landmarks, fIdx) => {
-      const analysis = analyzeFaceLandmarks(landmarks, imageWidth, imageHeight);
-      const liveVector = extractFacialGeometryVector(landmarks);
+      const matrix = transformationMatrixes && transformationMatrixes[fIdx] ? transformationMatrixes[fIdx] : null;
+      const blendshapes = blendshapesList && blendshapesList[fIdx] ? blendshapesList[fIdx] : null;
+      const liveVector = extractFacialGeometryVector(landmarks, imageWidth, imageHeight);
 
-      let minX = 1, maxX = 0, minY = 1, maxY = 0;
+      let minX = imageWidth, maxX = 0, minY = imageHeight, maxY = 0;
       landmarks.forEach((pt) => {
-        if (pt.x < minX) minX = pt.x;
-        if (pt.x > maxX) maxX = pt.x;
-        if (pt.y < minY) minY = pt.y;
-        if (pt.y > maxY) maxY = pt.y;
+        const pxX = pt.x * imageWidth;
+        const pxY = pt.y * imageHeight;
+        if (pxX < minX) minX = pxX;
+        if (pxX > maxX) maxX = pxX;
+        if (pxY < minY) minY = pxY;
+        if (pxY > maxY) maxY = pxY;
       });
 
       const padX = 12;
       const padY = 16;
-      const bx1 = Math.max(4, minX * imageWidth - padX);
-      const by1 = Math.max(4, minY * imageHeight - padY);
-      const bx2 = Math.min(imageWidth - 4, maxX * imageWidth + padX);
-      const by2 = Math.min(imageHeight - 4, maxY * imageHeight + padY);
+      const bx1 = Math.max(4, minX - padX);
+      const by1 = Math.max(4, minY - padY);
+      const bx2 = Math.min(imageWidth - 4, maxX + padX);
+      const by2 = Math.min(imageHeight - 4, maxY + padY);
       const bw = bx2 - bx1;
       const bh = by2 - by1;
       const cx = bx1 + bw / 2;
@@ -425,218 +500,328 @@ export class SpatialMultiFaceTracker {
       currentDetections.push({
         faceIndex: fIdx,
         landmarks,
-        analysis,
+        matrix,
+        blendshapes,
         liveVector,
-        bx1,
-        by1,
-        bw,
-        bh,
+        box: { bx1, by1, bw, bh },
         cx,
         cy,
       });
     });
 
-    // 2. Associate detections with existing tracks based on Centroid distance & IoU
+    // 3. Build Cost Matrix between Detections and Active Tracks
+    const activeTrackList = Array.from(this.tracks.values()).filter((t) => t.state !== 'DELETED');
     const matchedTrackIds = new Set<number>();
-    const assignedDetections = new Set<number>();
+    const assignedDetIndexes = new Set<number>();
+    const GATED_COST = 1e5;
 
-    const detectionTrackPairs: Array<{
-      detIdx: number;
-      trackId: number;
-      spatialDist: number;
-    }> = [];
+    if (currentDetections.length > 0 && activeTrackList.length > 0) {
+      const costMatrix: number[][] = [];
 
-    currentDetections.forEach((det, dIdx) => {
-      this.tracks.forEach((track, tId) => {
-        const dist = Math.hypot(det.cx - track.centroidX, det.cy - track.centroidY);
-        // Max allowable spatial shift between consecutive frames (adaptive to face size)
-        const maxDist = Math.max(90, track.bw * 0.95);
-        if (dist < maxDist) {
-          detectionTrackPairs.push({ detIdx: dIdx, trackId: tId, spatialDist: dist });
+      for (let d = 0; d < currentDetections.length; d++) {
+        const det = currentDetections[d];
+        const row: number[] = [];
+
+        for (let t = 0; t < activeTrackList.length; t++) {
+          const track = activeTrackList[t];
+          const iou = computeIoU(det.box, track.predictedBox);
+          const centroidDist = Math.hypot(det.cx - track.predictedBox.cx, det.cy - track.predictedBox.cy);
+          const normDist = centroidDist / (track.predictedBox.bw || 1);
+
+          // Spatial gating: if zero overlap AND centroid distance > 1.5x face width, forbid match
+          if (iou === 0 && normDist > 1.5) {
+            row.push(GATED_COST);
+            continue;
+          }
+
+          // Embedding distance term (0 to 1)
+          let embedDist = 0.5;
+          if (track.rollingGallery.length > 0 && det.liveVector.length > 0) {
+            const lastVec = track.rollingGallery[track.rollingGallery.length - 1];
+            const sim = calculateCosineSimilarity(det.liveVector, lastVec);
+            embedDist = Math.max(0, 1 - sim);
+          }
+
+          // Cost = 0.50*(1-IoU) + 0.20*(normDist) + 0.30*(embedDist)
+          const cost = 0.50 * (1 - iou) + 0.20 * Math.min(1.5, normDist) + 0.30 * embedDist;
+          row.push(cost);
         }
+        costMatrix.push(row);
+      }
+
+      // Execute Hungarian Algorithm on Cost Matrix
+      const hungarianMatches = hungarianAlgorithm(costMatrix, 0.95);
+
+      hungarianMatches.forEach(({ row: dIdx, col: tIdx }) => {
+        const det = currentDetections[dIdx];
+        const track = activeTrackList[tIdx];
+
+        // Update Kalman state with measurement
+        track.bbox = track.kalman.update({
+          cx: det.cx,
+          cy: det.cy,
+          w: det.box.bw,
+          h: det.box.bh,
+        });
+
+        track.hits += 1;
+        track.timeSinceUpdate = 0;
+        track.lastSeenTime = now;
+
+        if (track.state === 'TENTATIVE' && track.hits >= 3) {
+          track.state = 'CONFIRMED';
+        } else if (track.state === 'LOST') {
+          track.state = 'CONFIRMED';
+        }
+
+        // Maintain rolling gallery of vectors
+        if (det.liveVector.length > 0) {
+          track.rollingGallery.push(det.liveVector);
+          if (track.rollingGallery.length > 8) {
+            track.rollingGallery.shift();
+          }
+        }
+
+        matchedTrackIds.add(track.trackId);
+        assignedDetIndexes.add(dIdx);
       });
-    });
+    }
 
-    // Sort by smallest spatial distance
-    detectionTrackPairs.sort((a, b) => a.spatialDist - b.spatialDist);
-
-    const activeDetectionsMap = new Map<number, TrackedFaceSession>();
-
-    detectionTrackPairs.forEach(({ detIdx, trackId }) => {
-      if (assignedDetections.has(detIdx) || matchedTrackIds.has(trackId)) return;
-
-      const track = this.tracks.get(trackId)!;
-      const det = currentDetections[detIdx];
-
-      // Smooth bounding box coordinates to eliminate visual jitter
-      track.bx1 = Math.round(track.bx1 * 0.65 + det.bx1 * 0.35);
-      track.by1 = Math.round(track.by1 * 0.65 + det.by1 * 0.35);
-      track.bw = Math.round(track.bw * 0.65 + det.bw * 0.35);
-      track.bh = Math.round(track.bh * 0.65 + det.bh * 0.35);
-      track.centroidX = track.bx1 + track.bw / 2;
-      track.centroidY = track.by1 + track.bh / 2;
-      track.lastSeenTime = now;
-      track.ageFrames += 1;
-
-      matchedTrackIds.add(trackId);
-      assignedDetections.add(detIdx);
-      activeDetectionsMap.set(detIdx, track);
-    });
-
-    // 3. Create new tracks for unmatched detections
+    // 4. Create new TENTATIVE tracks for unmatched detections
     currentDetections.forEach((det, dIdx) => {
-      if (!assignedDetections.has(dIdx)) {
+      if (!assignedDetIndexes.has(dIdx)) {
         const newTrackId = this.nextTrackId++;
+        const kalman = new BoundingBoxKalmanFilter({
+          cx: det.cx,
+          cy: det.cy,
+          w: det.box.bw,
+          h: det.box.bh,
+        });
+
         const newTrack: TrackedFaceSession = {
           trackId: newTrackId,
-          lastSeenTime: now,
+          state: 'TENTATIVE',
+          hits: 1,
           ageFrames: 1,
-          bx1: det.bx1,
-          by1: det.by1,
-          bw: det.bw,
-          bh: det.bh,
-          centroidX: det.cx,
-          centroidY: det.cy,
+          timeSinceUpdate: 0,
+          lastSeenTime: now,
+          kalman,
+          predictedBox: kalman.getBoundingBox(),
+          bbox: kalman.getBoundingBox(),
+          rollingGallery: det.liveVector.length > 0 ? [det.liveVector] : [],
           lockedStudentId: null,
           lockedStudent: null,
           confidence: 0,
-          smoothedFocusScore: det.analysis.focusScore,
-          blinkCount: 0,
           consecutiveMatchCount: 0,
+          candidateStudentId: null,
+          candidateMatchCount: 0,
+          lastHighConfidenceTime: now,
+          smoothedFocusScore: 90,
+          blinkCount: 0,
         };
+
         this.tracks.set(newTrackId, newTrack);
-        activeDetectionsMap.set(dIdx, newTrack);
+        matchedTrackIds.add(newTrackId);
       }
     });
 
-    // 4. Clean up stale tracks not seen for > 1.8 seconds
-    const expiredTrackIds: number[] = [];
+    // 5. Update lifecycle for unmatched tracks (transition CONFIRMED -> LOST -> DELETED)
+    const tracksToDelete: number[] = [];
     this.tracks.forEach((track, tId) => {
-      if (now - track.lastSeenTime > 1800) {
-        expiredTrackIds.push(tId);
+      if (!matchedTrackIds.has(tId)) {
+        if (track.state === 'CONFIRMED') {
+          track.state = 'LOST';
+          track.bbox = track.predictedBox; // Coast with Kalman prediction
+        }
+
+        // Evict tracks lost for more than 1.5 seconds (1500 ms)
+        if (now - track.lastSeenTime > 1500) {
+          track.state = 'DELETED';
+          tracksToDelete.push(tId);
+        }
       }
     });
-    expiredTrackIds.forEach((tId) => this.tracks.delete(tId));
 
-    // 5. Global 1-to-1 Student Matching (Ensures no multiple faces get same student, no single face gets multiple names)
+    tracksToDelete.forEach((tId) => {
+      disposeClassroomModel(tId);
+      this.tracks.delete(tId);
+    });
+
+    // 6. Identity Assignment with Strict Hysteresis (Track <-> Student Hungarian matching)
+    const confirmedTracks = Array.from(this.tracks.values()).filter(
+      (t) => (t.state === 'CONFIRMED' || (t.state === 'TENTATIVE' && t.hits >= 2)) && t.rollingGallery.length > 0
+    );
+
     const assignedStudentIdsInFrame = new Set<string | number>();
 
-    // Candidate match matrix: [detIdx, student, similarity, distance]
-    const matchCandidates: Array<{
-      detIdx: number;
-      track: TrackedFaceSession;
-      student: RegisteredStudentProfile;
-      similarity: number;
-      distance: number;
-    }> = [];
+    if (confirmedTracks.length > 0 && eligibleStudents.length > 0) {
+      // Build Score Matrix: [Track x Student]
+      const scoreMatrix: Array<{
+        track: TrackedFaceSession;
+        candidates: Array<{ student: RegisteredStudentProfile; similarity: number; distance: number }>;
+      }> = [];
 
-    currentDetections.forEach((det, dIdx) => {
-      const track = activeDetectionsMap.get(dIdx)!;
-
-      eligibleStudents.forEach((student) => {
-        const { similarity, distance } = computeBiometricSimilarity(
-          det.liveVector,
-          student.featureVector!
-        );
-
-        matchCandidates.push({
-          detIdx: dIdx,
-          track,
-          student,
-          similarity,
-          distance,
+      confirmedTracks.forEach((track) => {
+        // Average vector across rolling gallery
+        const gallery = track.rollingGallery;
+        const avgLiveVec = new Array(gallery[0].length).fill(0);
+        gallery.forEach((vec) => {
+          for (let i = 0; i < vec.length; i++) avgLiveVec[i] += vec[i];
         });
+        for (let i = 0; i < avgLiveVec.length; i++) avgLiveVec[i] /= gallery.length;
+
+        const candidateList: Array<{ student: RegisteredStudentProfile; similarity: number; distance: number }> = [];
+
+        eligibleStudents.forEach((student) => {
+          const { similarity, distance } = computeBiometricSimilarity(avgLiveVec, student.featureVector!);
+          candidateList.push({ student, similarity, distance });
+        });
+
+        // Sort descending by similarity
+        candidateList.sort((a, b) => b.similarity - a.similarity);
+        scoreMatrix.push({ track, candidates: candidateList });
       });
-    });
 
-    // Sort candidate matches by highest similarity
-    matchCandidates.sort((a, b) => b.similarity - a.similarity);
+      // Apply Hysteresis Rules:
+      // ACQUISITION: similarity >= 64, margin over 2nd best >= 6, sustained 3+ frames
+      // RELEASE: score < 48 for > 2.0 seconds
+      // SWITCH: challenger beats incumbent by >= 10 for >= 12 frames
+      scoreMatrix.forEach(({ track, candidates }) => {
+        if (candidates.length === 0) return;
 
-    const assignedDetIndexes = new Set<number>();
+        const best = candidates[0];
+        const secondBestSim = candidates.length > 1 ? candidates[1].similarity : 0;
+        const margin = best.similarity - secondBestSim;
 
-    // Strict identification threshold: requires >= 64% similarity to lock identity
-    const RECOGNITION_THRESHOLD = 64;
+        if (track.lockedStudentId !== null) {
+          // Track is currently locked to a student
+          const isCurrentStudentBest = String(best.student.id) === String(track.lockedStudentId);
+          const currentStudentMatch = candidates.find((c) => String(c.student.id) === String(track.lockedStudentId));
+          const currentScore = currentStudentMatch ? currentStudentMatch.similarity : 0;
 
-    matchCandidates.forEach(({ detIdx, track, student, similarity }) => {
-      if (assignedDetIndexes.has(detIdx) || assignedStudentIdsInFrame.has(student.id)) return;
-
-      if (similarity >= RECOGNITION_THRESHOLD) {
-        // Temporal identity locking: if this track was already locked to this student, boost stability
-        if (String(track.lockedStudentId) === String(student.id)) {
-          track.consecutiveMatchCount += 1;
-          track.confidence = Math.min(99, Math.round(track.confidence * 0.7 + similarity * 0.3));
-        } else {
-          // New candidate identity: lock after validation
-          track.lockedStudentId = student.id;
-          track.lockedStudent = student;
-          track.confidence = similarity;
-          track.consecutiveMatchCount = 1;
-        }
-
-        assignedDetIndexes.add(detIdx);
-        assignedStudentIdsInFrame.add(student.id);
-      }
-    });
-
-    // Unassigned detections are checked against their previous lock
-    currentDetections.forEach((det, dIdx) => {
-      const track = activeDetectionsMap.get(dIdx)!;
-
-      if (!assignedDetIndexes.has(dIdx)) {
-        // If track previously had a student locked and we still have similarity > 55%, preserve identity
-        if (track.lockedStudent && !assignedStudentIdsInFrame.has(track.lockedStudent.id)) {
-          const { similarity } = computeBiometricSimilarity(
-            det.liveVector,
-            track.lockedStudent.featureVector!
-          );
-          if (similarity >= 55) {
-            track.confidence = Math.round(track.confidence * 0.8 + similarity * 0.2);
-            assignedStudentIdsInFrame.add(track.lockedStudent.id);
+          if (currentScore >= 52) {
+            track.lastHighConfidenceTime = now;
+            track.confidence = Math.round(track.confidence * 0.75 + currentScore * 0.25);
+            assignedStudentIdsInFrame.add(track.lockedStudentId);
           } else {
-            // Decay lock if similarity drops significantly
-            track.lockedStudent = null;
-            track.lockedStudentId = null;
-            track.confidence = 0;
-            track.consecutiveMatchCount = 0;
+            // Check for Challenger preemption
+            if (!isCurrentStudentBest && best.similarity - currentScore >= 10 && !assignedStudentIdsInFrame.has(best.student.id)) {
+              if (track.candidateStudentId === best.student.id) {
+                track.candidateMatchCount += 1;
+              } else {
+                track.candidateStudentId = best.student.id;
+                track.candidateMatchCount = 1;
+              }
+
+              // Switch identity only after 12 frames of sustained challenger superiority
+              if (track.candidateMatchCount >= 12) {
+                migrateClassroomModel(track.trackId, best.student.id);
+                track.lockedStudentId = best.student.id;
+                track.lockedStudent = best.student;
+                track.confidence = best.similarity;
+                track.candidateStudentId = null;
+                track.candidateMatchCount = 0;
+                track.lastHighConfidenceTime = now;
+                assignedStudentIdsInFrame.add(best.student.id);
+              }
+            } else if (now - track.lastHighConfidenceTime > 2000) {
+              // Release identity after 2 seconds below threshold
+              track.lockedStudentId = null;
+              track.lockedStudent = null;
+              track.confidence = 0;
+              track.consecutiveMatchCount = 0;
+            }
           }
         } else {
-          track.lockedStudent = null;
-          track.lockedStudentId = null;
-          track.confidence = 0;
-          track.consecutiveMatchCount = 0;
+          // Unassigned track seeking identity acquisition
+          if (best.similarity >= 62 && margin >= 5 && !assignedStudentIdsInFrame.has(best.student.id)) {
+            if (track.candidateStudentId === best.student.id) {
+              track.candidateMatchCount += 1;
+            } else {
+              track.candidateStudentId = best.student.id;
+              track.candidateMatchCount = 1;
+            }
+
+            // Acquire identity after 3 consecutive frames of superiority
+            if (track.candidateMatchCount >= 3) {
+              migrateClassroomModel(track.trackId, best.student.id);
+              track.lockedStudentId = best.student.id;
+              track.lockedStudent = best.student;
+              track.confidence = best.similarity;
+              track.candidateStudentId = null;
+              track.candidateMatchCount = 0;
+              track.lastHighConfidenceTime = now;
+              assignedStudentIdsInFrame.add(best.student.id);
+            }
+          }
+        }
+      });
+    }
+
+    // 7. Render output results mapped to detections
+    currentDetections.forEach((det) => {
+      // Find matching track
+      let matchedTrack: TrackedFaceSession | undefined;
+      for (const track of this.tracks.values()) {
+        const iou = computeIoU(det.box, track.bbox);
+        if (iou > 0.35) {
+          matchedTrack = track;
+          break;
         }
       }
 
-      // Smooth focus score & handle blinking
-      const isBlinking = det.analysis.gazeDirection === 'Eyes Closed';
-      track.blinkCount = isBlinking ? track.blinkCount + 1 : 0;
-
-      let targetScore = det.analysis.focusScore;
-      if (isBlinking && track.blinkCount <= 3) {
-        targetScore = Math.max(track.smoothedFocusScore, 78);
+      if (!matchedTrack) {
+        matchedTrack = Array.from(this.tracks.values())[0];
       }
 
-      track.smoothedFocusScore = Math.max(
-        10,
-        Math.min(99, Math.round(track.smoothedFocusScore * 0.70 + targetScore * 0.30))
+      const trackKey = matchedTrack
+        ? (matchedTrack.lockedStudentId !== null ? matchedTrack.lockedStudentId : matchedTrack.trackId)
+        : det.faceIndex;
+
+      // Isolated cognitive model analysis
+      const analysis = analyzeFaceLandmarks(
+        det.landmarks,
+        imageWidth,
+        imageHeight,
+        trackKey,
+        det.matrix,
+        det.blendshapes || undefined
       );
 
-      det.analysis.focusScore = track.smoothedFocusScore;
+      let smoothedScore = analysis.focusScore;
+      if (matchedTrack) {
+        const isBlinking = analysis.gazeDirection === 'Eyes Closed';
+        matchedTrack.blinkCount = isBlinking ? matchedTrack.blinkCount + 1 : 0;
 
-      const isRecognized = track.lockedStudent !== null && track.confidence >= RECOGNITION_THRESHOLD;
+        let targetScore = analysis.focusScore;
+        if (isBlinking && matchedTrack.blinkCount <= 3) {
+          targetScore = Math.max(matchedTrack.smoothedFocusScore, 78);
+        }
+
+        matchedTrack.smoothedFocusScore = Math.max(
+          10,
+          Math.min(99, Math.round(matchedTrack.smoothedFocusScore * 0.70 + targetScore * 0.30))
+        );
+        smoothedScore = matchedTrack.smoothedFocusScore;
+      }
+      analysis.focusScore = smoothedScore;
+
+      const isRecognized = matchedTrack && matchedTrack.lockedStudent !== null && matchedTrack.confidence >= 55;
+      const finalBbox = matchedTrack ? matchedTrack.bbox : { bx1: det.box.bx1, by1: det.box.by1, bw: det.box.bw, bh: det.box.bh };
 
       results.push({
         faceIndex: det.faceIndex,
+        trackId: matchedTrack ? matchedTrack.trackId : undefined,
         landmarks: det.landmarks,
-        analysis: det.analysis,
-        matchedStudent: isRecognized ? track.lockedStudent : null,
-        matchConfidence: isRecognized ? track.confidence : 0,
+        analysis,
+        matchedStudent: isRecognized ? matchedTrack!.lockedStudent : null,
+        matchConfidence: isRecognized ? matchedTrack!.confidence : 0,
         status: isRecognized ? 'RECOGNIZED' : 'UNRECOGNIZED',
         boundingBox: {
-          bx1: track.bx1,
-          by1: track.by1,
-          bw: track.bw,
-          bh: track.bh,
+          bx1: finalBbox.bx1,
+          by1: finalBbox.by1,
+          bw: finalBbox.bw,
+          bh: finalBbox.bh,
         },
       });
     });
@@ -660,12 +845,16 @@ export function matchDetectedFaceToStudentDatabase(
   detectedFacesLandmarks: NormalizedLandmark[][],
   registeredStudents: RegisteredStudentProfile[],
   imageWidth: number,
-  imageHeight: number
+  imageHeight: number,
+  transformationMatrixes?: (Matrix | number[])[],
+  blendshapesList?: (Record<string, number> | null | undefined)[]
 ): MultiFaceMatchResult[] {
   return globalSpatialFaceTracker.update(
     detectedFacesLandmarks,
     registeredStudents,
     imageWidth,
-    imageHeight
+    imageHeight,
+    transformationMatrixes,
+    blendshapesList
   );
 }

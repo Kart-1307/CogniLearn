@@ -4,22 +4,66 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import rateLimit from 'express-rate-limit';
 import { getSupabase } from './supabase';
 import authRoutes from './routes/auth';
 import studentRoutes from './routes/student';
 import baselineRoutes from './routes/baseline';
 import userRoutes from './routes/user';
+import reportRoutes from './routes/report';
+import cohortRoutes from './routes/cohorts';
+
+const isProd = process.env.NODE_ENV === 'production';
+
+// Fail-Fast: Refuse to boot in production with missing or default security secrets
+if (isProd) {
+  const missing: string[] = [];
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.includes('super_secret_jwt_key_2026')) {
+    missing.push('JWT_SECRET (secure non-default key required)');
+  }
+  if (!process.env.SUPABASE_URL) missing.push('SUPABASE_URL');
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+
+  if (missing.length > 0) {
+    console.error('\n❌ [FATAL SECURITY MISCONFIGURATION]: Production boot halted. Missing required environment variables:');
+    missing.forEach((v) => console.error(`   - ${v}`));
+    console.error('In-memory fallback and default secrets are strictly prohibited in production.\n');
+    process.exit(1);
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-// Enable CORS and high-limit JSON parsing for Base64 profile photo uploads
+// Enable CORS and allow payloads up to 10MB to accommodate avatar uploads and biometric telemetry
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Initialize Supabase backend or log in-memory mode
+// Initialize Supabase backend
 getSupabase();
+
+// Rate Limiters to defend against brute force & API credit exhaustion
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 attempts per window per IP
+  message: { message: 'Too many authentication attempts. Please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const aiReportLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // 20 requests per hour per IP
+  message: { error: 'Diagnostic report rate limit reached (20/hour). Please try again shortly.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiters to sensitive endpoints
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/report/generate-ai', aiReportLimiter);
 
 // API Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -31,6 +75,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/baseline', baselineRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/report', reportRoutes);
+app.use('/api/cohorts', cohortRoutes);
 
 async function startServer() {
   // Vite middleware for local development / Static serve for production Node

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Bell, RefreshCw, SwitchCamera, Video } from 'lucide-react';
 import { getFaceLandmarker, analyzeFaceLandmarks, drawFaceMeshOverlay, FaceAnalysisResult } from '../services/faceTracker';
 import { getMobileCompatibleCameraStream, attachStreamToVideo } from '../utils/cameraUtils';
+import { publishTelemetry } from '../services/telemetryStream';
 
 interface StudentCameraFeedProps {
   student: {
@@ -159,10 +160,22 @@ export const StudentCameraFeed: React.FC<StudentCameraFeedProps> = ({
 
             if (results && results.faceLandmarks && results.faceLandmarks.length > 0) {
               const landmarks = results.faceLandmarks[0];
+              const matrix = results.facialTransformationMatrixes?.[0] || null;
+              let blendshapes: Record<string, number> | undefined = undefined;
+              if (results.faceBlendshapes && results.faceBlendshapes[0]?.categories) {
+                blendshapes = {};
+                results.faceBlendshapes[0].categories.forEach((cat: any) => {
+                  blendshapes![cat.categoryName] = cat.score;
+                });
+              }
+
               const analysis: FaceAnalysisResult = analyzeFaceLandmarks(
                 landmarks,
                 canvas.width,
-                canvas.height
+                canvas.height,
+                student.id,
+                matrix,
+                blendshapes
               );
 
               // Draw high-tech HUD overlay
@@ -179,20 +192,32 @@ export const StudentCameraFeed: React.FC<StudentCameraFeedProps> = ({
                   newStatus = 'Note-Taking / Solving';
                 } else if (analysis.cognitiveInference.state === 'COGNITIVE_REFLECTION') {
                   newStatus = 'Cognitive Reflection';
-                } else if (analysis.cognitiveInference.state === 'GENUINE_DISTRACTION') {
-                  newStatus = 'Distracted';
+                } else if (
+                  analysis.cognitiveInference.state === 'OFF_TASK_ESTIMATED' ||
+                  (analysis.cognitiveInference.state as string) === 'GENUINE_DISTRACTION'
+                ) {
+                  newStatus = 'Off-Task (Estimated)';
                 } else {
                   newStatus = 'Optimal Focus';
                 }
               } else {
-                if (analysis.focusScore < 60) newStatus = 'Distracted';
+                if (analysis.focusScore < 60) newStatus = 'Off-Task (Estimated)';
                 else if (analysis.focusScore < 80) newStatus = 'Moderate Focus';
               }
 
               setCurrentStatus(newStatus);
 
-              if (frame % 15 === 0 && onStatusChange) {
-                onStatusChange(student.id, newStatus, analysis.focusScore);
+              if (frame % 15 === 0) {
+                if (onStatusChange) {
+                  onStatusChange(student.id, newStatus, analysis.focusScore);
+                }
+                publishTelemetry('default_class', {
+                  studentId: student.id,
+                  studentName: student.name,
+                  state: analysis.cognitiveInference?.state || 'SCREEN_ENGAGEMENT',
+                  focusScore: analysis.focusScore,
+                  timestamp: Date.now(),
+                });
               }
             } else {
               // No face detected in camera

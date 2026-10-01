@@ -66,7 +66,7 @@ export function exportReportToCSV(report: StudentDiagnosticReport | ClassDiagnos
     rows.push(['Peak Focus Score (%)', `${stdRep.metrics?.peakFocusScore}%`]);
     rows.push(['Minimum Focus Score (%)', `${stdRep.metrics?.minFocusScore}%`]);
     rows.push(['Optimal Gaze (%)', `${stdRep.metrics?.optimalFocusPercent}%`]);
-    rows.push(['Distracted Gaze (%)', `${stdRep.metrics?.distractedPercent}%`]);
+    rows.push(['Off-Task Gaze (%)', `${stdRep.metrics?.distractedPercent}%`]);
     rows.push(['Gaze Shift Events', String(stdRep.metrics?.gazeShiftsCount || 0)]);
     rows.push(['Mesh Coordinate Quality', `"${stdRep.metrics?.meshQuality || 'Optimal'}"`]);
     rows.push([]);
@@ -119,12 +119,6 @@ export function exportReportToCSV(report: StudentDiagnosticReport | ClassDiagnos
  * Triggers a clean, high-resolution printable HTML/PDF view for the diagnostic summary.
  */
 export function exportReportToPDF(report: StudentDiagnosticReport | ClassDiagnosticReport, isClass: boolean = false) {
-  const printWindow = window.open('', '_blank', 'width=900,height=1100');
-  if (!printWindow) {
-    window.print();
-    return;
-  }
-
   const isClassRep = isClass;
   const classRep = report as ClassDiagnosticReport;
   const stdRep = report as StudentDiagnosticReport;
@@ -350,7 +344,37 @@ export function exportReportToPDF(report: StudentDiagnosticReport | ClassDiagnos
 </html>
   `;
 
-  printWindow.document.open();
-  printWindow.document.write(htmlContent);
-  printWindow.document.close();
+  // Render into a hidden iframe to bypass popup blocker restrictions
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) {
+    window.print();
+    return;
+  }
+  doc.open();
+  doc.write(htmlContent);
+  doc.close();
+
+  iframe.contentWindow?.focus();
+  setTimeout(() => {
+    try {
+      iframe.contentWindow?.print();
+    } catch {
+      window.print();
+    } finally {
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 2000);
+    }
+  }, 350);
 }

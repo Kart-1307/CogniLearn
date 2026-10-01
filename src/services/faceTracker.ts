@@ -1,6 +1,5 @@
-import { FaceLandmarker, FilesetResolver, NormalizedLandmark } from '@mediapipe/tasks-vision';
+import { FaceLandmarker, FilesetResolver, NormalizedLandmark, Matrix } from '@mediapipe/tasks-vision';
 import { 
-  singleStudentCognitiveModel, 
   getOrCreateClassroomModel, 
   CognitiveInferenceResult 
 } from './cognitiveModel';
@@ -221,6 +220,7 @@ export async function preprocessStudentProfiles(
 
 export interface MultiFaceMatchResult {
   faceIndex: number;
+  trackId?: number;
   landmarks: NormalizedLandmark[];
   analysis: FaceAnalysisResult;
   matchedStudent: RegisteredStudentProfile | null;
@@ -251,6 +251,7 @@ export async function getFaceLandmarker(): Promise<FaceLandmarker | null> {
         minFacePresenceConfidence: 0.5,
         minTrackingConfidence: 0.5,
         outputFaceBlendshapes: true,
+        outputFacialTransformationMatrixes: true,
       });
 
       faceLandmarker = landmarker;
@@ -268,6 +269,8 @@ export async function getFaceLandmarker(): Promise<FaceLandmarker | null> {
           },
           runningMode: 'VIDEO',
           numFaces: 1,
+          outputFaceBlendshapes: true,
+          outputFacialTransformationMatrixes: true,
         });
         faceLandmarker = landmarker;
         return faceLandmarker;
@@ -307,6 +310,7 @@ export async function getMultiFaceLandmarker(): Promise<FaceLandmarker | null> {
         minFacePresenceConfidence: 0.45,
         minTrackingConfidence: 0.45,
         outputFaceBlendshapes: true,
+        outputFacialTransformationMatrixes: true,
       });
 
       multiFaceLandmarker = landmarker;
@@ -324,6 +328,8 @@ export async function getMultiFaceLandmarker(): Promise<FaceLandmarker | null> {
           },
           runningMode: 'VIDEO',
           numFaces: 6,
+          outputFaceBlendshapes: true,
+          outputFacialTransformationMatrixes: true,
         });
         multiFaceLandmarker = landmarker;
         return multiFaceLandmarker;
@@ -338,22 +344,67 @@ export async function getMultiFaceLandmarker(): Promise<FaceLandmarker | null> {
 }
 
 /**
- * Extracts a normalized scale-invariant facial geometry feature vector from 468 MediaPipe landmarks
+ * Derives true metric Euler angles (Pitch, Yaw, Roll in degrees) from MediaPipe's
+ * 4x4 column-major facial transformation matrix.
  */
-export function extractFaceFeatureVector(landmarks: NormalizedLandmark[]): number[] {
+export function extractEulerAnglesFromMatrix(
+  matrix?: Matrix | number[] | null
+): { yaw: number; pitch: number; roll: number } {
+  if (!matrix) return { yaw: 0, pitch: 0, roll: 0 };
+  const d = Array.isArray(matrix) ? matrix : matrix.data;
+  if (!d || d.length < 16) return { yaw: 0, pitch: 0, roll: 0 };
+
+  // MediaPipe column-major 4x4 matrix:
+  // Rotation matrix:
+  // R00 = d[0], R01 = d[4], R02 = d[8]
+  // R10 = d[1], R11 = d[5], R12 = d[9]
+  // R20 = d[2], R21 = d[6], R22 = d[10]
+  const r00 = d[0], r10 = d[1], r20 = d[2];
+  const r01 = d[4], r11 = d[5], r21 = d[6];
+  const r02 = d[8], r12 = d[9], r22 = d[10];
+
+  // Pitch (degrees): rotation around X-axis (positive = down/desk, negative = up)
+  const pitchRad = Math.atan2(-r12, Math.hypot(r02, r22));
+  // Yaw (degrees): rotation around Y-axis (negative = left, positive = right)
+  const yawRad = Math.atan2(r02, r22);
+  // Roll (degrees): rotation around Z-axis (head tilt)
+  const rollRad = Math.atan2(r10, r11);
+
+  const toDeg = 180 / Math.PI;
+  return {
+    pitch: Number((pitchRad * toDeg).toFixed(2)),
+    yaw: Number((yawRad * toDeg).toFixed(2)),
+    roll: Number((rollRad * toDeg).toFixed(2)),
+  };
+}
+
+/**
+ * Extracts a normalized scale-invariant facial geometry feature vector from landmarks converted to pixel space
+ */
+export function extractFaceFeatureVector(
+  landmarks: NormalizedLandmark[],
+  imageWidth: number = 640,
+  imageHeight: number = 480
+): number[] {
   if (!landmarks || landmarks.length < 468) return [];
 
-  const leftEyeOuter = landmarks[33];
-  const rightEyeOuter = landmarks[263];
-  const noseTip = landmarks[1];
-  const chin = landmarks[152];
-  const mouthLeft = landmarks[61];
-  const mouthRight = landmarks[291];
-  const leftCheek = landmarks[234];
-  const rightCheek = landmarks[454];
-  const forehead = landmarks[10];
+  // Convert landmarks to isotropic pixel coordinates before computing distances
+  const px = (pt: NormalizedLandmark) => ({
+    x: pt.x * imageWidth,
+    y: pt.y * imageHeight,
+  });
 
-  const eyeDist = Math.hypot(rightEyeOuter.x - leftEyeOuter.x, rightEyeOuter.y - leftEyeOuter.y) || 0.001;
+  const leftEyeOuter = px(landmarks[33]);
+  const rightEyeOuter = px(landmarks[263]);
+  const noseTip = px(landmarks[1]);
+  const chin = px(landmarks[152]);
+  const mouthLeft = px(landmarks[61]);
+  const mouthRight = px(landmarks[291]);
+  const leftCheek = px(landmarks[234]);
+  const rightCheek = px(landmarks[454]);
+  const forehead = px(landmarks[10]);
+
+  const eyeDist = Math.hypot(rightEyeOuter.x - leftEyeOuter.x, rightEyeOuter.y - leftEyeOuter.y) || 1;
 
   const v1 = Math.hypot(noseTip.x - leftEyeOuter.x, noseTip.y - leftEyeOuter.y) / eyeDist;
   const v2 = Math.hypot(noseTip.x - rightEyeOuter.x, noseTip.y - rightEyeOuter.y) / eyeDist;
@@ -533,8 +584,12 @@ export function drawClassroomMultiFaceHUD(
       themeColor = '#FBBF24'; // Amber for Reflection
       strokeStyle = 'rgba(251, 191, 36, 0.65)';
       bgPillColor = 'rgba(146, 64, 14, 0.95)';
-    } else if (focusScore < 60 || match.analysis.cognitiveInference?.state === 'GENUINE_DISTRACTION') {
-      themeColor = '#FF5A5F'; // Coral for Genuine Distraction
+    } else if (
+      focusScore < 60 ||
+      match.analysis.cognitiveInference?.state === 'OFF_TASK_ESTIMATED' ||
+      match.analysis.cognitiveInference?.state === 'GENUINE_DISTRACTION'
+    ) {
+      themeColor = '#FF5A5F'; // Coral for Off-Task (Estimated)
       strokeStyle = 'rgba(255, 90, 95, 0.75)';
       bgPillColor = 'rgba(153, 27, 27, 0.95)';
     } else {
@@ -619,10 +674,12 @@ export function drawClassroomMultiFaceHUD(
           ctx.arc(ix, iy, 1, 0, Math.PI * 2);
           ctx.fill();
 
-          // 3D Ray vector based on head yaw and pitch
+          // 3D Ray vector based on head yaw and pitch (in degrees or radians)
           const vectorLen = 18;
-          const dx = match.analysis.yaw * vectorLen * 1.5;
-          const dy = (match.analysis.pitch - 0.28) * vectorLen * 1.5;
+          const yawRad = (match.analysis.yaw * Math.PI) / 180;
+          const pitchRad = (match.analysis.pitch * Math.PI) / 180;
+          const dx = Math.sin(yawRad) * vectorLen * 1.5;
+          const dy = Math.sin(pitchRad) * vectorLen * 1.5;
 
           ctx.strokeStyle = themeColor;
           ctx.lineWidth = 1.2;
@@ -675,8 +732,13 @@ export function drawClassroomMultiFaceHUD(
     ctx.font = '700 7.5px monospace';
     ctx.fillText(statusText, bx1 + 4, by1 + bh + 11);
 
-    // Contextual alert badge: only alert when student is genuinely distracted or drowsy
-    if (isRecognized && (match.analysis.cognitiveInference?.state === 'GENUINE_DISTRACTION' || focusScore < 50)) {
+    // Contextual alert badge: only alert when student is genuinely off-task or drowsy
+    if (
+      isRecognized &&
+      (match.analysis.cognitiveInference?.state === 'OFF_TASK_ESTIMATED' ||
+        match.analysis.cognitiveInference?.state === 'GENUINE_DISTRACTION' ||
+        focusScore < 50)
+    ) {
       const warnText = (match.analysis.perclos || 0) > 0.40 ? '⚠️ DROWSY (PERCLOS ALERT)' : '⚠️ OFF-TASK SUSTAINED GAZE';
       ctx.fillStyle = 'rgba(239, 68, 68, 0.95)';
       ctx.font = '800 7px monospace';
@@ -706,13 +768,17 @@ export function drawClassroomMultiFaceHUD(
 
 
 /**
- * Calculates real-time gaze, head pose, eye openness and focus score from face landmarks
+ * Calculates real-time gaze, head pose (degrees from 4x4 matrix or pixel landmarks),
+ * 6-point EAR, and focus score from face landmarks and optional transformation matrix.
  */
 export function analyzeFaceLandmarks(
   landmarks: NormalizedLandmark[],
   imageWidth: number,
   imageHeight: number,
-  modelKey?: number | string
+  modelKey?: number | string,
+  matrix?: Matrix | number[] | null,
+  blendshapes?: Record<string, number>,
+  context?: { isQuizActive?: boolean; hasRecentInteraction?: boolean }
 ): FaceAnalysisResult {
   if (!landmarks || landmarks.length < 468) {
     return {
@@ -727,52 +793,79 @@ export function analyzeFaceLandmarks(
     };
   }
 
-  // Key facial points index mapping (478 landmark model)
-  const noseTip = landmarks[1];
-  const leftEyeOuter = landmarks[33];
-  const leftEyeInner = landmarks[133];
-  const rightEyeOuter = landmarks[263];
-  const rightEyeInner = landmarks[362];
-  
-  const leftEyeTop = landmarks[159];
-  const leftEyeBottom = landmarks[145];
-  const rightEyeTop = landmarks[386];
-  const rightEyeBottom = landmarks[374];
+  // Convert all landmarks to isotropic pixel coordinates (eliminates vertical distortion)
+  const px = (pt: NormalizedLandmark) => ({
+    x: pt.x * imageWidth,
+    y: pt.y * imageHeight,
+    z: (pt.z || 0) * imageWidth,
+  });
 
-  // Calculate Eye Aspect Ratio (EAR) for left & right eye
-  const leftEAR = Math.hypot(leftEyeTop.x - leftEyeBottom.x, leftEyeTop.y - leftEyeBottom.y) /
-                 (Math.hypot(leftEyeOuter.x - leftEyeInner.x, leftEyeOuter.y - leftEyeInner.y) || 0.001);
-  const rightEAR = Math.hypot(rightEyeTop.x - rightEyeBottom.x, rightEyeTop.y - rightEyeBottom.y) /
-                  (Math.hypot(rightEyeOuter.x - rightEyeInner.x, rightEyeOuter.y - rightEyeInner.y) || 0.001);
+  const noseTip = px(landmarks[1]);
+  const leftEyeOuter = px(landmarks[33]);
+  const leftEyeInner = px(landmarks[133]);
+  const rightEyeOuter = px(landmarks[263]);
+  const rightEyeInner = px(landmarks[362]);
+  
+  const leftEyeTop = px(landmarks[159]);
+  const leftEyeBottom = px(landmarks[145]);
+  const leftEyeTop2 = px(landmarks[158]);
+  const leftEyeBottom2 = px(landmarks[144]);
+
+  const rightEyeTop = px(landmarks[386]);
+  const rightEyeBottom = px(landmarks[374]);
+  const rightEyeTop2 = px(landmarks[385]);
+  const rightEyeBottom2 = px(landmarks[373]);
+
+  // Standard 6-point Eye Aspect Ratio (EAR) averaged over both eyes in true pixel space
+  const leftEyeW = Math.hypot(leftEyeOuter.x - leftEyeInner.x, leftEyeOuter.y - leftEyeInner.y) || 1;
+  const leftEyeH1 = Math.hypot(leftEyeTop.x - leftEyeBottom.x, leftEyeTop.y - leftEyeBottom.y);
+  const leftEyeH2 = Math.hypot(leftEyeTop2.x - leftEyeBottom2.x, leftEyeTop2.y - leftEyeBottom2.y);
+  const leftEAR = (leftEyeH1 + leftEyeH2) / (2 * leftEyeW);
+
+  const rightEyeW = Math.hypot(rightEyeOuter.x - rightEyeInner.x, rightEyeOuter.y - rightEyeInner.y) || 1;
+  const rightEyeH1 = Math.hypot(rightEyeTop.x - rightEyeBottom.x, rightEyeTop.y - rightEyeBottom.y);
+  const rightEyeH2 = Math.hypot(rightEyeTop2.x - rightEyeBottom2.x, rightEyeTop2.y - rightEyeBottom2.y);
+  const rightEAR = (rightEyeH1 + rightEyeH2) / (2 * rightEyeW);
+
   const avgEAR = (leftEAR + rightEAR) / 2;
 
-  // Head Yaw (Left/Right rotation)
-  const eyeMidX = (leftEyeOuter.x + rightEyeOuter.x) / 2;
-  const eyeDistance = Math.hypot(rightEyeOuter.x - leftEyeOuter.x, rightEyeOuter.y - leftEyeOuter.y) || 0.001;
-  const yaw = (noseTip.x - eyeMidX) / eyeDistance; // Negative = turned left, Positive = turned right
+  // Derive Yaw, Pitch, Roll in degrees from 4x4 matrix if available, or fallback to pixel geometry
+  let yaw = 0;
+  let pitch = 0;
+  let roll = 0;
 
-  // Head Pitch (Up/Down rotation)
-  const eyeMidY = (leftEyeOuter.y + rightEyeOuter.y) / 2;
-  const pitch = (noseTip.y - eyeMidY) / eyeDistance; // High positive = tilted down, low/negative = tilted up
+  if (matrix) {
+    const euler = extractEulerAnglesFromMatrix(matrix);
+    yaw = euler.yaw;
+    pitch = euler.pitch;
+    roll = euler.roll;
+  } else {
+    // Pixel-space geometry fallback
+    const eyeDist = Math.hypot(rightEyeOuter.x - leftEyeOuter.x, rightEyeOuter.y - leftEyeOuter.y) || 1;
+    const eyeMidX = (leftEyeOuter.x + rightEyeOuter.x) / 2;
+    const eyeMidY = (leftEyeOuter.y + rightEyeOuter.y) / 2;
+    const yawRatio = (noseTip.x - eyeMidX) / eyeDist;
+    const pitchRatio = (noseTip.y - eyeMidY) / eyeDist - 0.28;
+    const rollRatio = (rightEyeOuter.y - leftEyeOuter.y) / eyeDist;
 
-  // Head Roll (Tilt angle)
-  const roll = (rightEyeOuter.y - leftEyeOuter.y) / eyeDistance;
+    yaw = Number((yawRatio * 65).toFixed(2));
+    pitch = Number((pitchRatio * 65).toFixed(2));
+    roll = Number((rollRatio * 65).toFixed(2));
+  }
 
-  // Iris tracking if available (keypoints 468 = left iris center, 473 = right iris center)
+  // Iris tracking in true pixel space
   let irisOffsetX = 0;
   let irisOffsetY = 0;
   if (landmarks[468] && landmarks[473]) {
-    const leftIris = landmarks[468];
+    const leftIris = px(landmarks[468]);
     const leftEyeCenter = (leftEyeOuter.x + leftEyeInner.x) / 2;
     const leftEyeCenterY = (leftEyeTop.y + leftEyeBottom.y) / 2;
-    irisOffsetX = (leftIris.x - leftEyeCenter) / eyeDistance;
-    irisOffsetY = (leftIris.y - leftEyeCenterY) / eyeDistance;
+    irisOffsetX = (leftIris.x - leftEyeCenter) / leftEyeW;
+    irisOffsetY = (leftIris.y - leftEyeCenterY) / leftEyeW;
   }
 
-  // Evaluate Human Psychology & Cognitive Attention Machine Learning Model
-  const cognitiveModel = modelKey !== undefined 
-    ? getOrCreateClassroomModel(modelKey)
-    : singleStudentCognitiveModel;
+  // Dedicated Cognitive Attention Model instance per track / student
+  const cognitiveModel = getOrCreateClassroomModel(modelKey !== undefined ? modelKey : 'default');
 
   const cognitiveInference = cognitiveModel.evaluateFrame(
     avgEAR,
@@ -780,23 +873,23 @@ export function analyzeFaceLandmarks(
     pitch,
     roll,
     irisOffsetX,
-    irisOffsetY
+    irisOffsetY,
+    blendshapes,
+    context
   );
 
-  // Map ML state to human-realistic gaze direction
+  // Map ML state & degrees to human-realistic gaze direction
   let gazeDirection: FaceAnalysisResult['gazeDirection'] = 'Center';
-  if (cognitiveInference.state === 'NOTE_TAKING') {
+  if (cognitiveInference.state === 'NOTE_TAKING' || pitch > 16) {
     gazeDirection = 'Looking Down';
   } else if (cognitiveInference.perclos > 0.40) {
     gazeDirection = 'Eyes Closed';
-  } else if (yaw < -0.22) {
+  } else if (yaw < -18) {
     gazeDirection = 'Looking Left';
-  } else if (yaw > 0.22) {
+  } else if (yaw > 18) {
     gazeDirection = 'Looking Right';
-  } else if (pitch < 0.16) {
+  } else if (pitch < -12) {
     gazeDirection = 'Looking Up';
-  } else if (pitch > 0.42 && Math.abs(yaw) > 0.20) {
-    gazeDirection = 'Looking Down';
   } else {
     gazeDirection = 'Center';
   }
@@ -841,8 +934,12 @@ export function drawFaceMeshOverlay(
     primaryColor = '#FBBF24'; // Amber / Cognitive Reflection
     strokeStyle = 'rgba(251, 191, 36, 0.55)';
     bgPillColor = 'rgba(146, 64, 14, 0.85)';
-  } else if (analysis.focusScore < 60 || analysis.cognitiveInference?.state === 'GENUINE_DISTRACTION') {
-    primaryColor = '#FF5A5F'; // Coral / Distracted
+  } else if (
+    analysis.focusScore < 60 ||
+    analysis.cognitiveInference?.state === 'OFF_TASK_ESTIMATED' ||
+    analysis.cognitiveInference?.state === 'GENUINE_DISTRACTION'
+  ) {
+    primaryColor = '#FF5A5F'; // Coral / Off-Task (Estimated)
     strokeStyle = 'rgba(255, 90, 95, 0.6)';
     bgPillColor = 'rgba(153, 27, 27, 0.85)';
   } else if (analysis.focusScore < 80) {
@@ -951,10 +1048,12 @@ export function drawFaceMeshOverlay(
       ctx.arc(ix, iy, 1.2, 0, Math.PI * 2);
       ctx.fill();
 
-      // Fine Dashed Gaze Vector Beam
+      // Fine Dashed Gaze Vector Beam in degrees
       const vectorLen = 22;
-      const dx = analysis.yaw * vectorLen * 1.8;
-      const dy = (analysis.pitch - 0.28) * vectorLen * 1.8;
+      const yawRad = (analysis.yaw * Math.PI) / 180;
+      const pitchRad = (analysis.pitch * Math.PI) / 180;
+      const dx = Math.sin(yawRad) * vectorLen * 1.8;
+      const dy = Math.sin(pitchRad) * vectorLen * 1.8;
 
       ctx.save();
       ctx.setLineDash([2, 2]);

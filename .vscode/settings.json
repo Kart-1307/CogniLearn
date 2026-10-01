@@ -5,6 +5,7 @@
   "tailwindCSS.lint.invalidAtRule": "ignore",
   "tailwindCSS.lint.invalidApply": "ignore",
   "tailwindCSS.lint.suggestCanonicalClasses": "ignore",
+  "tailwindCSS.lint.cssConflict": "ignore",
   "editor.quickSuggestions": {
     "strings": true
   }
