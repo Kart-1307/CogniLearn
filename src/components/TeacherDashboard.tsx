@@ -12,6 +12,8 @@ import {
 import {
   SCHOOL_STANDARDS_AND_SUBJECTS,
   COLLEGE_DEPARTMENTS,
+  getCollegeSubjects,
+  getSchoolSubjects,
 } from '../config/academicCatalogs';
 import { getMobileCompatibleCameraStream, attachStreamToVideo } from '../utils/cameraUtils';
 import { api } from '../services/api';
@@ -956,7 +958,16 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   };
 
   // --- 4. Interactive Subjects State ---
-  const [subjects, setSubjects] = useState(['Mathematics', 'Physics', 'Chemistry', 'English Literature']);
+  const [subjects, setSubjects] = useState<string[]>(() => {
+    if (user?.teacherProfile?.primarySubjects && user.teacherProfile.primarySubjects.length > 0) {
+      return [...user.teacherProfile.primarySubjects];
+    }
+    if (isCollege) {
+      const dept = user?.teacherProfile?.tier === 'college' ? user.teacherProfile.department : user?.department;
+      return getCollegeSubjects(dept).slice(0, 5);
+    }
+    return ['Mathematics', 'Physics', 'Chemistry', 'English Literature'];
+  });
   const [newSubject, setNewSubject] = useState('');
 
   const addSubject = (e: React.FormEvent) => {

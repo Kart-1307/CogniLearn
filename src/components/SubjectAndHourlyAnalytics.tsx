@@ -23,16 +23,33 @@ export const SubjectAndHourlyAnalytics: React.FC<SubjectAndHourlyAnalyticsProps>
   reports.forEach((rep) => {
     // Subject deduction: either rep.subjectName or parsed from sessionTitle
     let subj = rep.subjectName;
+    if (!subj && rep.sessionTitle) {
+      const rawTitle = rep.sessionTitle.trim();
+      const cleaned = rawTitle
+        .replace(/\s+Focus\s+Diagnostic/i, '')
+        .replace(/\s+Diagnostic\s+Session/i, '')
+        .replace(/\s+Diagnostic/i, '')
+        .replace(/\s+Session/i, '')
+        .trim();
+
+      if (cleaned.includes(' - ')) {
+        subj = cleaned.split(' - ')[0].trim();
+      } else if (cleaned.length > 2) {
+        subj = cleaned;
+      } else {
+        const lower = rawTitle.toLowerCase();
+        if (lower.includes('physics')) subj = 'Physics';
+        else if (lower.includes('math') || lower.includes('calculus')) subj = 'Mathematics';
+        else if (lower.includes('chem')) subj = 'Chemistry';
+        else if (lower.includes('bio')) subj = 'Biology';
+        else if (lower.includes('history')) subj = 'History';
+        else if (lower.includes('eng')) subj = 'English';
+        else if (lower.includes('code') || lower.includes('cs') || lower.includes('comput') || lower.includes('algorithm')) subj = 'Computer Science';
+        else subj = 'General Studies';
+      }
+    }
     if (!subj) {
-      const lower = rep.sessionTitle.toLowerCase();
-      if (lower.includes('physics')) subj = 'Physics';
-      else if (lower.includes('math')) subj = 'Mathematics';
-      else if (lower.includes('chem')) subj = 'Chemistry';
-      else if (lower.includes('bio')) subj = 'Biology';
-      else if (lower.includes('history')) subj = 'History';
-      else if (lower.includes('eng')) subj = 'English';
-      else if (lower.includes('code') || lower.includes('cs') || lower.includes('comput')) subj = 'Computer Science';
-      else subj = 'General Studies';
+      subj = 'General Studies';
     }
 
     const currentSubj = subjectMap.get(subj) || { totalScore: 0, count: 0, totalSec: 0 };

@@ -17,6 +17,7 @@ import { FocusBreakModal } from './FocusBreakModal';
 import { SubjectAndHourlyAnalytics } from './SubjectAndHourlyAnalytics';
 import { exportReportToPDF, exportReportToCSV } from '../utils/reportExport';
 import { Download } from 'lucide-react';
+import { ACADEMIC_CATALOGS, getSchoolSubjects, getCollegeSubjects } from '../config/academicCatalogs';
 
 interface StudentDashboardProps {
   user: User | null;
@@ -71,9 +72,40 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [joinSuccess, setJoinSuccess] = useState<string | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<string>('Mathematics');
+  // Dynamic Academic Context
+  const isCollege =
+    user?.tier === 'college' ||
+    (user?.academicProfile && user.academicProfile.tier === 'college') ||
+    (user?.email && user.email.includes('college')) ||
+    (user?.gradeLevel && !user.gradeLevel.toLowerCase().startsWith('class'));
 
-  const isCollege = user?.tier === 'college' || (user?.email && user.email.includes('college')) || (user?.academicProfile && user.academicProfile.tier === 'college');
+  const collegeProfile = user?.academicProfile?.tier === 'college' ? user.academicProfile : null;
+  const schoolProfile = user?.academicProfile?.tier === 'school' ? user.academicProfile : null;
+
+  const departmentName = collegeProfile?.department || user?.department || (isCollege ? (user?.gradeLevel || 'Computer Science & Engineering') : undefined);
+  const degreeName = collegeProfile?.degree || (isCollege ? 'B.Tech' : undefined);
+  const standardName = schoolProfile?.standard || (!isCollege ? (user?.gradeLevel || 'Class 10') : undefined);
+  const institutionName = user?.institutionName || user?.academicProfile?.institutionName || (isCollege ? (isDemo ? 'National Institute of Technology' : 'College / University') : (isDemo ? 'Kendriya Vidyalaya No. 1' : 'Secondary School'));
+  const rollNumber = user?.rollNo || user?.academicProfile?.rollNo || (isDemo ? (isCollege ? '22CS084' : '14') : 'N/A');
+
+  // Available subjects resolved dynamically without mixing school/college
+  const rawSubjects = [
+    ...(user?.enrolledSubjects || []),
+    ...(user?.academicProfile?.subjects || []),
+    ...enrolledCohorts.flatMap((e: any) => e.enrolledSubjects || [e.cohort?.subject].filter(Boolean)),
+  ].filter(Boolean);
+
+  const fallbackCatalogSubjects = isCollege
+    ? getCollegeSubjects(departmentName)
+    : getSchoolSubjects(standardName);
+
+  const availableSubjects = Array.from(
+    new Set(rawSubjects.length > 0 ? rawSubjects : fallbackCatalogSubjects)
+  );
+
+  const primarySubject = availableSubjects[0] || (isCollege ? 'Data Structures & Algorithms' : 'Mathematics');
+
+  const [selectedSubject, setSelectedSubject] = useState<string>(() => primarySubject);
 
   // Fetch enrolled cohorts with demo fallback
   const fetchEnrolledCohorts = async () => {
@@ -229,13 +261,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   // Academic display resolution
   const academicDisplay = (() => {
     if (isCollege) {
-      const prof = user?.academicProfile?.tier === 'college' ? user.academicProfile : null;
-      const dept = prof?.department || 'Computer Science & Engineering';
-      const deg = prof?.degree || 'B.Tech';
-      const year = prof?.academicYear || 'Year 3 (Sem 5)';
-      const sec = prof?.section || 'B';
-      const roll = user?.rollNo || prof?.rollNo || (isDemo ? '22CS084' : 'N/A');
-      const inst = prof?.institutionName || (isDemo ? 'National Institute of Technology' : 'Engineering College');
+      const dept = departmentName || 'Computer Science & Engineering';
+      const deg = degreeName || 'B.Tech';
+      const year = collegeProfile?.academicYear || 'Year 1';
+      const sec = collegeProfile?.section || 'A';
+      const roll = rollNumber;
+      const inst = institutionName;
       return {
         tier: 'college' as const,
         badgeText: 'Higher Education Track',
@@ -245,12 +276,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         rollNo: roll,
       };
     } else {
-      const prof = user?.academicProfile?.tier === 'school' ? user.academicProfile : null;
-      const std = prof?.standard || user?.gradeLevel || 'Class 10';
-      const sec = prof?.section || 'A';
-      const board = prof?.board || 'CBSE';
-      const roll = user?.rollNo || prof?.rollNo || (isDemo ? '14' : 'N/A');
-      const inst = prof?.institutionName || (isDemo ? 'Kendriya Vidyalaya No. 1' : 'Secondary School');
+      const std = standardName || 'Class 10';
+      const sec = schoolProfile?.section || 'A';
+      const board = schoolProfile?.board || 'CBSE';
+      const roll = rollNumber;
+      const inst = institutionName;
       return {
         tier: 'school' as const,
         badgeText: 'School Track (6–12)',
@@ -262,18 +292,13 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     }
   })();
 
-  // Available subjects for tagging diagnostics
-  const availableSubjects = Array.from(
-    new Set([
-      ...(user?.enrolledSubjects || []),
-      ...(user?.academicProfile?.subjects || []),
-      ...enrolledCohorts.flatMap((e: any) => e.enrolledSubjects || [e.cohort?.subject].filter(Boolean)),
-      'Mathematics',
-      'Physics',
-      'Chemistry',
-      'Computer Science',
-    ].filter(Boolean))
-  );
+  // Keep selected subject in sync if available subjects change
+  useEffect(() => {
+    if (!availableSubjects.includes(selectedSubject) && availableSubjects.length > 0) {
+      setSelectedSubject(availableSubjects[0]);
+      setDiagnosticSessionTitle(`${availableSubjects[0]} Focus Diagnostic`);
+    }
+  }, [availableSubjects, selectedSubject]);
 
   // 1. Study Sessions Timer State
   const [timerDuration, setTimerDuration] = useState(25); // in minutes
@@ -376,7 +401,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [diagnosticDuration, setDiagnosticDuration] = useState<number>(30); // in minutes
   const [customDurationInput, setCustomDurationInput] = useState<string>('');
   const [isCustomDuration, setIsCustomDuration] = useState<boolean>(false);
-  const [diagnosticSessionTitle, setDiagnosticSessionTitle] = useState<string>('Mathematics Diagnostic Session');
+  const [diagnosticSessionTitle, setDiagnosticSessionTitle] = useState<string>(() => `${primarySubject} Focus Diagnostic`);
   const [diagnosticTimeLeft, setDiagnosticTimeLeft] = useState<number>(30 * 60); // in seconds
   const [diagnosticStartTimestamp, setDiagnosticStartTimestamp] = useState<number | null>(null);
 
@@ -419,7 +444,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         id: 'diag-hist-1',
         studentId: user?.id || 'std-101',
         studentName: studentName,
-        sessionTitle: 'Physics Magnetism Diagnostic',
+        sessionTitle: isCollege ? 'Operating Systems Concurrency Diagnostic' : 'Physics Magnetism Diagnostic',
         date: '08 Aug 2026',
         timestamp: Date.now() - 86400000,
         configuredDurationMinutes: 30,
@@ -752,27 +777,116 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     return () => clearInterval(interval);
   }, [isTracking]);
 
-  // 3. Interactive Progress State
-  const [tasks, setTasks] = useState([
-    { id: 1, text: 'Mathematics Practice Session (CBSE Class X)', done: true },
-    { id: 2, text: 'Physics - Electricity & Magnetism Assignment', done: false },
-    { id: 3, text: 'Chemistry - Periodic Classification Revision', done: false },
-  ]);
+  // 3. Interactive Progress State with User-Scoped Persistence
+  const tasksStorageKey = `cognilearn_tasks_${user?.id || user?.email || 'guest'}`;
+
+  const getDefaultTasks = () => {
+    if (isCollege) {
+      const sub1 = availableSubjects[0] || 'Operating Systems';
+      const sub2 = availableSubjects[1] || 'Data Structures & Algorithms';
+      const dept = departmentName || 'Computer Science & Engineering';
+      return [
+        { id: 1, text: `${sub1} - Core Lab Implementation & Practice`, done: true },
+        { id: 2, text: `${sub2} - Algorithm Analysis & Problem Solving`, done: false },
+        { id: 3, text: `${dept} - Semester Project Deliverable & Module Review`, done: false },
+      ];
+    } else {
+      const sub1 = availableSubjects[0] || 'Mathematics';
+      const sub2 = availableSubjects[1] || 'Physics';
+      const std = standardName || 'Class 10';
+      return [
+        { id: 1, text: `${sub1} Practice Session (${std})`, done: true },
+        { id: 2, text: `${sub2} - Concept Revision & Problem Set`, done: false },
+        { id: 3, text: `Formulas Sheet Revision & Weekly Module Review`, done: false },
+      ];
+    }
+  };
+
+  const [tasks, setTasks] = useState<{ id: number; text: string; done: boolean }[]>(() => {
+    try {
+      const saved = localStorage.getItem(tasksStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const isOldHardcodedCbse = parsed.some(
+            (t: any) => typeof t.text === 'string' && t.text.includes('(CBSE Class X)')
+          );
+          if (isCollege && isOldHardcodedCbse) {
+            const defaults = getDefaultTasks();
+            localStorage.setItem(tasksStorageKey, JSON.stringify(defaults));
+            return defaults;
+          }
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    const defaults = getDefaultTasks();
+    try {
+      localStorage.setItem(tasksStorageKey, JSON.stringify(defaults));
+    } catch {}
+    return defaults;
+  });
+
+  // Re-sync tasks if user identity or tier changes
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(tasksStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const isOldHardcodedCbse = parsed.some(
+            (t: any) => typeof t.text === 'string' && t.text.includes('(CBSE Class X)')
+          );
+          if (isCollege && isOldHardcodedCbse) {
+            const defaults = getDefaultTasks();
+            localStorage.setItem(tasksStorageKey, JSON.stringify(defaults));
+            setTasks(defaults);
+            return;
+          }
+          setTasks(parsed);
+          return;
+        }
+      }
+    } catch {}
+    const defaults = getDefaultTasks();
+    setTasks(defaults);
+  }, [user?.id, user?.tier, user?.email, isCollege]);
+
   const [newTaskText, setNewTaskText] = useState('');
 
   const toggleTask = (id: number) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
+    setTasks((prev) => {
+      const updated = prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t));
+      try {
+        localStorage.setItem(tasksStorageKey, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
   };
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskText.trim()) return;
-    setTasks([...tasks, { id: Date.now(), text: newTaskText.trim(), done: false }]);
+    setTasks((prev) => {
+      const updated = [...prev, { id: Date.now(), text: newTaskText.trim(), done: false }];
+      try {
+        localStorage.setItem(tasksStorageKey, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     setNewTaskText('');
   };
 
   const removeTask = (id: number) => {
-    setTasks(tasks.filter(t => t.id !== id));
+    setTasks((prev) => {
+      const updated = prev.filter((t) => t.id !== id);
+      try {
+        localStorage.setItem(tasksStorageKey, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
   };
 
   const completionRate = tasks.length > 0
