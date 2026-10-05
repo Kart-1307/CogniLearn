@@ -4,6 +4,7 @@ import { Navbar } from './components/Navbar';
 import { LandingPage } from './components/LandingPage';
 import { AnimatePresence, motion } from 'motion/react';
 import { api } from './services/api';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 // Route-level code-splitting: Heavy modules loaded asynchronously on-demand
 const TeacherDashboard = lazy(() =>
@@ -226,7 +227,9 @@ export default function App() {
         onOpenResetModal={() => setIsResetModalOpen(true)}
       />
       <main className="relative">
-        <AnimatePresence mode="wait">{renderContent()}</AnimatePresence>
+        <ErrorBoundary>
+          <AnimatePresence mode="wait">{renderContent()}</AnimatePresence>
+        </ErrorBoundary>
       </main>
 
       {user && isSettingsOpen && (
