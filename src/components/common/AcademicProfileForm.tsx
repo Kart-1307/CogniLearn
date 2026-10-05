@@ -43,9 +43,13 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
   // College Student State
   const [collegeName, setCollegeName] = useState(initialData?.institutionName || '');
   const [degree, setDegree] = useState(initialData?.degree || ACADEMIC_CATALOGS.college.degrees[0]);
-  const [department, setDepartment] = useState(initialData?.department || ACADEMIC_CATALOGS.college.departments[0]);
+  const [department, setDepartment] = useState<string>(
+    typeof initialData?.department === 'string'
+      ? initialData.department
+      : ACADEMIC_CATALOGS.college.departments[0].name
+  );
   const [academicYear, setAcademicYear] = useState(initialData?.academicYear || '1st Year');
-  const [semester, setSemester] = useState(initialData?.semester || 'Semester 1');
+  const [semester, setSemester] = useState(initialData?.semester || ACADEMIC_CATALOGS.college.semesters[0]);
   const [collegeSection, setCollegeSection] = useState(initialData?.section || 'A');
   const [collegeRollNo, setCollegeRollNo] = useState(initialData?.rollNo || '');
 
@@ -219,6 +223,8 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
             onClick={() => {
               setTier('school');
               setTeacherRole(ACADEMIC_CATALOGS.school.teacherRoles[0]);
+              const suggested = getSchoolSubjects(standard, isSeniorSchool ? schoolStream : undefined);
+              setSelectedSubjects(suggested.slice(0, 5));
             }}
             className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               tier === 'school'
@@ -236,6 +242,8 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
             onClick={() => {
               setTier('college');
               setTeacherRole(ACADEMIC_CATALOGS.college.teacherRoles[0]);
+              const suggested = getCollegeSubjects(department);
+              setSelectedSubjects(suggested.slice(0, 5));
             }}
             className={`flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
               tier === 'college'
@@ -439,12 +447,17 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
               <select
                 disabled={disabled}
                 value={department}
-                onChange={(e) => setDepartment(e.target.value)}
+                onChange={(e) => {
+                  const newDept = e.target.value;
+                  setDepartment(newDept);
+                  const suggested = getCollegeSubjects(newDept);
+                  setSelectedSubjects(suggested.slice(0, 5));
+                }}
                 className="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-cyan-500"
               >
                 {ACADEMIC_CATALOGS.college.departments.map((dept) => (
-                  <option key={dept} value={dept} className="bg-slate-900 text-white">
-                    {dept}
+                  <option key={dept.id} value={dept.name} className="bg-slate-900 text-white">
+                    {dept.name}
                   </option>
                 ))}
               </select>
