@@ -504,6 +504,12 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
             </form>
           ) : (
             <form onSubmit={handleSignupSubmit} className="space-y-4" id="teacher-signup-form">
+              {errors.submit && (
+                <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-300 text-xs font-medium flex items-start space-x-2">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
+                  <span>{errors.submit}</span>
+                </div>
+              )}
               {/* Educator Track Switcher */}
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">

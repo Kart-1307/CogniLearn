@@ -43,19 +43,39 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(password, salt);
 
+      // Sanitize teacher_type to guarantee compatibility with legacy DB check constraint:
+      // ('Class Teacher', 'Subject Teacher', 'Coordinator')
+      const legacyCheckAllowed = ['Class Teacher', 'Subject Teacher', 'Coordinator'];
+      const safeTeacherType = role === 'teacher'
+        ? (legacyCheckAllowed.includes(teacherType) ? teacherType : 'Coordinator')
+        : null;
+
+      const mergedTeacherProfile = role === 'teacher'
+        ? {
+            tier: determinedTier,
+            institutionName: institutionName || '',
+            department: department || '',
+            role: teacherType || 'Class Teacher',
+            designation: teacherType || 'Class Teacher',
+            staffIdNumber: teacherIdNumber || '',
+            assignedClasses: assignedClasses || [],
+            ...(typeof teacherProfile === 'object' ? teacherProfile : {}),
+          }
+        : (teacherProfile || {});
+
       const insertPayload = {
         email: email.toLowerCase().trim(),
         password_hash: passwordHash,
         full_name: fullName.trim(),
         role,
-        teacher_type: role === 'teacher' ? teacherType : null,
+        teacher_type: safeTeacherType,
         avatar: avatar || null,
         xp: 0,
         total_hours: 0,
         completed_sessions: 0,
         tier: determinedTier,
         academic_profile: academicProfile || {},
-        teacher_profile: teacherProfile || {},
+        teacher_profile: mergedTeacherProfile,
         grade_level: gradeLevel || (determinedTier === 'college' ? 'College 1st Year' : 'Class 10'),
         learning_style: learningStyle || 'Visual',
         curriculum_track: curriculumTrack || (determinedTier === 'college' ? 'Autonomous University' : 'CBSE'),
@@ -81,6 +101,42 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
           : (insertError?.message || 'Failed to create user in Supabase');
         res.status(500).json({ message: msg });
         return;
+      }
+
+      // Automatically provision initial cohorts for newly registered teachers
+      if (role === 'teacher') {
+        try {
+          const classList: string[] = (assignedClasses && assignedClasses.length > 0)
+            ? assignedClasses
+            : (determinedTier === 'college' ? ['Year 3 CSE-B', 'Year 4 CSE-A'] : ['Class 10-A', 'Class 10-B']);
+
+          for (let i = 0; i < classList.length; i++) {
+            const className = classList[i];
+            const codeSuffix = Math.floor(100 + Math.random() * 900);
+            const cohortCode = `${determinedTier === 'college' ? 'COL' : 'SCH'}-${codeSuffix}`;
+            const { data: cohortRow } = await supabase.from('cohorts').insert({
+              code: cohortCode,
+              tier: determinedTier,
+              name: className,
+              standard: determinedTier === 'school' ? 'Class 10' : null,
+              department: determinedTier === 'college' ? (department || 'Computer Science & Engineering') : null,
+              academic_year: '2026-2027',
+              section: i === 0 ? 'A' : 'B',
+              subject: (academicProfile?.subjects && academicProfile.subjects[0]) || 'General Focus',
+              room: `Room ${101 + i}`,
+              teacher_id: newUser.id,
+            }).select().maybeSingle();
+
+            if (cohortRow) {
+              await supabase.from('teacher_assignments').insert({
+                teacher_id: newUser.id,
+                cohort_id: cohortRow.id,
+              });
+            }
+          }
+        } catch (cohortErr) {
+          console.warn('[Auto Cohort Creation Warning]:', cohortErr);
+        }
       }
 
       const mappedUser = mapUserFromDB(newUser);
@@ -130,6 +186,30 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       department,
       assignedClasses,
     });
+
+    if (role === 'teacher') {
+      const classList: string[] = (assignedClasses && assignedClasses.length > 0)
+        ? assignedClasses
+        : (determinedTier === 'college' ? ['Year 3 CSE-B', 'Year 4 CSE-A'] : ['Class 10-A', 'Class 10-B']);
+
+      classList.forEach((className, i) => {
+        const codeSuffix = Math.floor(100 + Math.random() * 900);
+        const cohortCode = `${determinedTier === 'college' ? 'COL' : 'SCH'}-${codeSuffix}`;
+        memoryStore.cohorts.create({
+          code: cohortCode,
+          tier: determinedTier,
+          name: className,
+          standard: determinedTier === 'school' ? 'Class 10' : undefined,
+          department: determinedTier === 'college' ? (department || 'Computer Science & Engineering') : undefined,
+          academicYear: '2026-2027',
+          section: i === 0 ? 'A' : 'B',
+          subject: (academicProfile?.subjects && academicProfile.subjects[0]) || 'General Focus',
+          room: `Room ${101 + i}`,
+          teacherId: newMemUser._id,
+          teacherName: fullName.trim(),
+        });
+      });
+    }
 
     const token = jwt.sign(
       { id: newMemUser._id, email: newMemUser.email, role: newMemUser.role },

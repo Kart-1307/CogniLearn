@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   password_hash TEXT NOT NULL,
   full_name TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('student', 'teacher', 'admin')),
-  teacher_type TEXT CHECK (teacher_type IN ('Class Teacher', 'Subject Teacher', 'Coordinator')),
+  teacher_type TEXT CHECK (teacher_type IS NULL OR teacher_type IN ('Class Teacher', 'Subject Teacher', 'Coordinator', 'Professor', 'Associate Professor', 'Assistant Professor', 'Head of Department (HOD)', 'Lab Instructor')),
   avatar TEXT,
   xp INTEGER DEFAULT 0,
   total_hours NUMERIC(8, 2) DEFAULT 0.00,
