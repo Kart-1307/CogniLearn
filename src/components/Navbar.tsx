@@ -111,18 +111,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <UserIcon className="h-3.5 w-3.5 text-sky-400" />
                   <span>Student Portal</span>
                 </button>
-
-                {onOpenResetModal && (
-                  <button
-                    onClick={onOpenResetModal}
-                    className="ml-2 inline-flex items-center space-x-1.5 py-1.5 px-3 rounded-md border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 transition-colors cursor-pointer text-xs font-medium"
-                    title="Reset Database with Double Confirmation"
-                    id="nav-reset-db-unauth"
-                  >
-                    <Database className="h-3.5 w-3.5" />
-                    <span>Reset DB</span>
-                  </button>
-                )}
               </>
             ) : (
               <div className="flex items-center space-x-3">
@@ -160,7 +148,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
                 )}
 
-                {onOpenResetModal && (
+                {user.role === 'teacher' && onOpenResetModal && (
                   <button
                     onClick={onOpenResetModal}
                     className="p-2 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 transition-colors cursor-pointer"
@@ -236,19 +224,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <UserIcon className="h-4 w-4" />
                   <span>Student Portal</span>
                 </button>
-                {onOpenResetModal && (
-                  <button
-                    onClick={() => {
-                      onOpenResetModal();
-                      setIsOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-md flex items-center space-x-2 text-rose-400 hover:bg-rose-500/10"
-                    id="mobile-nav-reset-unauth"
-                  >
-                    <Database className="h-4 w-4" />
-                    <span>Reset Database</span>
-                  </button>
-                )}
               </>
             ) : (
               <div className="pt-2 border-t border-slate-800">
@@ -286,7 +261,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>Account Settings</span>
                     </button>
                   )}
-                  {onOpenResetModal && (
+                  {user.role === 'teacher' && onOpenResetModal && (
                     <button
                       onClick={() => {
                         onOpenResetModal();

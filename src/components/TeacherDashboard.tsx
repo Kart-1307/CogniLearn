@@ -12,6 +12,8 @@ import {
 import {
   SCHOOL_STANDARDS_AND_SUBJECTS,
   COLLEGE_DEPARTMENTS,
+  getCollegeSubjects,
+  getSchoolSubjects,
 } from '../config/academicCatalogs';
 import { getMobileCompatibleCameraStream, attachStreamToVideo } from '../utils/cameraUtils';
 import { api } from '../services/api';
@@ -84,9 +86,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         // ignore
       }
     }
-    if (!isDemo) {
-      return [];
-    }
     if (isCollege) {
       return [
         { id: 'cs-301-b', code: 'CS301-B', name: 'B.Tech CSE - Year 3 Section B', room: 'Lab 304', strength: 5, year: '2026-2027', tier: 'college', subject: 'Operating Systems', section: 'B', department: 'Computer Science & Engineering' },
@@ -109,7 +108,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         if (Array.isArray(parsed) && parsed.length > 0) return parsed[0].id;
       } catch (e) { }
     }
-    return isDemo ? (isCollege ? 'cs-301-b' : 'class-10-a') : '';
+    return isCollege ? 'cs-301-b' : 'class-10-a';
   });
 
   // Sync cohorts from backend on mount
@@ -184,9 +183,6 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       } catch (e) {
         // ignore
       }
-    }
-    if (!isDemo) {
-      return [];
     }
     return [
       // Class X-A
@@ -598,7 +594,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const getTestingStudents = (classId: string) => {
     if (!classId) return [];
     const classStudents = students.filter(s => s.classId === classId);
-    if (!isDemo) {
+    if (classStudents.length >= 5) {
       return classStudents;
     }
     const padded = [...classStudents];
@@ -956,7 +952,16 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   };
 
   // --- 4. Interactive Subjects State ---
-  const [subjects, setSubjects] = useState(['Mathematics', 'Physics', 'Chemistry', 'English Literature']);
+  const [subjects, setSubjects] = useState<string[]>(() => {
+    if (user?.teacherProfile?.primarySubjects && user.teacherProfile.primarySubjects.length > 0) {
+      return [...user.teacherProfile.primarySubjects];
+    }
+    if (isCollege) {
+      const dept = user?.teacherProfile?.tier === 'college' ? user.teacherProfile.department : user?.department;
+      return getCollegeSubjects(dept).slice(0, 5);
+    }
+    return ['Mathematics', 'Physics', 'Chemistry', 'English Literature'];
+  });
   const [newSubject, setNewSubject] = useState('');
 
   const addSubject = (e: React.FormEvent) => {

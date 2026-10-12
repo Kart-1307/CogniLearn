@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CogniLearn AI — Comprehensive System Architecture, Implementation & Features Document</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    @page {
+      size: A4;
+      margin: 18mm 14mm 18mm 14mm;
+      @bottom-right {
+        content: counter(page);
+        font-family: 'Inter', sans-serif;
+        font-size: 9pt;
+        color: #64748B;
+      }
+      @bottom-left {
+        content: "CogniLearn AI — System Architecture & Feature Specification";
+        font-family: 'Inter', sans-serif;
+        font-size: 8pt;
+        color: #94A3B8;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #0F172A;
+      background: #FFFFFF;
+      line-height: 1.58;
+      font-size: 10pt;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Print page break helpers */
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    .avoid-break {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Cover Page */
+    .cover {
+      min-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px 30px;
+      border: 3px double #E2E8F0;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #F8FAFC 0%, #FFFFFF 60%, #EEF2F6 100%);
+      margin-bottom: 30px;
+    }
+
+    .cover-header {
+      border-bottom: 2px solid #0F172A;
+      padding-bottom: 20px;
+    }
+
+    .cover-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.5pt;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #4F46E5;
+      background: #EEF2FF;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid #C7D2FE;
+      margin-bottom: 14px;
+    }
+
+    .cover-title {
+      font-size: 27pt;
+      font-weight: 800;
+      color: #0F172A;
+      line-height: 1.18;
+      margin: 0 0 10px 0;
+      letter-spacing: -0.02em;
+    }
+
+    .cover-subtitle {
+      font-size: 13.5pt;
+      font-weight: 500;
+      color: #475569;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .cover-body {
+      margin: 40px 0;
+    }
+
+    .cover-abstract {
+      background: #FFFFFF;
+      border-left: 4px solid #4F46E5;
+      border-top: 1px solid #E2E8F0;
+      border-right: 1px solid #E2E8F0;
+      border-bottom: 1px solid #E2E8F0;
+      border-radius: 0 8px 8px 0;
+      padding: 18px 22px;
+      font-size: 9.5pt;
+      color: #334155;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    }
+
+    .cover-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .cover-meta-card {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+
+    .cover-meta-label {
+      font-size: 7.5pt;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #64748B;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .cover-meta-value {
+      font-size: 10pt;
+      font-weight: 700;
+      color: #0F172A;
+    }
+
+    .cover-footer {
+      border-top: 1px solid #CBD5E1;
+      padding-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8.5pt;
+      color: #64748B;
+    }
+
+    /* Document Structure Typography */
+    h1 {
+      font-size: 17pt;
+      font-weight: 800;
+      color: #0F172A;
+      border-bottom: 2px solid #4F46E5;
+      padding-bottom: 6px;
+      margin-top: 26px;
+      margin-bottom: 14px;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+    }
+
+    h1 .sec-num {
+      color: #4F46E5;
+      font-family: 'JetBrains Mono', monospace;
+      margin-right: 8px;
+      font-size: 15pt;
+    }
+
+    h2 {
+      font-size: 12.5pt;
+      font-weight: 700;
+      color: #1E293B;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      border-left: 3.5px solid #0EA5E9;
+      padding-left: 10px;
+    }
+
+    h3 {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: #334155;
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+
+    h4 {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: #475569;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    p {
+      margin: 0 0 10px 0;
+      color: #334155;
+      text-align: justify;
+    }
+
+    ul, ol {
+      margin: 0 0 12px 0;
+      padding-left: 22px;
+      color: #334155;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    b, strong {
+      color: #0F172A;
+    }
+
+    /* Visual Callouts / Alerts */
+    .callout {
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      font-size: 9.2pt;
+      border-left: 4px solid;
+    }
+
+    .callout-info {
+      background: #F0FDF4;
+      border-color: #10B981;
+      color: #064E3B;
+    }
+
+    .callout-purple {
+      background: #F5F3FF;
+      border-color: #6366F1;
+      color: #312E81;
+    }
+
+    .callout-warning {
+      background: #FFFBEB;
+      border-color: #F59E0B;
+      color: #78350F;
+    }
+
+    .callout-crimson {
+      background: #FEF2F2;
+      border-color: #EF4444;
+      color: #7F1D1D;
+    }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px 0;
+      font-size: 8.8pt;
+      background: #FFFFFF;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #CBD5E1;
+    }
+
+    th {
+      background: #0F172A;
+      color: #FFFFFF;
+      font-weight: 700;
+      text-align: left;
+      padding: 9px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8pt;
+      letter-spacing: 0.04em;
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #E2E8F0;
+      color: #334155;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td {
+      background: #F8FAFC;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Code & Algorithmic Blocks */
+    pre, code {
+      font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+    }
+
+    code {
+      background: #F1F5F9;
+      color: #4F46E5;
+      padding: 1.5px 5px;
+      border-radius: 4px;
+      font-size: 8.5pt;
+      border: 1px solid #E2E8F0;
+    }
+
+    pre {
+      background: #0B1120;
+      color: #F8FAFC;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 8pt;
+      line-height: 1.45;
+      overflow-x: auto;
+      margin: 10px 0 14px 0;
+      border: 1px solid #1E293B;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    pre .kw { color: #818CF8; font-weight: bold; }
+    pre .dt { color: #38BDF8; }
+    pre .fn { color: #34D399; }
+    pre .str { color: #FBBF24; }
+    pre .num { color: #F472B6; }
+    pre .cmt { color: #64748B; font-style: italic; }
+
+    /* Formula Box */
+    .formula-box {
+      background: #F8FAFC;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.8pt;
+      color: #0F172A;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .formula-box .title {
+      font-family: 'Inter', sans-serif;
+      font-size: 8pt;
+      font-weight: 700;
+      color: #4F46E5;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+      display: block;
+      text-align: left;
+    }
+
+    /* Diagrams & Visual Flow Boxes */
+    .diagram-container {
+      background: #0B1120;
+      border: 1px solid #1E293B;
+      border-radius: 8px;
+      padding: 14px;
+      margin: 14px 0;
+      color: #E2E8F0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.5pt;
+      line-height: 1.35;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    /* Two-column layout */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 12px 0;
+    }
+
+    .card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 9.5pt;
+      color: #0F172A;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 7.5pt;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+    .badge-green { background: #DCFCE7; color: #15803D; }
+    .badge-blue { background: #DBEAFE; color: #1D4ED8; }
+    .badge-amber { background: #FEF3C7; color: #B45309; }
+    .badge-red { background: #FEE2E2; color: #B91C1C; }
+    .badge-purple { background: #EDE9FE; color: #6D28D9; }
+
+    /* Table of Contents */
+    .toc {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 18px 24px;
+      margin-bottom: 24px;
+    }
+
+    .toc-title {
+      font-size: 12pt;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid #CBD5E1;
+      padding-bottom: 6px;
+    }
+
+    .toc-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 9pt;
+    }
+
+    .toc-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dotted #CBD5E1;
+    }
+
+    .toc-item:last-child {
+      border-bottom: none;
+    }
+
+    .toc-label {
+      color: #1E293B;
+      font-weight: 600;
+    }
+
+    .toc-sub {
+      padding-left: 18px;
+      font-size: 8.5pt;
+      color: #475569;
+      font-weight: 400;
+    }
+
+    .toc-page {
+      font-family: 'JetBrains Mono', monospace;
+      color: #64748B;
+      font-weight: 700;
+    }
+
+    /* Q&A Item */
+    .qa-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .qa-q {
+      font-size: 9.8pt;
+      font-weight: 700;
+      color: #1E293B;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .qa-q-badge {
+      background: #4F46E5;
+      color: #FFFFFF;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7.5pt;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      margin-top: 1px;
+    }
+
+    .qa-a {
+      font-size: 9pt;
+      color: #334155;
+      line-height: 1.5;
+      padding-left: 28px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================================= -->
+  <!-- COVER PAGE                                                                -->
+  <!-- ========================================================================= -->
+  <div class="cover">
+    <div class="cover-header">
+      <span class="cover-badge">Academic & Technical Architecture Specification</span>
+      <h1 class="cover-title">CogniLearn AI</h1>
+      <p class="cover-subtitle">Intelligent Cognitive Attention Analytics, Real-Time Computer Vision Tracking & Pedagogical Telemetry Platform</p>
+    </div>
+
+    <div class="cover-body">
+      <div class="cover-abstract">
+        <b>EXECUTIVE SUMMARY & PURPOSE:</b> This document provides an exhaustive, self-explanatory technical and architectural breakdown of <b>CogniLearn AI</b>. It covers the system topology, technical algorithms, AI models, perceptual pipelines, biometric security, mathematical formulations, and runtime stacks implemented across both the <b>Individual Student Tracking</b> and <b>Classroom Multi-Target Tracking</b> subsystems. Engineered as an authoritative project guide reference, this document details how modern browser-native Computer Vision (MediaPipe FaceLandmarker), Deep Metric Embedding extraction (MobileFaceNet ONNX Runtime Web), Multi-Target Spatial Tracking (Kalman Filters + Hungarian Algorithm), Cognitive Ergonomics State Inference, and DPDP Act 2023 compliant encrypted storage operate together to deliver an ethical, formative learning intelligence platform.
+      </div>
+
+      <div class="cover-meta-grid">
+        <div class="cover-meta-card">
+          <div class="cover-meta-label">Application Subsystems</div>
+          <div class="cover-meta-value">Classroom Auto-Tracker & Individual Focus Portal</div>
+        </div>
+        <div class="cover-meta-card">
+          <div class="cover-meta-label">Primary Tech Stack</div>
+          <div class="cover-meta-value">React 19 • TypeScript 5.8 • Express • Supabase • ONNX</div>
+        </div>
+        <div class="cover-meta-card">
+          <div class="cover-meta-label">Computer Vision Stack</div>
+          <div class="cover-meta-value">MediaPipe 468-Mesh • 10-Iris • Kalman • DeepSORT-lite</div>
+        </div>
+        <div class="cover-meta-card">
+          <div class="cover-meta-label">Regulatory & Security Standard</div>
+          <div class="cover-meta-value">DPDP Act 2023 • WebCrypto AES-GCM 256-bit</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <div><b>Document Status:</b> Production Ready Architecture Specification</div>
+      <div><b>Version:</b> 2.4.0 (Active Release)</div>
+      <div><b>Date:</b> October 2026</div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TABLE OF CONTENTS                                                         -->
+  <!-- ========================================================================= -->
+  <div class="toc avoid-break">
+    <div class="toc-title">Table of Contents</div>
+    <div class="toc-list">
+      <div class="toc-item"><span class="toc-label">1. Introduction & Platform Overview</span><span class="toc-page">Section 1</span></div>
+      <div class="toc-item toc-sub"><span>1.1 Pedagogical Motivation & Supervisory Psychology</span></div>
+      <div class="toc-item toc-sub"><span>1.2 System Objectives & Non-Punitive Philosophy</span></div>
+      <div class="toc-item"><span class="toc-label">2. Comprehensive Technology Stack Matrix</span><span class="toc-page">Section 2</span></div>
+      <div class="toc-item toc-sub"><span>2.1 Frontend Perception & Interaction Technologies</span></div>
+      <div class="toc-item toc-sub"><span>2.2 Backend Gateway & Cloud Persistence Layers</span></div>
+      <div class="toc-item toc-sub"><span>2.3 Machine Learning & Computer Vision Engines</span></div>
+      <div class="toc-item"><span class="toc-label">3. End-to-End System Architecture</span><span class="toc-page">Section 3</span></div>
+      <div class="toc-item toc-sub"><span>3.1 Multi-Tier Architecture Diagram</span></div>
+      <div class="toc-item toc-sub"><span>3.2 Perception to Telemetry Data Flow Pipeline</span></div>
+      <div class="toc-item"><span class="toc-label">4. Deep-Dive: Classroom Tracking (Educator Experience)</span><span class="toc-page">Section 4</span></div>
+      <div class="toc-item toc-sub"><span>4.1 Multi-Face Real-Time Detection & 6-Target Capacity</span></div>
+      <div class="toc-item toc-sub"><span>4.2 DeepSORT-lite Spatial Tracking & Hungarian Bipartite Matching</span></div>
+      <div class="toc-item toc-sub"><span>4.3 High-Tech Canvas AR Head-Up Display (HUD) Overlays</span></div>
+      <div class="toc-item toc-sub"><span>4.4 DPDP Act 2023 Multi-Angle Biometric Calibration Wizard</span></div>
+      <div class="toc-item toc-sub"><span>4.5 Academic Cohorts, Class Codes & Unique Roster Scoping</span></div>
+      <div class="toc-item toc-sub"><span>4.6 Real-Time Telemetry Streaming & Aggregate Class Dashboards</span></div>
+      <div class="toc-item"><span class="toc-label">5. Deep-Dive: Individual Tracking (Student Experience)</span><span class="toc-page">Section 5</span></div>
+      <div class="toc-item toc-sub"><span>5.1 3-Step Interactive Onboarding & Face Reticle Calibration</span></div>
+      <div class="toc-item toc-sub"><span>5.2 Single-Face Computer Vision Feed & Gaze Ray Vectors</span></div>
+      <div class="toc-item toc-sub"><span>5.3 Pomodoro / Deep Work Timer & XP Progression Engine</span></div>
+      <div class="toc-item toc-sub"><span>5.4 Adaptive Focus Breaks: Box Breathing, 20-20-20 & Ergonomics</span></div>
+      <div class="toc-item toc-sub"><span>5.5 Subject & Hourly Focus Analytics & Diagnostic Reports</span></div>
+      <div class="toc-item toc-sub"><span>5.6 Self-Service Privacy & Permanent Account Deletion</span></div>
+      <div class="toc-item"><span class="toc-label">6. Mathematical Formulations & Core Algorithms</span><span class="toc-page">Section 6</span></div>
+      <div class="toc-item toc-sub"><span>6.1 6-Point Eye Aspect Ratio (EAR) & PERCLOS Drowsiness Metric</span></div>
+      <div class="toc-item toc-sub"><span>6.2 True Euler Angles (Pitch, Yaw, Roll) via 4x4 Matrix Decomposition</span></div>
+      <div class="toc-item toc-sub"><span>6.3 Umeyama 5-Point Similarity Alignment & Laplacian Blur Check</span></div>
+      <div class="toc-item toc-sub"><span>6.4 MobileFaceNet 512-D Deep Metric Embedding & Cosine Similarity</span></div>
+      <div class="toc-item toc-sub"><span>6.5 8-State Constant-Velocity Kalman Filter Formulation</span></div>
+      <div class="toc-item toc-sub"><span>6.6 Hungarian Algorithm (Kuhn-Munkres O(N³) Bipartite Matching)</span></div>
+      <div class="toc-item toc-sub"><span>6.7 Cognitive Ergonomics Softmax Multi-Class Decision Tree</span></div>
+      <div class="toc-item"><span class="toc-label">7. Database Schema & Data Persistence Specifications</span><span class="toc-page">Section 7</span></div>
+      <div class="toc-item toc-sub"><span>7.1 Supabase PostgreSQL Relational Schema & Indexes</span></div>
+      <div class="toc-item toc-sub"><span>7.2 Client-Side WebCrypto Encrypted IndexedDB Store</span></div>
+      <div class="toc-item"><span class="toc-label">8. Security, Privacy & Ethical Compliance Standards</span><span class="toc-page">Section 8</span></div>
+      <div class="toc-item toc-sub"><span>8.1 Digital Personal Data Protection (DPDP) Act 2023 Adherence</span></div>
+      <div class="toc-item toc-sub"><span>8.2 LLM PII Pseudonymization & Langfuse Observability</span></div>
+      <div class="toc-item"><span class="toc-label">9. Project Guide Defense: Top 10 Technical Questions & Answers</span><span class="toc-page">Section 9</span></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SECTION 1: INTRODUCTION & PLATFORM OVERVIEW                               -->
+  <!-- ========================================================================= -->
+  <div class="page-break"></div>
+  <h1><span class="sec-num">1.</span> Introduction & Platform Overview</h1>
+
+  <h2>1.1 Pedagogical Motivation & Supervisory Psychology</h2>
+  <p>
+    Modern education faces a profound challenge: while digital learning platforms provide unprecedented access to courseware, they simultaneously introduce cognitive fragmentation. Students regularly face digital distractions, screen fatigue, and micro-interruptions that undermine deep learning. In traditional classroom environments, teachers cannot continuously monitor thirty or forty students to determine who is cognitively immersed, who is taking active notes, who is quietly reflecting, and who is experiencing cognitive exhaustion or distraction.
+  </p>
+  <p>
+    <b>CogniLearn AI</b> bridges this gap by introducing a real-time, non-invasive cognitive attention tracking and telemetry platform. Unlike traditional punitive proctoring tools—which flag any averted glance as cheating or disciplinary violation—CogniLearn is built on <b>Supervisory Ergonomics and Cognitive Psychology</b>. The platform recognizes that human learning consists of diverse, healthy cognitive states:
+  </p>
+  <ul>
+    <li><b>Active Screen Focus:</b> Gaze directed at instructional materials with alert blink rhythms.</li>
+    <li><b>Desk Work & Note-Taking:</b> Downward head tilt with stabilized posture, indicating problem solving, calculation, or writing on paper.</li>
+    <li><b>Cognitive Reflection:</b> Brief pauses (&lt; 3.5 seconds) where the student glances aside or upward while synthesizing complex conceptual information.</li>
+    <li><b>Genuine Off-Task Disengagement:</b> Sustained off-target gaze (&gt; 3.5 seconds) or prolonged eyelid closure indicating fatigue or loss of focus.</li>
+  </ul>
+
+  <h2>1.2 System Objectives & Non-Punitive Philosophy</h2>
+  <p>
+    CogniLearn AI is explicitly designed as a <b>formative self-regulation tool</b> for students and a <b>pedagogical awareness dashboard</b> for educators. The primary engineering objectives are:
+  </p>
+  <div class="two-col avoid-break">
+    <div class="card">
+      <div class="card-title"><span class="badge badge-blue">Student Core</span> Formative Metacognition</div>
+      <p style="font-size: 8.8pt; margin: 0;">
+        Empowers learners to understand their cognitive rhythms, track daily deep work hours, identify peak hours of mental sharpness, and receive adaptive interventions (e.g., Box Breathing, 20-20-20 eye relief) when fatigue strikes.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="badge badge-green">Teacher Core</span> Classroom Empathy</div>
+      <p style="font-size: 8.8pt; margin: 0;">
+        Provides teachers with live telemetry on collective class engagement, pinpointing lecture drop-off moments, identifying disengaged students who need extra support, and evaluating lesson comprehension in real time.
+      </p>
+    </div>
+  </div>
+
+  <div class="callout callout-info avoid-break">
+    <div class="callout-title">Ethical Design Guardrail</div>
+    CogniLearn AI operates under strict ethical guidelines. Quantitative focus scores are never utilized for grade penalties or punitive actions. The system delivers actionable educational recommendations, positive gamified reinforcement (+XP), and formative feedback to nurture focus over time.
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SECTION 2: COMPREHENSIVE TECHNOLOGY STACK MATRIX                          -->
+  <!-- ========================================================================= -->
+  <div class="page-break"></div>
+  <h1><span class="sec-num">2.</span> Comprehensive Technology Stack Matrix</h1>
+
+  <p>
+    CogniLearn AI employs an advanced full-stack architecture combining high-performance modern web technologies, on-device WebAssembly/WebGPU machine learning, and secure cloud persistence. Every subsystem is selected for latency efficiency, privacy preservation, and cross-platform compatibility.
+  </p>
+
+  <table class="avoid-break">
+    <thead>
+      <tr>
+        <th style="width: 22%;">Layer / Subsystem</th>
+        <th style="width: 25%;">Technology & Version</th>
+        <th style="width: 53%;">Specific Role in CogniLearn Architecture</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Client Framework</b></td>
+        <td><code>React 19.0.1</code> + <code>TypeScript 5.8</code></td>
+        <td>Declarative reactive UI rendering, component lifecycle management, strict type safety across telemetry models, custom hooks for video/canvas streaming.</td>
+      </tr>
+      <tr>
+        <td><b>Build Tool & Bundler</b></td>
+        <td><code>Vite 6.2.3</code></td>
+        <td>Sub-second Hot Module Replacement (HMR), optimized tree-shaking, production bundle minification, WASM asset pipeline support.</td>
+      </tr>
+      <tr>
+        <td><b>Styling & Aesthetics</b></td>
+        <td><code>TailwindCSS 4.1.14</code></td>
+        <td>Bespoke dark glassmorphism design system (`#0F172A`, `#131C2E`), responsive layouts, mobile viewport adaptability, custom micro-animations.</td>
+      </tr>
+      <tr>
+        <td><b>Animation Engine</b></td>
+        <td><code>Motion 12.23 (Framer Motion)</code></td>
+        <td>Fluid modal transitions, XP level-up celebration cards, focus break countdown rings, real-time bar/gauge indicators.</td>
+      </tr>
+      <tr>
+        <td><b>Iconography & Visuals</b></td>
+        <td><code>Lucide React 0.546</code></td>
+        <td>Consistent, lightweight SVG iconography across dashboards, telemetry HUD overlays, status badges, and export actions.</td>
+      </tr>
+      <tr>
+        <td><b>Edge Computer Vision</b></td>
+        <td><code>@mediapipe/tasks-vision 0.10.18</code></td>
+        <td>MediaPipe FaceLandmarker extracting 468 3D landmarks + 10 iris coordinates at 30 fps via WebGL GPU acceleration with WASM fallback.</td>
+      </tr>
+      <tr>
+        <td><b>Deep Metric Inference</b></td>
+        <td><code>onnxruntime-web 1.30.0</code></td>
+        <td>Client-side MobileFaceNet ONNX execution generating 512-D L2-normalized biometric embeddings directly in the browser via WebAssembly SIMD.</td>
+      </tr>
+      <tr>
+        <td><b>Spatial Tracking</b></td>
+        <td>Custom <code>Kalman Filter</code> + <code>Hungarian (Kuhn-Munkres)</code></td>
+        <td>DeepSORT-lite tracking: 8-state constant velocity bounding box estimation, IoU & embedding cost matrix, optimal bipartite matching.</td>
+      </tr>
+      <tr>
+        <td><b>Backend Server</b></td>
+        <td><code>Node.js 24</code> + <code>Express 4.21.2</code></td>
+        <td>REST API gateway (`/api/*`), body parser configured up to 10MB for avatar/biometric payloads, CORS headers, environment security gates.</td>
+      </tr>
+      <tr>
+        <td><b>Rate Limiting & Defense</b></td>
+        <td><code>express-rate-limit 8.7.0</code></td>
+        <td>Brute-force protection on authentication endpoints (10 req/15min) and API credit exhaustion defense on AI report generation (20 req/hour).</td>
+      </tr>
+      <tr>
+        <td><b>Cloud Database</b></td>
+        <td><code>Supabase PostgreSQL</code></td>
+        <td>Relational tables for users, cohorts, enrollments, study sessions, and baseline scores. Row Level Security (RLS) and `pgcrypto` support.</td>
+      </tr>
+      <tr>
+        <td><b>Real-Time Telemetry</b></td>
+        <td><code>Supabase Realtime Broadcast</code></td>
+        <td>Sub-second (1 Hz throttled) websocket broadcast channels streaming student attention state packets (`{studentId, state, score}`) to teachers.</td>
+      </tr>
+      <tr>
+        <td><b>Client-Side Cryptography</b></td>
+        <td><code>WebCrypto API</code> (AES-GCM 256)</td>
+        <td>DPDP Act 2023 compliant local IndexedDB store (`cognilearn_biometrics_db`) storing encrypted 512-D float vectors. No raw photos stored.</td>
+      </tr>
+      <tr>
+        <td><b>Generative Pedagogical AI</b></td>
+        <td><code>Google Gemini 2.0 (@google/genai)</code></td>
+        <td>Transforms deterministic numerical session statistics into empathetic, constructive pedagogical narratives and action plans.</td>
+      </tr>
+      <tr>
+        <td><b>LLM Observability</b></td>
+        <td><code>Langfuse 3.39.2</code></td>
+        <td>Production telemetry, latency tracking, prompt versioning, and token usage monitoring for all educational LLM interactions.</td>
+      </tr>
+      <tr>
+        <td><b>Schema Validation</b></td>
+        <td><code>Zod 4.6.5</code></td>
+        <td>Strict runtime validation of LLM JSON outputs ensuring zero hallucinated numerical statistics are displayed to students or educators.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ========================================================================= -->
+  <!-- SECTION 3: END-TO-END SYSTEM ARCHITECTURE                                 -->
+  <!-- ========================================================================= -->
+  <div class="page-break"></div>
+  <h1><span class="sec-num">3.</span> End-to-End System Architecture</h1>
+
+  <h2>3.1 Multi-Tier Architecture Diagram</h2>
+  <p>
+    CogniLearn AI decouples real-time perceptual processing (which occurs entirely client-side on the user's GPU/CPU) from data persistence, analytics aggregation, and pedagogical narrative generation. This edge-first design guarantees <b>ultra-low latency (&lt; 33ms per frame)</b>, <b>zero video transmission over networks</b>, and <b>high user privacy</b>.
+  </p>
+
+  <div class="diagram-container avoid-break">
++----------------------------------------------------------------------------------------------------+
+|                                    COGNILERAN SYSTEM ARCHITECTURE                                  |
++----------------------------------------------------------------------------------------------------+
+
+ [ STUDENT CLIENT / WEBCAM ]                                  [ TEACHER CLIENT / DASHBOARD ]
+  │                                                            │
+  ├─► HTML5 Camera Stream (1280x720 / 30fps)                   ├─► Classroom Multi-Target Feed
+  │                                                            │
+  ▼                                                            ▼
++──────────────────────────────────────────────+             +──────────────────────────────────────────────+
+| CLIENT-SIDE PERCEPTION PIPELINE              |             | CLIENT-SIDE MULTI-FACE TRACKER               |
+|                                              |             |                                              |
+| 1. MediaPipe Tasks Vision (FaceLandmarker)   |             | 1. MultiFace Landmarker (up to 6 faces)      |
+|    - 468 3D Facial Landmarks                 |             | 2. DeepSORT-lite Pipeline:                   |
+|    - 10 Iris Landmark Reticles (468-477)     |             |    - 8-State Kalman Filter Prediction        |
+|    - 4x4 Facial Transformation Matrix        |             |    - IoU + Centroid + Embedding Cost Matrix  |
+| 2. Feature Extraction & Gating:              |             |    - Hungarian Algorithm (O(N^3)) Matching   |
+|    - 6-Point Eye Aspect Ratio (EAR)          |             |    - Identity Locking & Hysteresis           |
+|    - Euler Angles: Yaw, Pitch, Roll (Deg)    |             | 3. Canvas AR Head-Up Display (HUD):          |
+|    - Laplacian 3x3 Blur Variance Gate        |             |    - Gaze Vector Rays & Eye Mesh Overlays    |
+| 3. Cognitive Ergonomics ML Model:            |             |    - Cognitive State Badges & Progress Bars  |
+|    - 45s Rolling Temporal Frame Buffer       |             +──────────────────────────────────────────────+
+|    - Dynamic EAR Threshold Calibration       |                                    ▲
+|    - Pitch Variance Stability Check          |                                    │
+|    - Softmax Multi-Class Decision Tree       |                                    │
+|    - EMA Smoothing (alpha = 0.12)            |                                    │
++──────────────────────────────────────────────+                                    │
+  │                                                                                 │
+  ├─► 1 Hz Telemetry Broadcast (Throttled) ─────────────────────────────────────────┤
+  │                                                                                 │
+  ▼                                                                                 ▼
++────────────────────────────────────────────────────────────────────────────────────────────────────+
+| TRANSPORT & REALTIME BROADCAST LAYER                                                               |
+|                                                                                                    |
+| • Supabase Realtime Channels (`classroom:CLASS_ID`)                                                |
+| • Lightweight JSON State Packets: `{ studentId, state, focusScore, timestamp }`                    |
+| • Offline Fallback: Window CustomEvent Dispatcher (`cognilearn:telemetry`)                         |
++────────────────────────────────────────────────────────────────────────────────────────────────────+
+  │                                                ▲
+  ▼                                                │
++────────────────────────────────────────────────────────────────────────────────────────────────────+
+| BACKEND API GATEWAY (Node.js 24 + Express.js 4.21)                                                 |
+|                                                                                                    |
+| • Rate Limiters: Auth Brute-Force (10/15m) & AI Reports (20/hr)                                    |
+| • Auth Router: JWT Session Tokens + bcryptjs Password Hashing                                      |
+| • Cohorts Router: School & College Track Generation (`SCH-XXXX`, `COL-XXXX`)                       |
+| • Student Router: Session Logging, XP Accumulation (+150 XP), Focus Breaks (+25 XP)                |
+| • AI Report Router: Google Gemini 2.0 Integration + SHA-256 PII Pseudonymization + Langfuse Tracing|
++────────────────────────────────────────────────────────────────────────────────────────────────────+
+  │                                                │
+  ▼                                                ▼
++──────────────────────────────────────+         +──────────────────────────────────────────────────+
+| SUPABASE POSTGRESQL CLOUD DATABASE   |         | CLIENT-SIDE ENCRYPTED BIOMETRIC STORAGE (DPDP)   |
+|                                      |         |                                                  |
+| • `users` (Student & Teacher Profiles)|        | • IndexedDB: `cognilearn_biometrics_db`          |
+| • `cohorts` & `enrollments`          |         | • WebCrypto API: AES-GCM 256-bit Key             |
+| • `study_sessions` & `focus_breaks`  |         | • Encrypted Mean 512-D Vector & Exemplars        |
+| • `baseline_scores`                  |         | • ZERO raw photos or video frames stored         |
++──────────────────────────────────────+         +──────────────────────────────────────────────────+
+</div>
+
+  <h2>3.2 Perception to Telemetry Data Flow Pipeline</h2>
+  <p>
+    The lifecycle of every camera frame progresses through seven distinct stages:
+  </p>
+  <ol>
+    <li><b>Video Frame Acquisition:</b> MediaStream captured at 30 fps via `navigator.mediaDevices.getUserMedia` with mobile-compatible facing mode selection (`user` vs `environment`).</li>
+    <li><b>Landmark Extraction:</b> Frame passed to MediaPipe `FaceLandmarker.detectForVideo(video, timestamp)` executing WebGL GPU shaders to infer 468 mesh landmarks and 4x4 matrix.</li>
+    <li><b>Metric & Posture Computation:</b> Frame converted to isotropic pixel coordinates. 6-point EAR computed for ocular aperture; true Euler angles ($\text{Pitch}, \text{Yaw}, \text{Roll}$) extracted from rotation matrix.</li>
+    <li><b>Cognitive Attention Inference:</b> Metrics fed into the `CognitiveAttentionModel` sliding window (45 seconds). Dynamic EAR thresholding handles eyelid physiology; pitch variance distinguishes writing from head bobbing; Softmax calculates probabilities across 4 states.</li>
+    <li><b>HUD Overlay Rendering:</b> Canvas 2D context draws bounding brackets, eye mesh contours, iris center reticles, 3D directional gaze rays, and cognitive status pills.</li>
+    <li><b>Telemetry Throttling:</b> At a calibrated 1 Hz frequency, the active attention state is broadcast over Supabase Realtime websocket channels to educators.</li>
+    <li><b>Diagnostic Session Logging:</b> At session completion, aggregated telemetry timeline samples are committed to Supabase/MongoDB and processed by Gemini AI for report generation.</li>
+  </ol>
+
+  <!-- ========================================================================= -->
+  <!-- SECTION 4: CLASSROOM TRACKING (EDUCATOR EXPERIENCE)                       -->
+  <!-- ========================================================================= -->
+  <div class="page-break"></div>
+  <h1><span class="sec-num">4.</span> Deep-Dive: Classroom Tracking (Educator Experience)</h1>
+
+  <h2>4.1 Multi-Face Real-Time Detection & 6-Target Capacity</h2>
+  <p>
+    In classroom environments, an educator requires simultaneous oversight across the physical room. The <code>ClassroomAutoTracker.tsx</code> component interfaces with MediaPipe configured specifically for multi-face inference:
+  </p>
+  <ul>
+    <li>Configured via <code>getMultiFaceLandmarker()</code> with <code>numFaces: 6</code>, <code>minFaceDetectionConfidence: 0.45</code>, and <code>minTrackingConfidence: 0.45</code>.</li>
+    <li>Operates with dual GPU WebGL and CPU WASM fallbacks, ensuring resilience across educator laptops, school desktops, and tablets.</li>
+    <li>Processes all 6 student faces concurrently within a 33ms frame budget, extracting independent landmark sets, transformation matrices, and facial blendshapes.</li>
+  </ul>
+
+  <h2>4.2 DeepSORT-lite Spatial Tracking & Hungarian Bipartite Matching</h2>
+  <p>
+    A critical challenge in multi-student computer vision is <b>identity switching</b>—when two students move, tilt their heads, or cross paths, naive detectors interchange their names. CogniLearn implements a complete <b>DeepSORT-lite tracking engine</b> (in <code>SpatialMultiFaceTracker</code> within <code>faceMatcher.ts</code>):
+  </p>
+  <div class="diagram-container avoid-break">
+[ Frame Detections ]               [ Active Tracks ]
+  Det 1, Det 2, Det 3 ...           Track 1, Track 2 (Kalman Predicted)
+        │                                 │
+        └─────────────────┬───────────────┘
+                          ▼
+            [ Cost Matrix Calculation ]
+            Cost = 0.50*(1 - IoU) + 0.20*(CentroidDist) + 0.30*(EmbeddingDist)
+            * Spatial Gating: Zero IoU & CentroidDist > 1.5x Width -> Cost = 100,000
+                          ▼
+            [ Hungarian Algorithm (O(N^3)) ]
+            Solves optimal minimum-cost assignment
+                          ▼
+          ┌───────────────┴───────────────┐
+          ▼                               ▼
+    [ Matched Pair ]             [ Unmatched Detection ]
+    • Update Kalman Filter       • Spawn new TENTATIVE track
+    • Append to Embedding Gallery• Requires >= 3 hits to become CONFIRMED
+    • Apply Identity Hysteresis  • Avoids phantom track creation
+  </div>
+
+  <h3>Identity Locking & Temporal Hysteresis:</h3>
+  <p>
+    To eliminate visual label flickering, each track maintains candidate matching counters. An identity is only assigned to a student once confirmed across consecutive frames. Once locked, the identity cannot be overridden by another student unless a candidate match exceeds the current match confidence by a significant margin sustained over 15 consecutive frames.
+  </p>
+
+  <h2>4.3 High-Tech Canvas AR Head-Up Display (HUD) Overlays</h2>
+  <p>
+    The classroom video stream is overlaid with a canvas rendering:
+  </p>
+  <ul>
+    <li><b>Target Bracket Reticles:</b> Color-coded bracket corners around each student's face (Emerald for Screen Focus, Blue for Desk Work/Note-Taking, Amber for Cognitive Reflection, Coral for Off-Task).</li>
+    <li><b>Top Identity Pill:</b> Displays student verification status, name, and match confidence percentage (e.g., <code>✔ Ananya Sharma (96%)</code>).</li>
+    <li><b>3D Gaze Direction Rays:</b> 3D directional vector beams projected from both pupils based on true head yaw and pitch Euler angles.</li>
+    <li><b>Bottom Telemetry Pill:</b> Real-time cognitive state label, instantaneous focus score percentage, Eye Aspect Ratio (EAR), and mini progress bar.</li>
+    <li><b>Contextual Alert Badges:</b> Prominent red warning pill (<code>⚠️ DROWSY (PERCLOS ALERT)</code> or <code>⚠️ OFF-TASK SUSTAINED GAZE</code>) triggered only upon sustained distraction (&gt; 3.5 seconds).</li>
+  </ul>
+
+  <h2>4.4 DPDP Act 2023 Multi-Angle Biometric Calibration Wizard</h2>
+  <p>
+    To recognize students without storing invasive image libraries, CogniLearn features an on-device 5-sample biometric calibration flow:
+  </p>
+  <div class="two-col avoid-break">
+    <div class="card">
+      <div class="card-title"><span class="badge badge-purple">Step 1–2</span> Frontal & Horizontal</div>
+      <p style="font-size: 8.5pt; margin: 0;">Sample 1 captures primary frontal face geometry. Sample 2 requests a slight head yaw turn (left or right) to capture lateral facial proportions.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="badge badge-purple">Step 3–5</span> Vertical, Expression & Confirm</div>
+      <p style="font-size: 8.5pt; margin: 0;">Sample 3 requests a vertical pitch tilt; Sample 4 captures natural expression; Sample 5 synthesizes the final mean 512-D vector template.</p>
+    </div>
+  </div>
+  <p>
+    All 5 samples are processed through the Umeyama 5-point alignment algorithm, cropped to 112x112, evaluated by MobileFaceNet into 512-D vectors, averaged into a single centroid vector, L2-normalized, and encrypted into IndexedDB.
+  </p>
+
+  <h2>4.5 Academic Cohorts, Class Codes & Unique Roster Scoping</h2>
+  <p>
+    In <code>TeacherDashboard.tsx</code> and <code>server/routes/cohorts.ts</code>, educators manage academic structures:
+  </p>
+  <ul>
+    <li><b>Dual Academic Tracks:</b> Tailored configurations for <b>School Track (Grades 6–12)</b> and <b>Higher Education / College Track (B.Tech, B.Sc, M.Tech)</b>.</li>
+    <li><b>Unique 6-Character Join Codes:</b> Generated via <code>generateCohortCode</code> with prefixing (<code>SCH-XXXX</code> or <code>COL-XXXX</code>) preventing code collisions.</li>
+    <li><b>Cohort-Scoped Roll Numbers:</b> Student roll numbers are validated with composite unique constraints (<code>UNIQUE(cohort_id, roll_no)</code>), allowing students to hold different roll numbers in different subject sections.</li>
+  </ul>
+
+  <!-- ========================================================================= -->
+  <!-- SECTION 5: INDIVIDUAL TRACKING (STUDENT EXPERIENCE)                       -->
+  <!-- ========================================================================= -->
+  <div class="page-break"></div>
+  <h1><span class="sec-num">5.</span> Deep-Dive: Individual Tracking (Student Experience)</h1>
+
+  <h2>5.1 3-Step Interactive Onboarding & Face Reticle Calibration</h2>
+  <p>
+    When a student registers via <code>StudentAuth.tsx</code>, they progress through a guided onboarding wizard:
+  </p>
+  <div class="avoid-break">
+    <table style="margin-top: 6px;">
+      <thead>
+        <tr>
+          <th>Wizard Step</th>
+          <th>Interactive Component</th>
+          <th>Engineering Implementation & Validation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Step 1: Credentials</b></td>
+          <td>Password Strength Meter</td>
+          <td>Real-time zxcvbn entropy assessment evaluating character variety, length, and common patterns. Color coded: Weak (Red) &lt; Fair (Yellow) &lt; Good (Blue) &lt; Strong (Green).</td>
+        </tr>
+        <tr>
+          <td><b>Step 2: Biometric Profile</b></td>
+          <td>MediaPipe Face Reticle</td>
+          <td>Live camera feed with glowing elliptical target oval. Real-time feedback prompts: <code>CENTER YOUR FACE INSIDE RING</code>, <code>FACE CAMERA DIRECTLY</code>, and <code>LIGHTING OPTIMAL</code>.</td>
+        </tr>
+        <tr>
+          <td><b>Step 3: Academic Track</b></td>
+          <td>Curriculum Profiling</td>
+          <td>Selection of tier (School vs College), grade/department, target competitive exam tracks (CBSE, JEE, NEET, GATE), and sensory learning styles (Visual, Auditory, Kinesthetic).</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>5.2 Single-Face Computer Vision Feed & Gaze Ray Vectors</h2>
+  <p>
+    Within <code>StudentDashboard.tsx</code> and <code>StudentCameraFeed.tsx</code>, the individual student experiences a focused tracking environment:
+  </p>
+  <ul>
+    <li>Dedicated single-face MediaPipe pipeline operating at sub-30ms latency.</li>
+    <li>Delicate landmark mesh lines outlining eyelid contours without obscuring the student's face.</li>
+    <li>Fine dashed 3D gaze vector beams projecting from both pupils with terminal target reticles, providing intuitive visual feedback on where the system perceives gaze direction.</li>
+    <li>Bottom telemetry badge displaying active cognitive state, focus score, and EAR in real time.</li>
+  </ul>
+
+  <h2>5.3 Pomodoro / Deep Work Timer & XP Progression Engine</h2>
+  <p>
+    CogniLearn incorporates a gamified study session engine to incentivize sustained concentration:
+  </p>
+  <ul>
+    <li><b>Session Presets:</b> 15 min (Sprint), 25 min (Standard Pomodoro), 45 min (Deep Study), 60 min (Mastery Block).</li>
+    <li><b>Automated MongoDB / Supabase Persistence:</b> Upon countdown completion, <code>handleSessionCompletion</code> records session minutes, average focus score, and awards <b>+150 XP</b>.</li>
+    <li><b>Level Progression:</b> Cumulative XP calculates player rank, visual level progress bars, and focus streaks (🔥 Days Active).</li>
+  </ul>
+
+  <h2>5.4 Adaptive Focus Breaks: Box Breathing, 20-20-20 & Ergonomics</h2>
+  <p>
+    When a student experiences sustained cognitive fatigue (detected via low focus scores &lt; 50% or elevated PERCLOS eye closure &gt; 35%), the system avoids penalizing them. Instead, it triggers the <b>Adaptive Focus Break Modal</b> (<code>FocusBreakModal.tsx</code>):
+  </p>
+  <div class="two-col avoid-break">
+    <div class="card">
+      <div class="card-title"><span class="badge badge-blue">Technique 1</span> Box Breathing (4-4-4-4)</div>
+      <p style="font-size: 8.5pt; margin: 0;">Guided visual circle expanding and contracting: Inhale 4s, Hold 4s, Exhale 4s, Hold 4s. Regulates autonomic nervous system and lowers mental stress.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="badge badge-green">Technique 2</span> 20-20-20 Ocular Relief</div>
+      <p style="font-size: 8.5pt; margin: 0;">Prompts student to look at an object 20 feet away for 20 seconds. Relaxes ciliary eye muscles, lubricates cornea, and combats digital eye strain.</p>
+    </div>
+  </div>
+  <p>
+    Completing a guided focus break rewards the student with <b>+25 bonus XP</b>, reinforcing healthy study ergonomics.
+  </p>
+
+  <h2>5.5 Subject & Hourly Focus Analytics & Diagnostic Reports</h2>
+  <p>
+    In <code>SubjectAndHourlyAnalytics.tsx</code>, past study sessions are aggregated:
+  </p>
+  <ul>
+    <li><b>Subject Mastery Breakdown:</b> Compares focus score, session counts, and estimated retention rates across Mathematics, Physics, Computer Science, and Humanities.</li>
+    <li><b>Hourly Focus Heatmap:</b> Evaluates focus across Morning (9 AM), Peak Noon (11 AM), Post-Lunch (2 PM), Afternoon Surge (4 PM), and Evening (7 PM), identifying each student's personal peak cognitive window.</li>
+  </ul>
+
+  <!-- ========================================================================= -->
+  <!-- SECTION 6: MATHEMATICAL FORMULATIONS & CORE ALGORITHMS                    -->
+  <!-- ========================================================================= -->
+  <div class="page-break"></div>
+  <h1><span class="sec-num">6.</span> Mathematical Formulations & Core Algorithms</h1>
+
+  <h2>6.1 6-Point Eye Aspect Ratio (EAR) & PERCLOS Drowsiness Metric</h2>
+  <p>
+    Eye openness is quantified using Soukupov&aacute; and Cech's Eye Aspect Ratio (EAR) formulation, generalized across 6 landmarks per eye converted to isotropic pixel space:
+  </p>
+
+  <div class="formula-box avoid-break">
+    <span class="title">Mathematical Formulation: 6-Point Eye Aspect Ratio</span>
+    $$EAR = \frac{\|p_2 - p_6\|_2 + \|p_3 - p_5\|_2}{2 \cdot \|p_1 - p_4\|_2}$$
+    $$\text{Left Eye: } p_1=33, p_2=160, p_3=158, p_4=133, p_5=153, p_6=144$$
+    $$\text{Right Eye: } p_1=263, p_2=385, p_3=386, p_4=362, p_5=373, p_6=374$$
+    $$avgEAR = \frac{EAR_{Left} + EAR_{Right}}{2}$$
+  </div>
+
+  <p>
+    <b>PERCLOS (Percentage of Eye Closure):</b> Drowsiness is not measured from individual blinks (which naturally last 150–300ms). Instead, PERCLOS aggregates the proportion of frames where $avgEAR &lt; \text{Threshold}_{calibrated}$ across a 45-second sliding window buffer:
+  </p>
+  <div class="formula-box avoid-break">
+    <span class="title">PERCLOS Temporal Aggregation Formula</span>
+    $$PERCLOS = \frac{1}{N} \sum_{i=1}^{N} \mathbb{I}(avgEAR_i < \theta_{closed}) \quad \text{where } N \text{ spans } 45 \text{ seconds}$$
+    $$\text{If } PERCLOS > 0.35 \implies \text{Drowsiness Alert Triggered}$$
+  </div>
+
+  <h2>6.2 True Euler Angles (Pitch, Yaw, Roll) via 4x4 Matrix Decomposition</h2>
+  <p>
+    MediaPipe outputs a $4 \times 4$ column-major facial transformation matrix representing metric head rotation in 3D space. CogniLearn decomposes this rotation matrix $R$ into true metric Euler angles in degrees:
+  </p>
+
+  <div class="formula-box avoid-break">
+    <span class="title">Euler Angle Matrix Decomposition</span>
+    $$R = \begin{bmatrix} d_0 & d_4 & d_8 \\ d_1 & d_5 & d_9 \\ d_2 & d_6 & d_{10} \end{bmatrix} = \begin{bmatrix} r_{00} & r_{01} & r_{02} \\ r_{10} & r_{11} & r_{12} \\ r_{20} & r_{21} & r_{22} \end{bmatrix}$$
+    $$\text{Pitch (X-axis)} = \text{atan2}(-r_{12}, \sqrt{r_{02}^2 + r_{22}^2}) \cdot \frac{180}{\pi}$$
+    $$\text{Yaw (Y-axis)} = \text{atan2}(r_{02}, r_{22}) \cdot \frac{180}{\pi}$$
+    $$\text{Roll (Z-axis)} = \text{atan2}(r_{10}, r_{11}) \cdot \frac{180}{\pi}$$
+  </div>
+
+  <h2>6.3 Umeyama 5-Point Similarity Alignment & Laplacian Blur Check</h2>
+  <p>
+    Prior to deep metric feature extraction, detected faces undergo optical gating and canonical alignment:
+  </p>
+  <ul>
+    <li><b>Laplacian Blur Gating:</b> The nasal crop is convolved with a discrete $3 \times 3$ Laplacian kernel. The variance of the response measures edge sharpness:
+      $$\sigma^2 = \frac{1}{M}\sum (\nabla^2 I - \mu)^2 \quad \text{where } \nabla^2 I = I_{x+1,y} + I_{x-1,y} + I_{x,y+1} + I_{x,y-1} - 4I_{x,y}$$
+      If $\sigma^2 &lt; 32$, the crop is rejected for motion blur before model execution.
+    </li>
+    <li><b>Umeyama Similarity Transform:</b> Solves the least-squares orthogonal Procrustes problem to compute scale $s$, rotation $R$, and translation $\mathbf{t}$ mapping detected 5 landmarks (pupils, nose tip, mouth corners) to ArcFace $112 \times 112$ canonical reference coordinates.</li>
+  </ul>
+
+  <h2>6.4 MobileFaceNet 512-D Deep Metric Embedding & Cosine Similarity</h2>
+  <p>
+    Aligned $112 \times 112$ crops are normalized to $[-1, 1]$ floating-point tensors and evaluated by MobileFaceNet in ONNX Runtime Web. The resulting 512-dimensional output vector $\mathbf{v}$ is L2-normalized:
+  </p>
+  <div class="formula-box avoid-break">
+    <span class="title">Deep Metric Biometric Similarity</span>
+    $$\hat{\mathbf{v}} = \frac{\mathbf{v}}{\|\mathbf{v}\|_2} = \frac{\mathbf{v}}{\sqrt{\sum_{i=1}^{512} v_i^2}}$$
+    $$\text{Cosine Similarity: } \text{Sim}(\hat{\mathbf{u}}, \hat{\mathbf{v}}) = \hat{\mathbf{u}} \cdot \hat{\mathbf{v}} = \sum_{i=1}^{512} u_i v_i$$
+    $$\text{Scaled Match Confidence: } \text{Confidence} = \max\left(0, \min\left(99, \left\lfloor \frac{\text{Sim} - 0.15}{0.65} \cdot 100 \right\rfloor\right)\right)$$
+  </div>
+
+  <h2>6.5 8-State Constant-Velocity Kalman Filter Formulation</h2>
+  <p>
+    Multi-target bounding boxes are tracked via an 8-state discrete Kalman filter implemented in <code>BoundingBoxKalmanFilter</code>:
+  </p>
+  <ul>
+    <li><b>State Vector:</b> $\mathbf{x} = [c_x, c_y, w, h, v_{cx}, v_{cy}, v_w, v_h]^T$, where $(c_x, c_y)$ is box center, $(w, h)$ are dimensions, and $v$ are velocities.</li>
+    <li><b>State Transition:</b> $\mathbf{F}$ advances center and size linearly: $c_{x, k} = c_{x, k-1} + v_{cx} \cdot \Delta t$ with $\Delta t = 1.0$ frame.</li>
+    <li><b>Innovation & Update:</b> Measurement $\mathbf{z} = [c_x, c_y, w, h]^T$. Innovation residual $\mathbf{y} = \mathbf{z} - \mathbf{H}\mathbf{x}$ corrects the state estimate through Kalman gain $\mathbf{K} = \mathbf{P} \mathbf{H}^T \mathbf{S}^{-1}$.</li>
+  </ul>
+
+  <h2>6.6 Hungarian Algorithm (Kuhn-Munkres O(N³) Bipartite Matching)</h2>
+  <p>
+    The cost matrix $C$ associating $M$ detections with $N$ active tracks integrates spatial overlap, distance, and deep metric embedding similarity:
+  </p>
+  <div class="formula-box avoid-break">
+    <span class="title">DeepSORT-lite Association Cost Function</span>
+    $$C_{d, t} = 0.50 \cdot (1 - \text{IoU}(B_d, B_t)) + 0.20 \cdot \min\left(1.5, \frac{\|\mathbf{c}_d - \mathbf{c}_t\|_2}{w_t}\right) + 0.30 \cdot (1 - \text{Sim}_{cos}(\mathbf{e}_d, \mathbf{e}_t))$$
+    $$\text{Spatial Gate: If } \text{IoU} = 0 \text{ and } \frac{\|\mathbf{c}_d - \mathbf{c}_t\|_2}{w_t} > 1.5 \implies C_{d, t} = 100,000 \text{ (Match Forbidded)}$$
+  </div>
+  <p>
+    The Hungarian algorithm solves minimum weight bipartite matching in $O(\max(M, N)^3)$ time using dual potential variables $(u_i, v_j)$, providing deterministic global optimum matching.
+  </p>
+
+  <h2>6.7 Cognitive Ergonomics Softmax Multi-Class Decision Tree</h2>
+  <p>
+    In <code>cognitiveModel.ts</code>, biometric features are evaluated across a multi-class probability tree:
+  </p>
+  <ul>
+    <li>Normalized probabilities: $P_{Screen}, P_{NoteTaking}, P_{Reflection}, P_{Distraction}$ computed from pitch angle, yaw, iris deviation, pitch variance, and temporal dwell seconds.</li>
+    <li>Softmax normalization ensures $\sum P_i = 1.0$. The winning state dictates the instantaneous target score.</li>
+    <li><b>Exponential Moving Average (EMA):</b> Eliminates abrupt visual jumps between frames:
+      $$\text{Score}_{EMA}(t) = \alpha \cdot \text{TargetScore}(t) + (1 - \alpha) \cdot \text{Score}_{EMA}(t-1) \quad (\alpha = 0.12)$$
+    </li>
+  </ul>
+
+  <!-- ========================================================================= -->
+  <!-- SECTION 7: DATABASE SCHEMA & DATA PERSISTENCE SPECIFICATIONS              -->
+  <!-- ========================================================================= -->
+  <div class="page-break"></div>
+  <h1><span class="sec-num">7.</span> Database Schema & Data Persistence Specifications</h1>
+
+  <h2>7.1 Supabase PostgreSQL Relational Schema & Indexes</h2>
+  <p>
+    The central cloud database operates on PostgreSQL with Row Level Security (RLS) and foreign key integrity:
+  </p>
+
+  <table class="avoid-break">
+    <thead>
+      <tr>
+        <th>Table Name</th>
+        <th>Primary Key / Foreign Keys</th>
+        <th>Core Attributes & Types</th>
+        <th>Indexes & Constraints</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>public.users</code></td>
+        <td><code>id UUID PK</code></td>
+        <td><code>email</code>, <code>password_hash</code>, <code>full_name</code>, <code>role</code> ('student'|'teacher'|'admin'), <code>tier</code> ('school'|'college'), <code>avatar</code>, <code>xp</code>, <code>total_hours</code>, <code>academic_profile JSONB</code></td>
+        <td><code>UNIQUE(email)</code>, <code>idx_users_email</code>, <code>idx_users_role</code></td>
+      </tr>
+      <tr>
+        <td><code>public.cohorts</code></td>
+        <td><code>id UUID PK</code>, <code>teacher_id FK</code></td>
+        <td><code>code TEXT</code> (e.g. 'SCH-8X2A'), <code>tier</code>, <code>name</code>, <code>standard</code>, <code>department</code>, <code>section</code>, <code>subject</code>, <code>room</code></td>
+        <td><code>UNIQUE(code)</code>, <code>idx_cohorts_code</code>, <code>idx_cohorts_teacher_id</code></td>
+      </tr>
+      <tr>
+        <td><code>public.enrollments</code></td>
+        <td><code>id UUID PK</code>, <code>cohort_id FK</code>, <code>student_id FK</code></td>
+        <td><code>roll_no TEXT</code>, <code>enrolled_subjects TEXT[]</code>, <code>status TEXT</code> ('active'|'inactive'|'transferred')</td>
+        <td><code>UNIQUE(cohort_id, student_id)</code>, <code>UNIQUE(cohort_id, roll_no)</code></td>
+      </tr>
+      <tr>
+        <td><code>public.study_sessions</code></td>
+        <td><code>id UUID PK</code>, <code>student_id FK</code></td>
+        <td><code>duration_minutes INT</code>, <code>xp_earned INT</code>, <code>avg_focus_score NUMERIC(5,2)</code>, <code>session_type</code>, <code>telemetry JSONB</code></td>
+        <td><code>idx_study_sessions_student_id</code>, <code>idx_study_sessions_created_at</code></td>
+      </tr>
+      <tr>
+        <td><code>public.baseline_scores</code></td>
+        <td><code>id UUID PK</code>, <code>student_id FK</code></td>
+        <td><code>subject TEXT</code>, <code>cognitive_score NUMERIC(5,2)</code>, <code>focus_index NUMERIC(5,2)</code>, <code>retention_rate NUMERIC(5,2)</code>, <code>notes TEXT</code></td>
+        <td><code>idx_baseline_scores_student_id</code></td>
+      </tr>
+      <tr>
+        <td><code>public.focus_breaks</code></td>
+        <td><code>id UUID PK</code>, <code>student_id FK</code></td>
+        <td><code>break_type TEXT</code> ('box-breathing'|'20-20-20-eyes'|'neck-stretch'), <code>duration_seconds INT</code>, <code>trigger_focus_score NUMERIC(5,2)</code>, <code>completed BOOL</code></td>
+        <td><code>idx_focus_breaks_student_id</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>7.2 Client-Side WebCrypto Encrypted IndexedDB Store</h2>
+  <p>
+    In compliance with the <b>Digital Personal Data Protection (DPDP) Act 2023</b>, student biometric embeddings are never transmitted to cloud servers. The client browser maintains a local encrypted IndexedDB database:
+  </p>
+  <ul>
+    <li><b>Database Name:</b> <code>cognilearn_biometrics_db</code> (Object store: <code>student_embeddings</code> and <code>crypto_keys</code>).</li>
+    <li><b>Hardware-Bound Encryption:</b> Managed via WebCrypto API (<code>window.crypto.subtle</code>) utilizing <b>AES-GCM with 256-bit keys</b>.</li>
+    <li><b>Payload Structure:</b> Encrypted ciphertext array and random initialization vector (IV). Decryption produces only floating-point vectors:
+      <code>{ studentId, meanEmbedding: float[512], exemplars: float[3][512], consentGiven: true }</code>.
+    </li>
+    <li><b>Zero Image Storage Guarantee:</b> Raw webcam photos, video frames, or landmark images are never written to disk or storage.</li>
+  </ul>
+
+  <!-- ========================================================================= -->
+  <!-- SECTION 8: SECURITY, PRIVACY & ETHICAL COMPLIANCE STANDARDS               -->
+  <!-- ========================================================================= -->
+  <div class="page-break"></div>
+  <h1><span class="sec-num">8.</span> Security, Privacy & Ethical Compliance Standards</h1>
+
+  <h2>8.1 Digital Personal Data Protection (DPDP) Act 2023 Adherence</h2>
+  <p>
+    Educational software handling biometric and behavioral telemetry must satisfy strict regulatory compliance. CogniLearn adheres to the Indian Digital Personal Data Protection (DPDP) Act 2023 through four technical pillars:
+  </p>
+  <div class="two-col avoid-break">
+    <div class="card">
+      <div class="card-title"><span class="badge badge-green">Pillar 1</span> Explicit Informed Consent</div>
+      <p style="font-size: 8.5pt; margin: 0;">Biometric enrollment requires an explicit user consent checkbox. Consent status is cryptographically logged alongside the embedding record.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="badge badge-green">Pillar 2</span> Purpose Limitation</div>
+      <p style="font-size: 8.5pt; margin: 0;">Perceptual telemetry is exclusively utilized to render live focus metrics and pedagogical reports. Data is never repurposed for advertising or commercial profiling.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="badge badge-green">Pillar 3</span> Right to Erasure ("Danger Zone")</div>
+      <p style="font-size: 8.5pt; margin: 0;">Students retain complete self-service data erasure in <code>AccountSettingsModal.tsx</code>. Users type <code>DELETE MY ACCOUNT</code> to immediately purge all database records and IndexedDB keys.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="badge badge-green">Pillar 4</span> On-Device Data Localization</div>
+      <p style="font-size: 8.5pt; margin: 0;">Biometric templates never leave the user's local device. Only anonymized, aggregated statistical numbers (e.g., avg focus 82%) reach the backend server.</p>
+    </div>
+  </div>
+
+  <h2>8.2 LLM PII Pseudonymization & Langfuse Observability</h2>
+  <p>
+    When generating AI pedagogical reports in <code>server/routes/report.ts</code>:
+  </p>
+  <ul>
+    <li><b>PII Anonymization:</b> All real student names, emails, and roll numbers are stripped and replaced with deterministic cryptographic hashes:
+      <code>crypto.createHash('sha256').update(studentId).digest('hex').substring(0, 10)</code>.
+    </li>
+    <li><b>Deterministic Metric Truth:</b> Average focus scores, duration minutes, drop-off times, and gaze shift counts are computed deterministically in TypeScript. The Gemini LLM is prohibited from computing or altering any numbers.</li>
+    <li><b>Zod Schema Enforcement:</b> LLM outputs are validated against <code>StudentNarrativeSchema</code> and <code>ClassroomNarrativeSchema</code>. Any response deviating from required educational fields is rejected.</li>
+  </ul>
+
+  <!-- ========================================================================= -->
+  <!-- SECTION 9: PROJECT GUIDE DEFENSE: TOP 10 TECHNICAL Q&A                    -->
+  <!-- ========================================================================= -->
+  <div class="page-break"></div>
+  <h1><span class="sec-num">9.</span> Project Guide Defense: Top 10 Technical Questions & Answers</h1>
+
+  <p>
+    This section prepares the student for project defense examinations, viva voce evaluations, and technical guide reviews with authoritative answers to the ten most challenging architectural questions:
+  </p>
+
+  <div class="qa-card avoid-break">
+    <div class="qa-q"><span class="qa-q-badge">Q 01</span> Why process computer vision in the browser rather than streaming video to a Python backend?</div>
+    <div class="qa-a">
+      <b>Answer:</b> Processing computer vision client-side via MediaPipe WebGL and ONNX WebAssembly achieves three decisive advantages:
+      <b>1) Latency:</b> Frame processing occurs in under 33ms (real-time 30 fps) without network latency.
+      <b>2) Bandwidth & Server Costs:</b> Streaming high-definition video from 40 classroom students would require &gt; 100 Mbps uplink and expensive server GPU clusters. Browser-native inference eliminates server video handling entirely.
+      <b>3) Privacy by Design:</b> Video frames never leave the user's device, ensuring zero video interception risks and compliance with DPDP Act 2023.
+    </div>
+  </div>
+
+  <div class="qa-card avoid-break">
+    <div class="qa-q"><span class="qa-q-badge">Q 02</span> How does the algorithm differentiate between a student writing notes on their desk vs playing on a smartphone?</div>
+    <div class="qa-a">
+      <b>Answer:</b> The system employs a multi-feature ergonomic heuristic:
+      <b>1) Pitch Angle:</b> Note-taking typically exhibits downward pitch between $15^\circ$ and $35^\circ$ ($0.33 \le \text{effPitch} \le 0.54$), whereas looking at a smartphone concealed in one's lap produces steep downward drops ($&gt; 45^\circ$, $\text{effPitch} &gt; 0.56$).
+      <b>2) Pitch Variance:</b> Writing produces a stable, steady head posture with low pitch variance ($\sigma^2 &lt; 0.005$). In contrast, phone browsing exhibits frequent upward glances (checking if the teacher is watching) causing high pitch variance.
+      <b>3) Body Centering:</b> Note-taking maintains centered lateral yaw ($\le 11^\circ$). Phone distraction often introduces off-axis head turns.
+    </div>
+  </div>
+
+  <div class="qa-card avoid-break">
+    <div class="qa-q"><span class="qa-q-badge">Q 03</span> How does the multi-student tracking prevent identity switches when students move or cross paths?</div>
+    <div class="qa-a">
+      <b>Answer:</b> CogniLearn utilizes a complete DeepSORT-lite architecture in <code>faceMatcher.ts</code>:
+      <b>1) Kalman Filter Prediction:</b> Maintains an 8-state constant velocity motion model predicting where each student's bounding box will be in the next frame.
+      <b>2) Composite Cost Matrix:</b> Combines spatial overlap ($1 - \text{IoU}$), normalized centroid distance, and deep metric embedding similarity.
+      <b>3) Hungarian Association:</b> Solves global optimal matching via Kuhn-Munkres $O(N^3)$ bipartite assignment with spatial gating ($&gt; 1.5\times$ face width forbids matching).
+      <b>4) Identity Hysteresis:</b> Track identities require continuous multi-frame confirmation to lock, preventing instantaneous ID flickering during occlusions.
+    </div>
+  </div>
+
+  <div class="qa-card avoid-break">
+    <div class="qa-q"><span class="qa-q-badge">Q 04</span> How do you prevent natural eyelid blinks from penalizing a student's focus score?</div>
+    <div class="qa-a">
+      <b>Answer:</b> Natural human blinks last between 150ms and 300ms (spanning only 4–9 frames at 30 fps). CogniLearn prevents score drops via:
+      <b>1) Temporal 45-Second Sliding Buffer:</b> Instead of instantaneous thresholding, eye closure is evaluated via PERCLOS (percentage of closure aggregated over 45 seconds). A standard 200ms blink represents $&lt; 0.7\%$ of this window, which is negligible.
+      <b>2) Dynamic EAR Calibration:</b> During the initial 25 seconds of a session, open-eye EAR values are sampled to calibrate individual eyelid baselines.
+      <b>3) EMA Smoothing:</b> The score updates via Exponential Moving Average with $\alpha = 0.12$, preventing single-frame drops from affecting metrics.
+    </div>
+  </div>
+
+  <div class="qa-card avoid-break">
+    <div class="qa-q"><span class="qa-q-badge">Q 05</span> What is the advantage of MobileFaceNet 512-D embeddings over simple geometric ratios?</div>
+    <div class="qa-a">
+      <b>Answer:</b> While geometric landmark ratios provide a lightweight initial baseline, they are sensitive to facial expressions and illumination changes. MobileFaceNet is a convolutional deep metric neural network trained on millions of face pairs to map facial features into a 512-dimensional hypersphere where intra-person distance is minimized and inter-person distance is maximized. This provides robust invariance against lighting variations, smiles, and head tilts up to $\pm 30^\circ$.
+    </div>
+  </div>
+
+  <div class="qa-card avoid-break">
+    <div class="qa-q"><span class="qa-q-badge">Q 06</span> How does the teacher dashboard stream telemetry from multiple classrooms without server bottlenecks?</div>
+    <div class="qa-a">
+      <b>Answer:</b> Rather than transmitting continuous video feeds or raw biometric matrices, the system transmits only lightweight <b>1 Hz throttled telemetry JSON packets</b>:
+      <code>{ studentId, state: "NOTE_TAKING", focusScore: 88, timestamp: 1728345600 }</code> (approximately 90 bytes).
+      These packets are broadcast via Supabase Realtime websocket channels. Even an entire school with 500 active students generates less than 50 KB/sec of aggregate websocket traffic, effortlessly handled on free-tier cloud infrastructure.
+    </div>
+  </div>
+
+  <div class="qa-card avoid-break">
+    <div class="qa-q"><span class="qa-q-badge">Q 07</span> How does the system handle students with different eye shapes and eyelid baselines?</div>
+    <div class="qa-a">
+      <b>Answer:</b> Hardcoded EAR thresholds fail across diverse ethnicities. In <code>cognitiveModel.ts</code>, during the first 25 seconds of a session, CogniLearn samples all frames where the student faces forward ($\text{Yaw} &lt; 22^\circ$) with open eyes. It computes the 10th percentile ($P_{10}$) of open EAR samples and sets:
+      $$\theta_{closed} = \max(0.12, \min(0.22, P_{10} \times 0.85))$$
+      This dynamically calibrates an individualized threshold tailored to the student's unique ocular anatomy.
+    </div>
+  </div>
+
+  <div class="qa-card avoid-break">
+    <div class="qa-q"><span class="qa-q-badge">Q 08</span> Can the Google Gemini AI hallucinate student attention scores in diagnostic reports?</div>
+    <div class="qa-a">
+      <b>Answer:</b> No. In <code>server/routes/report.ts</code>, all quantitative statistics (average focus score, peak focus, drop-off minute, gaze shift count) are calculated <b>deterministically in TypeScript</b> before the LLM is invoked. The system prompt strictly prohibits the model from computing or altering any numbers. Furthermore, the LLM output is validated at runtime using <b>Zod schemas</b> that reject any responses containing unauthorized quantitative fields.
+    </div>
+  </div>
+
+  <div class="qa-card avoid-break">
+    <div class="qa-q"><span class="qa-q-badge">Q 09</span> How is student data protected under the Digital Personal Data Protection (DPDP) Act 2023?</div>
+    <div class="qa-a">
+      <b>Answer:</b> CogniLearn implements privacy by design:
+      <b>1) Local Encryption:</b> 512-D biometric vectors are encrypted using WebCrypto AES-GCM 256-bit keys and stored solely in local IndexedDB.
+      <b>2) Zero Raw Photo Storage:</b> Webcam photos and frames are never saved to disk.
+      <b>3) PII Stripping:</b> Student identifiers sent to the LLM are pseudonymized via SHA-256 hashes.
+      <b>4) Self-Service Erasure:</b> Students can permanently purge all account records and local keys via an interactive confirmation modal.
+    </div>
+  </div>
+
+  <div class="qa-card avoid-break">
+    <div class="qa-q"><span class="qa-q-badge">Q 10</span> How does CogniLearn support both secondary schools and universities?</div>
+    <div class="qa-a">
+      <b>Answer:</b> In <code>supabase/migrations/20261001_academic_cohorts.sql</code> and <code>src/config/academicCatalogs.ts</code>, the data model supports hierarchical tier scoping:
+      <b>School Track:</b> Configured with standards (Class 6–12), sections (A, B, C), boards (CBSE, ICSE, State), and foundational subjects (Physics, Mathematics, Social Science).
+      <b>College Track:</b> Configured with degree programs (B.Tech, B.Sc, M.Tech), academic departments (Computer Science & Engineering, Electronics, Mechanical), semesters (1–8), and university subject catalogs.
+      Cohorts are identified via unique 6-character alphanumeric codes (`SCH-XXXX` or `COL-XXXX`) allowing flexible institutional deployment.
+    </div>
+  </div>
+
+</body>
+</html>

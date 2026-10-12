@@ -56,7 +56,7 @@ export function mapUserFromDB(row: any): any {
     email: row.email,
     fullName: row.full_name,
     role: row.role,
-    teacherType: row.teacher_type,
+    teacherType: row.teacher_profile?.role || row.teacher_profile?.designation || row.teacher_type,
     avatar: row.avatar,
     xp: Number(row.xp || 0),
     totalHours: Number(row.total_hours || 0),

@@ -682,47 +682,43 @@ export class SpatialMultiFaceTracker {
         scoreMatrix.push({ track, candidates: candidateList });
       });
 
-      // Apply Hysteresis Rules:
-      // ACQUISITION: similarity >= 64, margin over 2nd best >= 6, sustained 3+ frames
-      // RELEASE: score < 48 for > 2.0 seconds
-      // SWITCH: challenger beats incumbent by >= 10 for >= 12 frames
+      // Apply Hysteresis & Multi-Candidate Assignment Rules:
       scoreMatrix.forEach(({ track, candidates }) => {
         if (candidates.length === 0) return;
 
-        const best = candidates[0];
-        const secondBestSim = candidates.length > 1 ? candidates[1].similarity : 0;
-        const margin = best.similarity - secondBestSim;
-
         if (track.lockedStudentId !== null) {
           // Track is currently locked to a student
-          const isCurrentStudentBest = String(best.student.id) === String(track.lockedStudentId);
           const currentStudentMatch = candidates.find((c) => String(c.student.id) === String(track.lockedStudentId));
           const currentScore = currentStudentMatch ? currentStudentMatch.similarity : 0;
 
-          if (currentScore >= 52) {
+          if (currentScore >= 45) {
             track.lastHighConfidenceTime = now;
-            track.confidence = Math.round(track.confidence * 0.75 + currentScore * 0.25);
+            track.confidence = Math.round(track.confidence * 0.70 + currentScore * 0.30);
             assignedStudentIdsInFrame.add(track.lockedStudentId);
           } else {
-            // Check for Challenger preemption
-            if (!isCurrentStudentBest && best.similarity - currentScore >= 10 && !assignedStudentIdsInFrame.has(best.student.id)) {
-              if (track.candidateStudentId === best.student.id) {
+            // Check for Challenger preemption among unassigned students
+            const bestChallenger = candidates.find(
+              (c) => String(c.student.id) !== String(track.lockedStudentId) && !assignedStudentIdsInFrame.has(c.student.id)
+            );
+
+            if (bestChallenger && bestChallenger.similarity - currentScore >= 12) {
+              if (track.candidateStudentId === bestChallenger.student.id) {
                 track.candidateMatchCount += 1;
               } else {
-                track.candidateStudentId = best.student.id;
+                track.candidateStudentId = bestChallenger.student.id;
                 track.candidateMatchCount = 1;
               }
 
-              // Switch identity only after 12 frames of sustained challenger superiority
-              if (track.candidateMatchCount >= 12) {
-                migrateClassroomModel(track.trackId, best.student.id);
-                track.lockedStudentId = best.student.id;
-                track.lockedStudent = best.student;
-                track.confidence = best.similarity;
+              // Switch identity after 8 frames of sustained challenger superiority
+              if (track.candidateMatchCount >= 8) {
+                migrateClassroomModel(track.trackId, bestChallenger.student.id);
+                track.lockedStudentId = bestChallenger.student.id;
+                track.lockedStudent = bestChallenger.student;
+                track.confidence = bestChallenger.similarity;
                 track.candidateStudentId = null;
                 track.candidateMatchCount = 0;
                 track.lastHighConfidenceTime = now;
-                assignedStudentIdsInFrame.add(best.student.id);
+                assignedStudentIdsInFrame.add(bestChallenger.student.id);
               }
             } else if (now - track.lastHighConfidenceTime > 2000) {
               // Release identity after 2 seconds below threshold
@@ -733,25 +729,28 @@ export class SpatialMultiFaceTracker {
             }
           }
         } else {
-          // Unassigned track seeking identity acquisition
-          if (best.similarity >= 62 && margin >= 5 && !assignedStudentIdsInFrame.has(best.student.id)) {
-            if (track.candidateStudentId === best.student.id) {
+          // Unassigned track seeking identity acquisition:
+          // Find the best available candidate NOT already claimed by another face in this frame
+          const availableTarget = candidates.find((c) => !assignedStudentIdsInFrame.has(c.student.id));
+
+          if (availableTarget && availableTarget.similarity >= 50) {
+            if (track.candidateStudentId === availableTarget.student.id) {
               track.candidateMatchCount += 1;
             } else {
-              track.candidateStudentId = best.student.id;
+              track.candidateStudentId = availableTarget.student.id;
               track.candidateMatchCount = 1;
             }
 
-            // Acquire identity after 3 consecutive frames of superiority
-            if (track.candidateMatchCount >= 3) {
-              migrateClassroomModel(track.trackId, best.student.id);
-              track.lockedStudentId = best.student.id;
-              track.lockedStudent = best.student;
-              track.confidence = best.similarity;
+            // Acquire identity after 2 consecutive frames or immediately if high confidence >= 68%
+            if (track.candidateMatchCount >= 2 || availableTarget.similarity >= 68) {
+              migrateClassroomModel(track.trackId, availableTarget.student.id);
+              track.lockedStudentId = availableTarget.student.id;
+              track.lockedStudent = availableTarget.student;
+              track.confidence = availableTarget.similarity;
               track.candidateStudentId = null;
               track.candidateMatchCount = 0;
               track.lastHighConfidenceTime = now;
-              assignedStudentIdsInFrame.add(best.student.id);
+              assignedStudentIdsInFrame.add(availableTarget.student.id);
             }
           }
         }
@@ -760,18 +759,26 @@ export class SpatialMultiFaceTracker {
 
     // 7. Render output results mapped to detections
     currentDetections.forEach((det) => {
-      // Find matching track
+      // Find matching track with robust IoU threshold
       let matchedTrack: TrackedFaceSession | undefined;
       for (const track of this.tracks.values()) {
         const iou = computeIoU(det.box, track.bbox);
-        if (iou > 0.35) {
+        if (iou > 0.20) {
           matchedTrack = track;
           break;
         }
       }
 
-      if (!matchedTrack) {
-        matchedTrack = Array.from(this.tracks.values())[0];
+      // Spatial centroid fallback if IoU is degraded by rapid motion or distance
+      if (!matchedTrack && this.tracks.size > 0) {
+        let minCentroidDist = Infinity;
+        for (const track of this.tracks.values()) {
+          const d = Math.hypot(det.cx - track.bbox.cx, det.cy - track.bbox.cy);
+          if (d < minCentroidDist) {
+            minCentroidDist = d;
+            matchedTrack = track;
+          }
+        }
       }
 
       const trackKey = matchedTrack
@@ -806,7 +813,7 @@ export class SpatialMultiFaceTracker {
       }
       analysis.focusScore = smoothedScore;
 
-      const isRecognized = matchedTrack && matchedTrack.lockedStudent !== null && matchedTrack.confidence >= 55;
+      const isRecognized = matchedTrack && matchedTrack.lockedStudent !== null && matchedTrack.confidence >= 50;
       const finalBbox = matchedTrack ? matchedTrack.bbox : { bx1: det.box.bx1, by1: det.box.by1, bw: det.box.bw, bh: det.box.bh };
 
       results.push({

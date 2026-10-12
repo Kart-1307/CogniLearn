@@ -3,6 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 import { Langfuse } from 'langfuse';
 import { z } from 'zod';
 import crypto from 'crypto';
+import { authenticateToken } from '../authMiddleware';
 
 const router = Router();
 
@@ -78,7 +79,7 @@ function computeDeterministicSessionStats(telemetry: any) {
   };
 }
 
-router.post('/generate-ai', async (req, res) => {
+router.post('/generate-ai', authenticateToken, async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return res.status(530).json({ 

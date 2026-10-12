@@ -118,9 +118,18 @@ router.delete('/account', authenticateToken, async (req: Request, res: Response)
   }
 });
 
-// POST /api/user/reset-database - Global database reset
-router.post('/reset-database', async (req: Request, res: Response): Promise<void> => {
+// POST /api/user/reset-database - Protected database reset (admin/dev only)
+router.post('/reset-database', authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
+    const isProd = process.env.NODE_ENV === 'production';
+    const reqAdminKey = req.headers['x-admin-reset-key'] || req.body?.adminSecret;
+    const envAdminKey = process.env.ADMIN_RESET_KEY || 'cognilearn_admin_reset_dev_pass_2026';
+
+    if (isProd && reqAdminKey !== envAdminKey) {
+      res.status(403).json({ message: 'Forbidden: Database reset is restricted in production.' });
+      return;
+    }
+
     const supabase = getSupabase();
 
     if (supabase) {

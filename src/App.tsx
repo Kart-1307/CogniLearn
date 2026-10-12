@@ -224,7 +224,7 @@ export default function App() {
         user={user}
         onLogout={handleLogout}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenResetModal={() => setIsResetModalOpen(true)}
+        onOpenResetModal={user?.role === 'teacher' ? () => setIsResetModalOpen(true) : undefined}
       />
       <main className="relative">
         <ErrorBoundary>
@@ -245,7 +245,7 @@ export default function App() {
         </Suspense>
       )}
 
-      {isResetModalOpen && (
+      {user?.role === 'teacher' && isResetModalOpen && (
         <Suspense fallback={null}>
           <ResetDatabaseModal
             isOpen={isResetModalOpen}
