@@ -304,6 +304,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [timerDuration, setTimerDuration] = useState(25); // in minutes
   const [timeLeft, setTimeLeft] = useState(25 * 60); // in seconds
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [timerCelebration, setTimerCelebration] = useState<{ message: string; xp: number } | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -334,9 +335,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           if (prev <= 1) {
             clearInterval(timerRef.current!);
             setIsTimerRunning(false);
-            // Complete session & save to MongoDB
+            // Complete session & persist to backend database
             handleSessionCompletion(timerDuration);
-            alert(`Amazing job! You completed your ${timerDuration}-minute focus slot! +150 XP claimed and saved to database!`);
+            setTimerCelebration({
+              message: `Amazing job! You completed your ${timerDuration}-minute focus slot!`,
+              xp: 150,
+            });
             return timerDuration * 60;
           }
           return prev - 1;
@@ -1123,6 +1127,23 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
             {/* Interactive study block timer component */}
             <div className="mt-6 bg-slate-950/80 border border-slate-800 p-5 rounded-2xl space-y-4">
+              {timerCelebration && (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between text-xs text-emerald-300">
+                  <div className="flex items-center space-x-2">
+                    <Sparkles className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-white">{timerCelebration.message}</p>
+                      <p className="text-[10px] font-mono text-emerald-400">+{timerCelebration.xp} XP Claimed • Saved to Cloud Profile</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setTimerCelebration(null)}
+                    className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-semibold font-mono uppercase tracking-widest text-slate-400">Timer Setting</span>
                 <div className="flex flex-wrap gap-1.5">

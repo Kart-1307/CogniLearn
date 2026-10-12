@@ -453,9 +453,27 @@ router.get('/my', authenticateToken, async (req: Request, res: Response): Promis
 router.get('/:id/students', authenticateToken, requireRole(['teacher']), async (req: Request, res: Response): Promise<void> => {
   try {
     const cohortId = req.params.id;
+    const teacherId = req.userId;
     const supabase = getSupabase();
 
     if (supabase) {
+      // IDOR Protection: Verify teacher owns this cohort
+      const { data: cohort, error: cohortError } = await supabase
+        .from('cohorts')
+        .select('id, teacher_id')
+        .eq('id', cohortId)
+        .single();
+
+      if (cohortError || !cohort) {
+        res.status(404).json({ message: 'Cohort not found' });
+        return;
+      }
+
+      if (cohort.teacher_id !== teacherId) {
+        res.status(403).json({ message: 'Forbidden: You are not authorized to view students for this cohort' });
+        return;
+      }
+
       const { data: enrollments, error } = await supabase
         .from('enrollments')
         .select(`
@@ -489,6 +507,16 @@ router.get('/:id/students', authenticateToken, requireRole(['teacher']), async (
     }
 
     // Memory Store Fallback
+    const cohort = memoryStore.cohorts.findById(cohortId);
+    if (!cohort) {
+      res.status(404).json({ message: 'Cohort not found' });
+      return;
+    }
+    if (cohort.teacherId !== teacherId) {
+      res.status(403).json({ message: 'Forbidden: You are not authorized to view students for this cohort' });
+      return;
+    }
+
     const enrollments = memoryStore.enrollments.findByCohortId(cohortId);
     const students = enrollments.map((e) => {
       const user = memoryStore.users.findById(e.studentId);

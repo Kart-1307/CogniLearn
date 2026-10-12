@@ -247,7 +247,7 @@ export const api = {
     resetDatabase: async () => {
       const response = await fetch(`${API_BASE}/user/reset-database`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
       });
       const data = await safeParseJson(response);
       if (!response.ok) throw new Error(data.message || 'Failed to reset database');
