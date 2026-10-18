@@ -29,6 +29,13 @@ export interface CognitiveFeatures {
   stateDwellSeconds: number; // Continuous seconds in current head orientation
 }
 
+export interface BiometricVitalsInput {
+  heartRate?: number;
+  hrvRmssd?: number;
+  sleepHoursPrior?: number;
+  spo2?: number;
+}
+
 export interface CognitiveInferenceResult {
   state: CognitiveState;
   stateLabel: string;
@@ -44,6 +51,14 @@ export interface CognitiveInferenceResult {
   perclos: number;
   recommendedColor: string;
   statusMessage: string;
+  // Multimodal telemetry output
+  biometricState?: {
+    heartRate?: number;
+    hrvRmssd?: number;
+    stressLevel: 'Calm Flow' | 'Optimal Engagement' | 'Elevated Stress' | 'High Strain';
+    sleepPriorHours?: number;
+    fusedScore: number;
+  };
 }
 
 interface FrameRecord {
@@ -70,6 +85,23 @@ export class CognitiveAttentionModel {
   private stateStartTime = Date.now();
   private lastFrameTime = Date.now();
 
+  // Biometric vitals cache
+  private currentVitals: BiometricVitalsInput = {};
+
+  /**
+   * Set current wearable vitals for this model session
+   */
+  public setVitals(vitals: BiometricVitalsInput) {
+    this.currentVitals = { ...this.currentVitals, ...vitals };
+  }
+
+  /**
+   * Get currently cached wearable vitals
+   */
+  public getVitals(): BiometricVitalsInput {
+    return { ...this.currentVitals };
+  }
+
   /**
    * Reset temporal history (e.g. when session restarts)
    */
@@ -82,6 +114,7 @@ export class CognitiveAttentionModel {
     this.currentState = 'SCREEN_ENGAGEMENT';
     this.stateStartTime = Date.now();
     this.lastFrameTime = Date.now();
+    this.currentVitals = {};
   }
 
   /**
@@ -95,10 +128,14 @@ export class CognitiveAttentionModel {
     irisOffsetX: number,
     irisOffsetY: number,
     blendshapes?: Record<string, number>,
-    context?: { isQuizActive?: boolean; hasRecentInteraction?: boolean }
+    context?: { isQuizActive?: boolean; hasRecentInteraction?: boolean; biometrics?: BiometricVitalsInput }
   ): CognitiveInferenceResult {
     const now = Date.now();
     this.lastFrameTime = now;
+
+    if (context?.biometrics) {
+      this.setVitals(context.biometrics);
+    }
 
     // 1. Determine eye closure via blendshapes or calibrated EAR threshold
     let isClosed = false;
@@ -248,6 +285,65 @@ export class CognitiveAttentionModel {
         break;
     }
 
+    // Explainability reasons
+    const reasons: string[] = [];
+
+    // Biometric & Multimodal Fusion Layer
+    const vitals = context?.biometrics || this.currentVitals;
+    let stressLevel: 'Calm Flow' | 'Optimal Engagement' | 'Elevated Stress' | 'High Strain' = 'Optimal Engagement';
+    let vitalsModifier = 0;
+
+    if (vitals.heartRate) {
+      const hr = vitals.heartRate;
+      const hrv = vitals.hrvRmssd ?? 45;
+
+      // Autonomic nervous system balance assessment
+      if (hr > 105) {
+        stressLevel = 'High Strain';
+        vitalsModifier -= 8;
+      } else if (hr > 94 && hrv < 28) {
+        stressLevel = 'Elevated Stress';
+        vitalsModifier -= 4; // Acute cognitive stress / overload
+      } else if (hr >= 58 && hr <= 80 && hrv >= 38) {
+        stressLevel = 'Calm Flow';
+        vitalsModifier += 3; // Calm focus state bonus
+      } else {
+        stressLevel = 'Optimal Engagement';
+      }
+
+      // False positive resolution: If looking downward at desk (note-taking / solving math) and HR is calm & steady
+      if ((newState === 'NOTE_TAKING' || (effPitch > 0.30 && absYaw < 0.22)) && hr <= 85) {
+        pNoteTaking += 0.25;
+        targetScore = Math.max(targetScore, 93);
+      }
+
+      // Physiological drowsiness cross-check: Low HR (<62 bpm) + elevated PERCLOS (>0.30)
+      if (perclos > 0.30 && hr < 62) {
+        vitalsModifier -= 10;
+        reasons.push('Low heart rate combined with high blink closure indicates physiological drowsiness');
+      }
+    }
+
+    // Sleep prior penalty
+    let sleepPenalty = 0;
+    if (vitals.sleepHoursPrior !== undefined && vitals.sleepHoursPrior < 6.5) {
+      const sleepDeficit = Math.max(0, 7.5 - vitals.sleepHoursPrior);
+      const sessionMinutes = (now - this.sessionStartTime) / 60000;
+      sleepPenalty = Math.round(sleepDeficit * 1.5 * (1 + Math.min(2, sessionMinutes / 30)));
+    }
+
+    // SpO2 adjustment
+    if (vitals.spo2 !== undefined && vitals.spo2 < 95) {
+      const spo2Deficit = Math.round((95 - vitals.spo2) * 2);
+      vitalsModifier -= spo2Deficit;
+      reasons.push(`Low blood oxygen saturation (${vitals.spo2}%) contributing to sluggishness`);
+    }
+
+    // Incorporate physiological score adjustments
+    if (vitals.heartRate) {
+      targetScore = Math.max(15, Math.min(99, targetScore + vitalsModifier - sleepPenalty));
+    }
+
     // EMA smoothing: alpha = 0.12
     const alpha = 0.12;
     this.smoothedScore = Math.round(alpha * targetScore + (1 - alpha) * this.smoothedScore);
@@ -283,8 +379,7 @@ export class CognitiveAttentionModel {
         break;
     }
 
-    // Explainability reasons
-    const reasons: string[] = [];
+    // Vision state explainability reasons
     if (newState === 'SCREEN_ENGAGEMENT') {
       reasons.push(`Direct screen engagement (Yaw: ${(effYaw * 100).toFixed(0)}°, Pitch: ${((effPitch - 0.27) * 100).toFixed(0)}°)`);
       if (perclos < 0.15) reasons.push(`Alert blink rate (PERCLOS: ${(perclos * 100).toFixed(0)}%)`);
@@ -320,6 +415,13 @@ export class CognitiveAttentionModel {
       perclos,
       recommendedColor,
       statusMessage,
+      biometricState: vitals.heartRate ? {
+        heartRate: vitals.heartRate,
+        hrvRmssd: vitals.hrvRmssd,
+        stressLevel,
+        sleepPriorHours: vitals.sleepHoursPrior,
+        fusedScore: this.smoothedScore,
+      } : undefined,
     };
   }
 

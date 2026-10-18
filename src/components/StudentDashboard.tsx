@@ -5,12 +5,22 @@ import {
   Clock, Activity, BarChart2, Award, LogOut,
   Flame, BookOpen, Star, Sparkles, ChevronRight, Play, Pause, RotateCcw, Check, Trash2, Camera,
   FileText, Square, History, Eye, CheckCircle2, ListFilter,
-  Building2, School, KeyRound, Plus, X, Search, AlertCircle
+  Building2, School, KeyRound, Plus, X, Search, AlertCircle, Watch, Heart, Moon
 } from 'lucide-react';
 
 import { api } from '../services/api';
 import { DiagnosticReportModal } from './DiagnosticReportModal';
 import { StudentCameraFeed } from './StudentCameraFeed';
+import { WearableConnectModal } from './WearableConnectModal';
+import { bleHeartRateService } from '../services/bleHeartRateService';
+import {
+  WearableDeviceState,
+  WearableVitalsSample,
+  DailySleepBaseline,
+  BiometricDiagnosticMetric,
+  FocusTimelineSample,
+  DiagnosticMetric,
+} from '../types';
 import { FocusTipCard, InfoTooltip } from './FocusTipCard';
 import { isDemoAccount } from '../utils/demoUtils';
 import { FocusBreakModal } from './FocusBreakModal';
@@ -414,6 +424,60 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
   const [viewingHistoryReport, setViewingHistoryReport] = useState<StudentDiagnosticReport | null>(null);
 
+  // Wearable Vitals & Smartwatch Integration State
+  const [showWearableModal, setShowWearableModal] = useState<boolean>(false);
+  const [wearableState, setWearableState] = useState<WearableDeviceState>(bleHeartRateService.getState());
+  const [liveVitals, setLiveVitals] = useState<WearableVitalsSample | null>(null);
+  const sessionVitalsRef = useRef<{ hr: number; hrv?: number; timestamp: number }[]>([]);
+  const sessionTimelineRef = useRef<FocusTimelineSample[]>([]);
+
+  // Subscribe to real-time Bluetooth wearable events
+  useEffect(() => {
+    const unsubState = bleHeartRateService.onStateChange((state) => {
+      setWearableState(state);
+    });
+
+    const unsubVitals = bleHeartRateService.onVitals((vitals) => {
+      setLiveVitals(vitals);
+      if (isTracking && vitals.heartRate) {
+        sessionVitalsRef.current.push({
+          hr: vitals.heartRate,
+          hrv: vitals.hrvRmssd,
+          timestamp: vitals.timestamp,
+        });
+      }
+    });
+
+    return () => {
+      unsubState();
+      unsubVitals();
+    };
+  }, [isTracking]);
+
+  // Periodic Focus Timeline Recorder for Attention Curve Graph (samples every 3-4s)
+  useEffect(() => {
+    if (!isTracking) return;
+
+    const interval = setInterval(() => {
+      if (!diagnosticStartTimestamp) return;
+      const elapsed = Math.max(1, Math.round((Date.now() - diagnosticStartTimestamp) / 1000));
+      const mins = Math.floor(elapsed / 60);
+      const secs = elapsed % 60;
+      const timeLabel = mins > 0 ? `${mins}m ${secs.toString().padStart(2, '0')}s` : `00:${secs.toString().padStart(2, '0')}`;
+
+      sessionTimelineRef.current.push({
+        timeSec: elapsed,
+        timeLabel,
+        focusScore,
+        gazeState: focusScore >= 75 ? 'Optimal Focus' : focusScore >= 55 ? 'Variable Attention' : 'Off-Task',
+        heartRate: liveVitals?.heartRate || wearableState.lastHeartRate,
+        hrvRmssd: liveVitals?.hrvRmssd || wearableState.lastHrv,
+      });
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [isTracking, diagnosticStartTimestamp, focusScore, liveVitals, wearableState]);
+
   // User-scoped storage key
   const userStorageKey = `cognilearn_student_diagnostic_history_${user?.id || user?.email || 'guest'}`;
 
@@ -538,6 +602,17 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   // Handler to Start Attention Diagnostic Tracking
   const handleStartDiagnostic = () => {
     const durationMins = isCustomDuration ? (parseInt(customDurationInput, 10) || 15) : diagnosticDuration;
+    sessionVitalsRef.current = [];
+    sessionTimelineRef.current = [
+      {
+        timeSec: 0,
+        timeLabel: '00:00',
+        focusScore: focusScore,
+        gazeState: 'Optimal Focus',
+        heartRate: liveVitals?.heartRate || wearableState.lastHeartRate,
+        hrvRmssd: liveVitals?.hrvRmssd || wearableState.lastHrv,
+      },
+    ];
     setDiagnosticDuration(durationMins);
     setDiagnosticTimeLeft(durationMins * 60);
     setDiagnosticStartTimestamp(Date.now());
@@ -554,16 +629,57 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     const startTime = diagnosticStartTimestamp || now;
     const elapsedSeconds = Math.max(1, Math.round((now - startTime) / 1000));
 
-    const metrics = {
-      avgFocusScore: focusScore,
-      peakFocusScore: Math.min(99, focusScore + 7),
-      minFocusScore: Math.max(52, focusScore - 14),
-      optimalFocusPercent: Math.round(focusScore * 0.85),
-      moderateFocusPercent: Math.round((100 - focusScore) * 0.6),
-      distractedPercent: Math.max(0, 100 - Math.round(focusScore * 0.85) - Math.round((100 - focusScore) * 0.6)),
-      gazeShiftsCount: Math.floor(elapsedSeconds / 50) + 1,
-      meshQuality: 'Optimal (68 Coordinates)',
-    };
+    // Process continuous attention curve timeline samples
+    const rawTimeline = [...sessionTimelineRef.current];
+
+    // Ensure closing sample is appended if session ran for at least 6 seconds
+    if (elapsedSeconds >= 6) {
+      const mins = Math.floor(elapsedSeconds / 60);
+      const secs = elapsedSeconds % 60;
+      const timeLabel = mins > 0 ? `${mins}m ${secs.toString().padStart(2, '0')}s` : `00:${secs.toString().padStart(2, '0')}`;
+      rawTimeline.push({
+        timeSec: elapsedSeconds,
+        timeLabel,
+        focusScore,
+        gazeState: focusScore >= 75 ? 'Optimal Focus' : focusScore >= 55 ? 'Variable Attention' : 'Off-Task',
+        heartRate: liveVitals?.heartRate || wearableState.lastHeartRate,
+        hrvRmssd: liveVitals?.hrvRmssd || wearableState.lastHrv,
+      });
+    }
+
+    // Downsample if more than 16 points for clean bar chart presentation
+    let timelineSamples: FocusTimelineSample[] | undefined = undefined;
+    if (rawTimeline.length >= 2) {
+      if (rawTimeline.length > 16) {
+        const step = Math.ceil(rawTimeline.length / 16);
+        const sampled: FocusTimelineSample[] = [];
+        for (let i = 0; i < rawTimeline.length; i += step) {
+          sampled.push(rawTimeline[i]);
+        }
+        if (sampled[sampled.length - 1] !== rawTimeline[rawTimeline.length - 1]) {
+          sampled.push(rawTimeline[rawTimeline.length - 1]);
+        }
+        timelineSamples = sampled;
+      } else {
+        timelineSamples = rawTimeline;
+      }
+    }
+
+    // Process multimodal smartwatch vitals and sleep baseline
+    let biometricMetrics: BiometricDiagnosticMetric | undefined = undefined;
+    const samples = sessionVitalsRef.current;
+    const hasSamples = samples.length > 0;
+    const isWearableActive = wearableState.isConnected || hasSamples;
+
+    const savedSleep = localStorage.getItem('cognilearn_daily_sleep');
+    let sleepBaseline: DailySleepBaseline | null = null;
+    if (savedSleep) {
+      try {
+        sleepBaseline = JSON.parse(savedSleep);
+      } catch (e) {
+        // ignore
+      }
+    }
 
     let observations = [
       `Maintained average focus score of ${focusScore}% during the ${status === 'Completed' ? 'full session' : 'tracked period'}.`,
@@ -575,6 +691,58 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       'Maintain adequate room illumination to minimize eye strain.',
       'Optimal focal intervals achieved; continue tracking session trends.',
     ];
+
+    if (isWearableActive || sleepBaseline) {
+      const hrs = samples.map((s) => s.hr).filter(Boolean);
+      const avgHr = hrs.length > 0 ? Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length) : (wearableState.lastHeartRate || 72);
+      const peakHr = hrs.length > 0 ? Math.max(...hrs) : (avgHr + 6);
+      const minHr = hrs.length > 0 ? Math.min(...hrs) : (avgHr - 5);
+
+      const hrvs = samples.map((s) => s.hrv).filter((h): h is number => typeof h === 'number');
+      const avgHrv = hrvs.length > 0 ? Math.round(hrvs.reduce((a, b) => a + b, 0) / hrvs.length) : (wearableState.lastHrv || 48);
+
+      let stressLevel: 'Calm Flow' | 'Optimal Engagement' | 'Elevated Stress' | 'High Strain' = 'Optimal Engagement';
+      if (avgHr <= 80 && avgHrv >= 38) stressLevel = 'Calm Flow';
+      else if (avgHr > 94 && avgHrv < 28) stressLevel = 'Elevated Stress';
+      else if (avgHr > 105) stressLevel = 'High Strain';
+
+      let vitalsCorrelation = `Autonomic nervous system recorded in ${stressLevel} (Avg HR: ${avgHr} BPM, HRV: ${avgHrv}ms).`;
+      if (sleepBaseline) {
+        vitalsCorrelation += ` Prior night sleep of ${sleepBaseline.totalSleepHours} hrs yielded a ${sleepBaseline.readinessScore}% cognitive readiness baseline.`;
+      }
+
+      biometricMetrics = {
+        hasWearableData: true,
+        avgHeartRate: avgHr,
+        peakHeartRate: peakHr,
+        minHeartRate: minHr,
+        avgHrvRmssd: avgHrv,
+        cognitiveStressLevel: stressLevel,
+        sleepHoursPrior: sleepBaseline?.totalSleepHours,
+        sleepReadinessScore: sleepBaseline?.readinessScore,
+        vitalsFocusCorrelation: vitalsCorrelation,
+      };
+
+      observations.push(`Physiological Vitals: ${stressLevel} detected (Avg HR: ${avgHr} BPM, HRV: ${avgHrv}ms).`);
+      if (sleepBaseline && sleepBaseline.totalSleepHours < 6.5) {
+        recommendations.push(`Sleep debt noted (${sleepBaseline.totalSleepHours}h last night). Limit continuous study sprints to 25 minutes today.`);
+      } else {
+        recommendations.push(`Autonomic rhythm is well-balanced; ideal physiological state for sustained retention.`);
+      }
+    }
+
+    const metrics: DiagnosticMetric = {
+      avgFocusScore: focusScore,
+      peakFocusScore: Math.min(99, focusScore + 7),
+      minFocusScore: Math.max(52, focusScore - 14),
+      optimalFocusPercent: Math.round(focusScore * 0.85),
+      moderateFocusPercent: Math.round((100 - focusScore) * 0.6),
+      distractedPercent: Math.max(0, 100 - Math.round(focusScore * 0.85) - Math.round((100 - focusScore) * 0.6)),
+      gazeShiftsCount: Math.floor(elapsedSeconds / 50) + 1,
+      meshQuality: 'Optimal (68 Coordinates)',
+      timelineSamples,
+      biometrics: biometricMetrics,
+    };
     let aiActionPlan: string[] | undefined = undefined;
 
     // Call Gemini API for AI-based report generation
@@ -1305,6 +1473,36 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   )}
                 </div>
 
+                {/* Smartwatch / Health Vitals Quick Connect */}
+                <button
+                  type="button"
+                  onClick={() => setShowWearableModal(true)}
+                  className={`w-full py-2 px-3 text-xs font-semibold rounded-lg border transition-all flex items-center justify-between cursor-pointer ${
+                    wearableState.isConnected
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
+                      : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:border-slate-600 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Watch className={`w-4 h-4 ${wearableState.isConnected ? 'text-emerald-400' : 'text-indigo-400'}`} />
+                    <span className="truncate">
+                      {wearableState.isConnected
+                        ? `${wearableState.deviceName || 'Smartwatch'} Connected`
+                        : 'Connect Health Watch / Vitals'}
+                    </span>
+                  </div>
+                  {wearableState.isConnected ? (
+                    <span className="flex items-center gap-1.5 text-[11px] font-mono text-rose-400 font-bold">
+                      <Heart className="w-3.5 h-3.5 animate-pulse text-rose-500" />
+                      {liveVitals?.heartRate || wearableState.lastHeartRate || 72} BPM
+                    </span>
+                  ) : (
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">
+                      Pair BLE
+                    </span>
+                  )}
+                </button>
+
                 <button
                   type="button"
                   onClick={handleStartDiagnostic}
@@ -1328,6 +1526,31 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     Live Tracking Active
                   </span>
                 </div>
+
+                {/* Real-time Wearable Vitals Stream during session */}
+                {wearableState.isConnected && (
+                  <div className="flex items-center justify-between p-2.5 bg-slate-900/90 border border-indigo-500/30 rounded-xl text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400">
+                        <Heart className="w-4 h-4 animate-pulse text-rose-500" />
+                      </div>
+                      <div>
+                        <span className="font-mono font-bold text-slate-100 text-sm">
+                          {liveVitals?.heartRate || wearableState.lastHeartRate || 72}
+                        </span>
+                        <span className="text-[10px] text-slate-400 ml-1">BPM</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] font-mono">
+                      <span className="text-slate-400">HRV:</span>
+                      <span className="text-indigo-400 font-bold">
+                        {liveVitals?.hrvRmssd || wearableState.lastHrv || 48}ms
+                      </span>
+                      <span className="text-slate-500">•</span>
+                      <span className="text-emerald-400 font-medium">Flow State</span>
+                    </div>
+                  </div>
+                )}
 
                 <div className="relative overflow-hidden">
                   <StudentCameraFeed
@@ -1891,6 +2114,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Wearable Health Band & Vitals Modal */}
+      <WearableConnectModal
+        isOpen={showWearableModal}
+        onClose={() => setShowWearableModal(false)}
+      />
     </div>
   );
 };

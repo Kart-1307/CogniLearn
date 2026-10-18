@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { getSupabase, mapUserFromDB } from '../supabase';
+import { getSupabase, mapUserFromDB, isUUID } from '../supabase';
 import { memoryStore } from '../memoryStore';
 import { authenticateToken } from '../authMiddleware';
 
@@ -20,7 +20,7 @@ router.put('/profile', authenticateToken, async (req: Request, res: Response): P
 
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(userId)) {
       const dbPayload: any = {
         updated_at: new Date().toISOString(),
       };
@@ -79,7 +79,7 @@ router.delete('/account', authenticateToken, async (req: Request, res: Response)
     const userId = (req as any).userId;
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(userId)) {
       // CASCADE delete on study_sessions & baseline_scores automatically handles relational cleanup
       const { error } = await supabase
         .from('users')

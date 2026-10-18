@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { getSupabase, mapCohortFromDB, mapEnrollmentFromDB, mapUserFromDB } from '../supabase';
+import { getSupabase, mapCohortFromDB, mapEnrollmentFromDB, mapUserFromDB, isUUID } from '../supabase';
 import { memoryStore } from '../memoryStore';
 import { authenticateToken, requireRole } from '../authMiddleware';
 import { cohortSchema, joinCohortSchema } from '../../src/schemas/academic';
@@ -113,7 +113,7 @@ router.post('/join', authenticateToken, requireRole(['student']), async (req: Re
 
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(studentId)) {
       // 1. Locate cohort
       const { data: cohort, error: cohortError } = await supabase
         .from('cohorts')
@@ -255,7 +255,7 @@ router.post('/', authenticateToken, requireRole(['teacher']), async (req: Reques
 
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(teacherId)) {
       const { data: newCohort, error } = await supabase
         .from('cohorts')
         .insert({
@@ -334,7 +334,7 @@ router.get('/my', authenticateToken, async (req: Request, res: Response): Promis
 
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(userId)) {
       if (userRole === 'teacher') {
         const { data: cohorts, error } = await supabase
           .from('cohorts')
@@ -456,7 +456,7 @@ router.get('/:id/students', authenticateToken, requireRole(['teacher']), async (
     const teacherId = req.userId;
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(cohortId) && isUUID(teacherId)) {
       // IDOR Protection: Verify teacher owns this cohort
       const { data: cohort, error: cohortError } = await supabase
         .from('cohorts')

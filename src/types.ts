@@ -155,6 +155,22 @@ export interface FocusTimelineSample {
   timeLabel: string;
   focusScore: number;
   gazeState: string;
+  heartRate?: number;
+  hrvRmssd?: number;
+  mciScore?: number;
+}
+
+export interface BiometricDiagnosticMetric {
+  hasWearableData: boolean;
+  avgHeartRate?: number;
+  peakHeartRate?: number;
+  minHeartRate?: number;
+  avgHrvRmssd?: number;
+  cognitiveStressLevel?: 'Calm Flow' | 'Optimal Engagement' | 'Elevated Stress' | 'High Strain';
+  sleepHoursPrior?: number;
+  sleepReadinessScore?: number;
+  spo2Avg?: number;
+  vitalsFocusCorrelation?: string;
 }
 
 export interface DiagnosticMetric {
@@ -171,6 +187,7 @@ export interface DiagnosticMetric {
   fatigueAnalysis?: CognitiveFatigueAnalysis;
   cognitiveMetrics?: CognitiveMetrics;
   timelineSamples?: FocusTimelineSample[];
+  biometrics?: BiometricDiagnosticMetric;
 }
 
 export interface StudentDiagnosticReport {
@@ -239,3 +256,38 @@ export interface HourlyFocusStat {
   sessionCount: number;
   isPeak: boolean;
 }
+
+export interface WearableVitalsSample {
+  timestamp: number;
+  heartRate: number; // Beats per minute
+  hrvRmssd?: number; // Root Mean Square of Successive Differences in ms
+  rrIntervals?: number[]; // Raw RR intervals in ms
+  spo2?: number; // Blood oxygen %
+  contactDetected?: boolean;
+}
+
+export interface WearableDeviceState {
+  isConnected: boolean;
+  isSimulated?: boolean;
+  deviceName?: string;
+  batteryLevel?: number;
+  lastHeartRate?: number;
+  lastHrv?: number;
+  lastSpo2?: number;
+  sensorContact?: boolean;
+  connectionType?: 'web_bluetooth' | 'cloud_sync' | 'simulated' | 'samsung_health_bridge';
+}
+
+export interface DailySleepBaseline {
+  id?: string;
+  studentId: string;
+  date: string; // YYYY-MM-DD
+  totalSleepHours: number;
+  deepSleepHours?: number;
+  remSleepHours?: number;
+  restingHeartRate?: number;
+  readinessScore: number; // 0 to 100
+  source: 'bluetooth_sync' | 'cloud_health' | 'manual';
+  loggedAt: number;
+}
+
