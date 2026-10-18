@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { getSupabase, mapScoreFromDB } from '../supabase';
+import { getSupabase, mapScoreFromDB, isUUID } from '../supabase';
 import { memoryStore } from '../memoryStore';
 import { authenticateToken } from '../authMiddleware';
 
@@ -18,7 +18,7 @@ router.post('/score', authenticateToken, async (req: Request, res: Response): Pr
 
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(userId)) {
       const payload = {
         student_id: userId,
         subject,
@@ -66,7 +66,7 @@ router.get('/scores', authenticateToken, async (req: Request, res: Response): Pr
     const userId = (req as any).userId;
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(userId)) {
       const { data: scores, error } = await supabase
         .from('baseline_scores')
         .select('*')

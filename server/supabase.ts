@@ -42,6 +42,11 @@ export function isSupabaseConfigured(): boolean {
   return getSupabase() !== null;
 }
 
+export function isUUID(str?: string | null): boolean {
+  if (!str || typeof str !== 'string') return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
 // Convert DB user row (snake_case) to application User shape (camelCase)
 export function mapUserFromDB(row: any): any {
   if (!row) return null;

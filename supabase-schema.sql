@@ -195,3 +195,59 @@ CREATE TABLE IF NOT EXISTS public.focus_breaks (
 CREATE INDEX IF NOT EXISTS idx_focus_breaks_student_id ON public.focus_breaks(student_id);
 ALTER TABLE public.focus_breaks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow service role full access to focus_breaks" ON public.focus_breaks FOR ALL USING (true);
+
+-- 10. Student Wearable Device Pairings (Smartwatch / Health Bands)
+CREATE TABLE IF NOT EXISTS public.student_wearables (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  device_type VARCHAR(50) NOT NULL, -- 'web_bluetooth_ble', 'fitbit', 'apple_health', 'google_health', 'simulated'
+  device_name VARCHAR(100),
+  mac_or_device_id VARCHAR(120),
+  is_active BOOLEAN DEFAULT true,
+  last_synced_at TIMESTAMPTZ DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_student_wearables_student_id ON public.student_wearables(student_id);
+ALTER TABLE public.student_wearables ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow service role full access to student_wearables" ON public.student_wearables FOR ALL USING (true);
+
+-- 11. Daily Cognitive Baselines & Sleep Tracking
+CREATE TABLE IF NOT EXISTS public.daily_sleep_baselines (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  total_sleep_hours NUMERIC(4,2) NOT NULL,
+  deep_sleep_hours NUMERIC(4,2),
+  rem_sleep_hours NUMERIC(4,2),
+  resting_heart_rate INTEGER,
+  baseline_hrv_rmssd NUMERIC(5,2),
+  readiness_score INTEGER CHECK (readiness_score BETWEEN 0 AND 100),
+  source VARCHAR(50) DEFAULT 'manual', -- 'bluetooth_sync', 'cloud_health', 'manual'
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(student_id, date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_daily_sleep_student_date ON public.daily_sleep_baselines(student_id, date);
+ALTER TABLE public.daily_sleep_baselines ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow service role full access to daily_sleep_baselines" ON public.daily_sleep_baselines FOR ALL USING (true);
+
+-- 12. Multimodal Session Telemetry Samples (Time-Series Vitals)
+CREATE TABLE IF NOT EXISTS public.session_vitals_telemetry (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID NOT NULL REFERENCES public.focus_sessions(id) ON DELETE CASCADE,
+  student_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  timestamp_sec INTEGER NOT NULL,
+  heart_rate INTEGER,
+  hrv_rmssd NUMERIC(5,2),
+  spo2 NUMERIC(4,1),
+  posture_score INTEGER,
+  vision_focus_score INTEGER,
+  fused_mci_score INTEGER,
+  cognitive_state VARCHAR(50),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_session_vitals_session_id ON public.session_vitals_telemetry(session_id);
+ALTER TABLE public.session_vitals_telemetry ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow service role full access to session_vitals_telemetry" ON public.session_vitals_telemetry FOR ALL USING (true);

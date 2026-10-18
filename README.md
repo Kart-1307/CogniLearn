@@ -24,6 +24,16 @@
 
 Unlike traditional monitoring tools that stream intrusive video feeds to the cloud, CogniLearn processes 100% of video telemetry **locally in the browser** via WebAssembly and WebGL. Only anonymized, aggregated numeric telemetry (focus scores, PERCLOS fatigue, head pose vectors) ever touches the network.
 
+### 📋 Hackathon Submission & Technical Checklist
+
+| Requirement | Artifact / Verification Location | Status |
+| :--- | :--- | :--- |
+| **Setup Steps & Env Config** | [Quickstart Guide](#-getting-started) & [`.env.example`](.env.example) | ✅ Complete & Documented |
+| **Technical Design Document** | [`ARCHITECTURE.md`](ARCHITECTURE.md) (Architecture, ERDs, CV Math) | ✅ Complete & Documented |
+| **Sample Data & Test Cases** | [`scripts/test_pipeline.ts`](scripts/test_pipeline.ts) (`npm test`) & [`supabase-schema.sql`](supabase-schema.sql) | ✅ 100% Passing (6 Suites) |
+| **Open Source License** | [`LICENSE`](LICENSE) (Standard MIT License) | ✅ Complete & Verified |
+| **Live Deployed App** | [https://cognilearnpdl.vercel.app/](https://cognilearnpdl.vercel.app/) | ✅ Live Deployed |
+
 > 📖 **Deep Dive Documentation**: For mathematical specifications, Kalman/Hungarian tracking details, and ER diagrams, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---

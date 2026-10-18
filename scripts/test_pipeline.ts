@@ -144,6 +144,43 @@ async function runTests() {
   assert(report.totalIdSwitches === 0, 'Zero ID switches for stable track');
   assert(report.perStudentMetrics['student-101'] !== undefined, 'Student metrics tracked by ID');
 
+  // Test 7: Multimodal Biometric & Physiological Vitals Fusion
+  console.log('\nTest 7: Multimodal Biometrics & Smartwatch Vitals Fusion');
+  const bioModel = new CognitiveAttentionModel();
+  
+  // Sub-test A: Calm Flow State with Steady Heart Rate & High HRV
+  const calmFrame = bioModel.evaluateFrame(
+    0.28, 0, 0, 0, 0, 0, undefined,
+    { biometrics: { heartRate: 72, hrvRmssd: 50, sleepHoursPrior: 8.0 } }
+  );
+  assert(calmFrame.biometricState !== undefined, 'Biometric state emitted in cognitive inference');
+  assert(calmFrame.biometricState?.stressLevel === 'Calm Flow', '72 BPM + 50ms HRV evaluates to Calm Flow');
+  assert(calmFrame.smoothedScore >= 88, 'Calm Flow maintains optimal high focus score');
+
+  // Sub-test B: Downward Note-Taking with Steady HR resolves false positive
+  const noteTakingBio = bioModel.evaluateFrame(
+    0.26, 0, 22, 0, 0, 0, undefined,
+    { biometrics: { heartRate: 74, hrvRmssd: 46 } }
+  );
+  assert(noteTakingBio.state === 'NOTE_TAKING', 'Downward desk reading + calm HR classifies as NOTE_TAKING');
+  assert(noteTakingBio.smoothedScore >= 88, 'Note-taking with steady HR avoids erroneous score drop');
+
+  // Sub-test C: High Strain / Stress detection
+  const strainModel = new CognitiveAttentionModel();
+  const strainFrame = strainModel.evaluateFrame(
+    0.28, 0, 0, 0, 0, 0, undefined,
+    { biometrics: { heartRate: 112, hrvRmssd: 18 } }
+  );
+  assert(strainFrame.biometricState?.stressLevel === 'High Strain', '112 BPM evaluates to High Strain');
+
+  // Sub-test D: Sleep Debt prior penalty
+  const sleepDebtModel = new CognitiveAttentionModel();
+  const sleepDebtFrame = sleepDebtModel.evaluateFrame(
+    0.25, 0, 0, 0, 0, 0, undefined,
+    { biometrics: { heartRate: 85, hrvRmssd: 32, sleepHoursPrior: 4.5 } }
+  );
+  assert(sleepDebtFrame.biometricState?.sleepPriorHours === 4.5, 'Sleep prior recorded in inference telemetry');
+
   console.log('\n=== ALL PHASE TESTS PASSED SUCCESSFULLY! ===\n');
 }
 

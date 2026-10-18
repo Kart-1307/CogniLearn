@@ -3,6 +3,7 @@ import { Bell, RefreshCw, SwitchCamera, Video } from 'lucide-react';
 import { getFaceLandmarker, analyzeFaceLandmarks, drawFaceMeshOverlay, FaceAnalysisResult } from '../services/faceTracker';
 import { getMobileCompatibleCameraStream, attachStreamToVideo } from '../utils/cameraUtils';
 import { publishTelemetry } from '../services/telemetryStream';
+import { bleHeartRateService } from '../services/bleHeartRateService';
 
 interface StudentCameraFeedProps {
   student: {
@@ -169,13 +170,33 @@ export const StudentCameraFeed: React.FC<StudentCameraFeedProps> = ({
                 });
               }
 
+              // Extract real-time wearable biometrics and sleep baseline if available
+              const deviceState = bleHeartRateService.getState();
+              const savedSleep = localStorage.getItem('cognilearn_daily_sleep');
+              let sleepHoursPrior: number | undefined = undefined;
+              if (savedSleep) {
+                try {
+                  sleepHoursPrior = JSON.parse(savedSleep).totalSleepHours;
+                } catch (e) {
+                  // Ignore parse error
+                }
+              }
+
+              const biometrics = deviceState.isConnected ? {
+                heartRate: deviceState.lastHeartRate,
+                hrvRmssd: deviceState.lastHrv,
+                spo2: deviceState.lastSpo2,
+                sleepHoursPrior,
+              } : (sleepHoursPrior ? { sleepHoursPrior } : undefined);
+
               const analysis: FaceAnalysisResult = analyzeFaceLandmarks(
                 landmarks,
                 canvas.width,
                 canvas.height,
                 student.id,
                 matrix,
-                blendshapes
+                blendshapes,
+                { biometrics }
               );
 
               // Draw high-tech HUD overlay

@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { getSupabase, mapUserFromDB, mapSessionFromDB } from '../supabase';
+import { getSupabase, mapUserFromDB, mapSessionFromDB, isUUID } from '../supabase';
 import { memoryStore } from '../memoryStore';
 import { authenticateToken } from '../authMiddleware';
 
@@ -11,7 +11,7 @@ router.get('/profile', authenticateToken, async (req: Request, res: Response): P
     const userId = (req as any).userId;
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(userId)) {
       const { data: user, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -65,7 +65,7 @@ router.post('/session', authenticateToken, async (req: Request, res: Response): 
 
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(userId)) {
       const sessionPayload = {
         student_id: userId,
         duration_minutes: durationMinutes,
@@ -166,7 +166,7 @@ router.post('/avatar', authenticateToken, async (req: Request, res: Response): P
 
     const supabase = getSupabase();
 
-    if (supabase) {
+    if (supabase && isUUID(userId)) {
       const { data: updatedUser, error } = await supabase
         .from('users')
         .update({ avatar, updated_at: new Date().toISOString() })
@@ -204,7 +204,7 @@ router.post('/break', authenticateToken, async (req: Request, res: Response): Pr
     const supabase = getSupabase();
     const xpBonus = completed ? 25 : 5;
 
-    if (supabase) {
+    if (supabase && isUUID(userId)) {
       // Log as a study_session break event with telemetry
       const sessionPayload = {
         student_id: userId,

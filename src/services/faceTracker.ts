@@ -1,7 +1,8 @@
 import { FaceLandmarker, FilesetResolver, NormalizedLandmark, Matrix } from '@mediapipe/tasks-vision';
 import { 
   getOrCreateClassroomModel, 
-  CognitiveInferenceResult 
+  CognitiveInferenceResult,
+  BiometricVitalsInput
 } from './cognitiveModel';
 
 export interface FaceAnalysisResult {
@@ -778,7 +779,7 @@ export function analyzeFaceLandmarks(
   modelKey?: number | string,
   matrix?: Matrix | number[] | null,
   blendshapes?: Record<string, number>,
-  context?: { isQuizActive?: boolean; hasRecentInteraction?: boolean }
+  context?: { isQuizActive?: boolean; hasRecentInteraction?: boolean; biometrics?: BiometricVitalsInput }
 ): FaceAnalysisResult {
   if (!landmarks || landmarks.length < 468) {
     return {

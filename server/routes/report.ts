@@ -132,8 +132,8 @@ TASK: Return a JSON object with keys:
 "fatigueSummary": 1 sentence summarizing eye/posture condition,
 "engagementLevel": One of "Optimal Active", "Sustained Steady", "Variable Attention", "At-Risk".`;
 
-  const preferredModel = process.env.GEMINI_MODEL || 'gemini-3.0-flash';
-  const fallbackModel = 'gemini-2.5-flash';
+  const preferredModel = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  const fallbackModel = 'gemini-3.5-flash';
 
   // --- Initialize Langfuse Trace & Generation with Pseudonymous ID ---
   const trace = langfuse?.trace({

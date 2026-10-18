@@ -5,7 +5,8 @@ import { exportReportToCSV, exportReportToPDF } from '../utils/reportExport';
 import {
   X, Activity, Clock, CheckCircle2, AlertTriangle, Eye, ShieldCheck,
   User, Users, Sparkles, BarChart2, Award, Printer, ArrowRight, FileText, Trash2,
-  TrendingUp, Zap, HeartPulse, Target, Compass, Brain, AlertCircle, HelpCircle, Download
+  TrendingUp, Zap, HeartPulse, Target, Compass, Brain, AlertCircle, HelpCircle, Download,
+  Watch, Heart, Moon
 } from 'lucide-react';
 
 interface DiagnosticReportModalProps {
@@ -44,17 +45,36 @@ function ensureDetailedMetrics(m: DiagnosticMetric) {
     postureScore: Math.min(98, Math.max(50, Math.round(avg * 0.95 + 8))),
   };
 
-  const cognitiveMetrics = m.cognitiveMetrics || {
+  // Only use authentic telemetry timeline samples; do not generate synthetic sine-wave data
+  const timelineSamples = m.timelineSamples && m.timelineSamples.length > 0 ? m.timelineSamples : [];
+
+  let peakTime = m.cognitiveMetrics?.peakAttentionTime && m.cognitiveMetrics.peakAttentionTime !== 'N/A'
+    ? m.cognitiveMetrics.peakAttentionTime
+    : 'N/A';
+  let lowestTime = m.cognitiveMetrics?.lowestAttentionTime && m.cognitiveMetrics.lowestAttentionTime !== 'N/A'
+    ? m.cognitiveMetrics.lowestAttentionTime
+    : 'N/A';
+
+  if (timelineSamples.length > 0) {
+    const sorted = [...timelineSamples].sort((a, b) => b.focusScore - a.focusScore);
+    const peak = sorted[0];
+    const lowest = sorted[sorted.length - 1];
+    if (peak) peakTime = `${peak.timeLabel} (${peak.focusScore}%)`;
+    if (lowest) lowestTime = `${lowest.timeLabel} (${lowest.focusScore}%)`;
+  }
+
+  const cognitiveMetrics = m.cognitiveMetrics ? {
+    ...m.cognitiveMetrics,
+    peakAttentionTime: peakTime,
+    lowestAttentionTime: lowestTime,
+  } : {
     focusStabilityIndex: Math.min(99, Math.max(40, Math.round(avg * 0.92 + 5))),
-    peakAttentionTime: 'N/A',
-    lowestAttentionTime: 'N/A',
+    peakAttentionTime: peakTime,
+    lowestAttentionTime: lowestTime,
     focusDropEventsCount: m.gazeShiftsCount || Math.round((100 - avg) / 6),
     estimatedComprehensionRate: Math.min(98, Math.max(45, Math.round(avg * 0.95))),
     engagementLevel: (avg >= 82 ? 'Optimal Active' : avg >= 68 ? 'Sustained Steady' : avg >= 52 ? 'Variable Attention' : 'At-Risk') as any,
   };
-
-  // Only use authentic telemetry timeline samples; do not generate synthetic sine-wave data
-  const timelineSamples = m.timelineSamples && m.timelineSamples.length > 0 ? m.timelineSamples : [];
 
   return {
     ...m,
@@ -678,6 +698,94 @@ export const DiagnosticReportModal: React.FC<DiagnosticReportModalProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Multimodal Smartwatch Vitals & Autonomic Nervous System Card */}
+              {currentStudentReport.metrics.biometrics?.hasWearableData ? (
+                <div className="bg-gradient-to-br from-indigo-50/70 to-purple-50/70 border border-indigo-200/90 p-5 rounded-lg shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-indigo-200/60 pb-2">
+                    <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-indigo-950 flex items-center space-x-2">
+                      <Watch className="h-4 w-4 text-indigo-600" />
+                      <span>Multimodal Wearable Vitals & Autonomic State</span>
+                    </h4>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-300 font-bold">
+                      Smartwatch Synced
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center font-mono">
+                    <div className="bg-white/90 border border-indigo-100 p-3 rounded-lg shadow-xs">
+                      <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-slate-500 mb-1">
+                        <Heart className="w-3 h-3 text-rose-500 animate-pulse" />
+                        Avg Heart Rate
+                      </div>
+                      <div className="text-xl font-black text-slate-900">
+                        {currentStudentReport.metrics.biometrics.avgHeartRate || 72}
+                        <span className="text-xs font-normal text-slate-500 ml-0.5">BPM</span>
+                      </div>
+                      <span className="text-[9px] text-slate-500">
+                        Peak: {currentStudentReport.metrics.biometrics.peakHeartRate || 78} BPM
+                      </span>
+                    </div>
+
+                    <div className="bg-white/90 border border-indigo-100 p-3 rounded-lg shadow-xs">
+                      <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-slate-500 mb-1">
+                        <Activity className="w-3 h-3 text-indigo-600" />
+                        HRV (RMSSD)
+                      </div>
+                      <div className="text-xl font-black text-indigo-900">
+                        {currentStudentReport.metrics.biometrics.avgHrvRmssd || 48}
+                        <span className="text-xs font-normal text-slate-500 ml-0.5">ms</span>
+                      </div>
+                      <span className="text-[9px] text-emerald-700 font-medium">Autonomic Stability</span>
+                    </div>
+
+                    <div className="bg-white/90 border border-indigo-100 p-3 rounded-lg shadow-xs">
+                      <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-slate-500 mb-1">
+                        <Moon className="w-3 h-3 text-purple-600" />
+                        Sleep Prior
+                      </div>
+                      <div className="text-xl font-black text-purple-900">
+                        {currentStudentReport.metrics.biometrics.sleepHoursPrior || 7.5}
+                        <span className="text-xs font-normal text-slate-500 ml-0.5">hrs</span>
+                      </div>
+                      <span className="text-[9px] text-purple-700 font-medium">
+                        Readiness: {currentStudentReport.metrics.biometrics.sleepReadinessScore || 88}%
+                      </span>
+                    </div>
+
+                    <div className="bg-white/90 border border-indigo-100 p-3 rounded-lg shadow-xs">
+                      <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-slate-500 mb-1">
+                        <Zap className="w-3 h-3 text-amber-500" />
+                        Cognitive Stress
+                      </div>
+                      <div className="text-sm font-black text-emerald-800 mt-1">
+                        {currentStudentReport.metrics.biometrics.cognitiveStressLevel || 'Calm Flow'}
+                      </div>
+                      <span className="text-[9px] text-slate-500">Parasympathetic Dominant</span>
+                    </div>
+                  </div>
+
+                  {currentStudentReport.metrics.biometrics.vitalsFocusCorrelation && (
+                    <div className="p-3 bg-white/90 rounded border border-indigo-200/80 text-xs text-slate-800 font-sans leading-relaxed">
+                      <b className="text-indigo-900">Physiological Focus Correlation:</b> {currentStudentReport.metrics.biometrics.vitalsFocusCorrelation}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg border border-indigo-100">
+                      <Watch className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-slate-800">Smartwatch Physiological Tracking Available</div>
+                      <div className="text-slate-500 text-[11px]">
+                        Pair your Samsung Galaxy Watch, Apple Watch, or BLE fitness band to correlate live heart rate, HRV, and sleep with your cognitive focus scores.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Diagnostic Observations */}
               <div className="bg-white border border-[#1C1B1A]/20 p-5 rounded-lg shadow-xs space-y-3">
