@@ -29,6 +29,8 @@ import { exportReportToPDF, exportReportToCSV } from '../utils/reportExport';
 import { Download } from 'lucide-react';
 import { ACADEMIC_CATALOGS, getSchoolSubjects, getCollegeSubjects } from '../config/academicCatalogs';
 
+import { useTheme } from '../context/ThemeContext';
+
 interface StudentDashboardProps {
   user: User | null;
   setCurrentRoute: (route: Route) => void;
@@ -40,7 +42,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   setCurrentRoute,
   onLogout,
 }) => {
-  const isDark = true;
+  const { isDark } = useTheme();
   const isDemo = isDemoAccount(user);
   const studentName = user?.fullName || (isDemo ? 'Karthik Sharma' : 'Student');
   const studentEmail = user?.email || (isDemo ? 'karthik.sharma@kv.edu.in' : '');
@@ -1075,23 +1077,23 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
   // Quick stats array bound to interactive state
   const quickStats = [
-    { label: 'Weekly Streak', value: '5 Days', icon: Flame, color: 'text-[#B18F5A] bg-[#B18F5A]/10 border-[#B18F5A]/20', tooltip: 'Number of consecutive active study days. Completing 1 focus block daily maintains your multiplier.' },
-    { label: 'Focus Score', value: `${focusScore}%`, icon: Activity, color: 'text-[#B18F5A] bg-[#B18F5A]/10 border-[#B18F5A]/20', tooltip: 'Calculated in real-time from MediaPipe 68-point gaze coordinates and head position vectors.' },
-    { label: 'Total Study Time', value: `${totalHours} hrs`, icon: Clock, color: 'text-[#B18F5A] bg-[#B18F5A]/10 border-[#B18F5A]/20', tooltip: 'Cumulative duration of completed diagnostic and study timer sessions.' },
+    { label: 'Weekly Streak', value: '5 Days', icon: Flame, color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20', tooltip: 'Number of consecutive active study days. Completing 1 focus block daily maintains your multiplier.' },
+    { label: 'Focus Score', value: `${focusScore}%`, icon: Activity, color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20', tooltip: 'Calculated in real-time from MediaPipe 68-point gaze coordinates and head position vectors.' },
+    { label: 'Total Study Time', value: `${totalHours} hrs`, icon: Clock, color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20', tooltip: 'Cumulative duration of completed diagnostic and study timer sessions.' },
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 text-slate-100 bg-[#0B0F17]" id="student-dashboard-container">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 text-slate-900 dark:text-slate-100 bg-transparent transition-colors duration-200" id="student-dashboard-container">
       {/* Top Welcome Title */}
       <div className="mb-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div>
-          <span className="text-[10px] font-semibold font-mono uppercase tracking-widest px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+          <span className="text-[10px] font-semibold font-mono uppercase tracking-widest px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">
             [STUDENT ENVIRONMENT]
           </span>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mt-3">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mt-3">
             Welcome, {studentName}
           </h1>
-          <p className="text-xs mt-1 text-slate-400 font-medium">
+          <p className="text-xs mt-1 text-slate-600 dark:text-slate-400 font-medium">
             Ready to calibrate your learning concentration? Manage slots and review attention diagnostic reports below.
           </p>
         </div>
@@ -1100,15 +1102,15 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
           {quickStats.map((stat, idx) => (
             <div key={idx} className="saas-card flex items-center space-x-3 p-3.5 rounded-xl">
-              <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+              <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">
                 <stat.icon className="h-4 w-4" />
               </div>
               <div>
                 <div className="flex items-center space-x-1">
-                  <p className="text-[9px] font-semibold uppercase tracking-wider font-mono text-slate-400">{stat.label}</p>
+                  <p className="text-[9px] font-semibold uppercase tracking-wider font-mono text-slate-500 dark:text-slate-400">{stat.label}</p>
                   <InfoTooltip title={stat.label} content={stat.tooltip} isDark={isDark} />
                 </div>
-                <p className="text-sm font-bold text-white mt-0.5">{stat.value}</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{stat.value}</p>
               </div>
             </div>
           ))}
@@ -1133,20 +1135,20 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             )}
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl font-bold text-white tracking-tight">{studentName}</h2>
-                <span className="inline-flex items-center px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{studentName}</h2>
+                <span className="inline-flex items-center px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded-full font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   Active Student
                 </span>
                 <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded-full font-semibold border ${
                   academicDisplay.tier === 'college'
-                    ? 'bg-purple-500/10 text-purple-300 border-purple-500/20'
-                    : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20'
+                    ? 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20'
+                    : 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20'
                 }`}>
                   {academicDisplay.tier === 'college' ? <Building2 className="h-3 w-3" /> : <School className="h-3 w-3" />}
                   <span>{academicDisplay.badgeText}</span>
                 </span>
               </div>
-              <p className="text-xs font-mono mt-1 font-medium text-slate-400">{studentEmail}</p>
+              <p className="text-xs font-mono mt-1 font-medium text-slate-500 dark:text-slate-400">{studentEmail}</p>
             </div>
           </div>
 
@@ -1157,64 +1159,64 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 setJoinError(null);
                 setJoinSuccess(null);
               }}
-              className="inline-flex items-center justify-center space-x-2 border border-indigo-500/40 hover:border-indigo-500 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-mono font-semibold uppercase tracking-wider py-2.5 px-4 rounded-xl transition-all cursor-pointer shadow-sm"
+              className="inline-flex items-center justify-center space-x-2 border border-indigo-300 dark:border-indigo-500/40 hover:border-indigo-500 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-600/20 dark:hover:bg-indigo-600/30 text-indigo-700 dark:text-indigo-300 text-xs font-mono font-semibold uppercase tracking-wider py-2.5 px-4 rounded-xl transition-all cursor-pointer shadow-xs"
               id="student-dashboard-join-class"
             >
-              <KeyRound className="h-3.5 w-3.5 text-indigo-400" />
+              <KeyRound className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" />
               <span>Join Class</span>
             </button>
 
             <button
               onClick={onLogout}
-              className="inline-flex items-center justify-center space-x-2 border border-slate-700 hover:border-slate-600 bg-slate-800/80 hover:bg-slate-800 text-slate-200 text-xs font-mono font-medium uppercase tracking-wider py-2.5 px-4 rounded-xl transition-all cursor-pointer"
+              className="inline-flex items-center justify-center space-x-2 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-mono font-medium uppercase tracking-wider py-2.5 px-4 rounded-xl transition-all cursor-pointer"
               id="student-dashboard-logout"
             >
-              <LogOut className="h-4 w-4 text-indigo-400" />
+              <LogOut className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
               <span>Logout</span>
             </button>
           </div>
         </div>
 
         {/* Academic Details Pill Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-slate-800/80 text-xs">
-          <div className="flex items-center space-x-3 bg-slate-900/60 border border-slate-800/80 px-3.5 py-2.5 rounded-xl">
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 shrink-0">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-slate-200 dark:border-slate-800/80 text-xs">
+          <div className="flex items-center space-x-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 px-3.5 py-2.5 rounded-xl">
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 shrink-0">
               {academicDisplay.tier === 'college' ? <Building2 className="h-4 w-4" /> : <School className="h-4 w-4" />}
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold truncate">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold truncate">
                 {academicDisplay.institution}
               </p>
-              <p className="text-white font-medium truncate mt-0.5">
+              <p className="text-slate-900 dark:text-white font-medium truncate mt-0.5">
                 {academicDisplay.headline}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3 bg-slate-900/60 border border-slate-800/80 px-3.5 py-2.5 rounded-xl">
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 shrink-0">
+          <div className="flex items-center space-x-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 px-3.5 py-2.5 rounded-xl">
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 shrink-0">
               <KeyRound className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
                 Classroom Standing
               </p>
-              <p className="text-white font-medium truncate mt-0.5">
+              <p className="text-slate-900 dark:text-white font-medium truncate mt-0.5">
                 {academicDisplay.subline}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between bg-slate-900/60 border border-slate-800/80 px-3.5 py-2.5 rounded-xl">
+          <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 px-3.5 py-2.5 rounded-xl">
             <div className="flex items-center space-x-3 min-w-0">
-              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 shrink-0">
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 shrink-0">
                 <BookOpen className="h-4 w-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
                   Enrolled Cohorts
                 </p>
-                <p className="text-white font-medium truncate mt-0.5">
+                <p className="text-slate-900 dark:text-white font-medium truncate mt-0.5">
                   {enrolledCohorts.length > 0
                     ? `${enrolledCohorts.length} Active Class${enrolledCohorts.length > 1 ? 'es' : ''}`
                     : 'No joined classes'}
@@ -1226,7 +1228,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 {enrolledCohorts.slice(0, 2).map((item: any, idx: number) => (
                   <span
                     key={item.id || idx}
-                    className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/30 text-indigo-300"
+                    className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300"
                     title={item.cohort?.name || 'Class Cohort'}
                   >
                     {item.cohort?.code || 'CLASS'}
@@ -1240,21 +1242,21 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
       {/* Notice Board */}
       {showWelcomeMsg && (
-        <div className="mb-10 border border-indigo-500/20 bg-indigo-500/10 p-5 rounded-2xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
+        <div className="mb-10 border border-indigo-200 dark:border-indigo-500/20 bg-indigo-50/60 dark:bg-indigo-500/10 p-5 rounded-2xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-slate-900 dark:text-white">
           <div className="relative flex items-start space-x-3.5">
-            <div className="p-2 shrink-0 mt-0.5 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400">
+            <div className="p-2 shrink-0 mt-0.5 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <p className="font-bold text-sm sm:text-base tracking-tight text-white">CogniLearn Calibration Active</p>
-              <p className="text-xs mt-0.5 font-medium text-slate-300 leading-relaxed">
+              <p className="font-bold text-sm sm:text-base tracking-tight text-slate-900 dark:text-white">CogniLearn Calibration Active</p>
+              <p className="text-xs mt-0.5 font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
                 Practice study blocks and track focus vectors using local simulated camera gaze metrics below!
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowWelcomeMsg(false)}
-            className="text-[10px] font-mono font-semibold tracking-wider uppercase shrink-0 self-start sm:self-center cursor-pointer border border-slate-700 bg-slate-900/60 hover:bg-slate-900 text-slate-300 rounded-lg px-3 py-1 transition-colors"
+            className="text-[10px] font-mono font-semibold tracking-wider uppercase shrink-0 self-start sm:self-center cursor-pointer border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 rounded-lg px-3 py-1 transition-colors"
           >
             Dismiss
           </button>
@@ -1280,40 +1282,40 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               <div className="h-12 w-12 rounded-xl border border-indigo-500/20 bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                 <Clock className="h-6 w-6" />
               </div>
-              <span className="inline-flex items-center px-2.5 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-widest border rounded-full bg-slate-800 text-indigo-300 border-slate-700">
+              <span className="inline-flex items-center px-2.5 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-widest border rounded-full bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-slate-700">
                 [TIMER]
               </span>
             </div>
 
             <div className="flex items-center space-x-2">
-              <h3 className="text-xl font-bold tracking-tight text-white">Study Timer</h3>
+              <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Study Timer</h3>
               <InfoTooltip title="Pomodoro Study Slots" content="Run structured 5m to 60m focus sessions with customizable breaks to optimize memory retention." isDark={isDark} />
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-400 font-medium">
+            <p className="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-400 font-medium">
               Trigger focused study blocks using configured Pomodoro timers, ambient sound focus enhancers, and customizable breaks.
             </p>
 
             {/* Interactive study block timer component */}
-            <div className="mt-6 bg-slate-950/80 border border-slate-800 p-5 rounded-2xl space-y-4">
+            <div className="mt-6 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl space-y-4">
               {timerCelebration && (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between text-xs text-emerald-300">
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between text-xs text-emerald-800 dark:text-emerald-300">
                   <div className="flex items-center space-x-2">
-                    <Sparkles className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <Sparkles className="h-4 w-4 text-emerald-500 shrink-0" />
                     <div>
-                      <p className="font-semibold text-white">{timerCelebration.message}</p>
-                      <p className="text-[10px] font-mono text-emerald-400">+{timerCelebration.xp} XP Claimed • Saved to Cloud Profile</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">{timerCelebration.message}</p>
+                      <p className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">+{timerCelebration.xp} XP Claimed • Saved to Cloud Profile</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setTimerCelebration(null)}
-                    className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded cursor-pointer"
+                    className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white text-xs px-2 py-1 rounded cursor-pointer"
                   >
                     ✕
                   </button>
                 </div>
               )}
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-semibold font-mono uppercase tracking-widest text-slate-400">Timer Setting</span>
+                <span className="text-[10px] font-semibold font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400">Timer Setting</span>
                 <div className="flex flex-wrap gap-1.5">
                   {[5, 15, 25, 45, 60].map((mins) => (
                     <button
@@ -1321,8 +1323,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       onClick={() => setTimerDuration(mins)}
                       disabled={isTimerRunning}
                       className={`text-[10px] font-mono font-medium px-2.5 py-1 cursor-pointer transition-all border rounded-lg ${timerDuration === mins
-                          ? 'bg-indigo-600 border-indigo-500 text-white font-semibold'
-                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                          ? 'bg-indigo-600 border-indigo-500 text-white font-semibold shadow-xs'
+                          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                         }`}
                     >
                       {mins === 5 ? '⚡ 5m' : mins === 60 ? '📖 60m' : `${mins}m`}
@@ -1331,8 +1333,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 </div>
               </div>
 
-              <div className="bg-slate-900/60 border border-slate-800/80 p-5 flex flex-col items-center rounded-xl">
-                <div className="font-mono text-3xl sm:text-4xl font-bold tracking-widest text-white mb-4">
+              <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-5 flex flex-col items-center rounded-xl shadow-xs">
+                <div className="font-mono text-3xl sm:text-4xl font-bold tracking-widest text-slate-900 dark:text-white mb-4">
                   {formatTime(timeLeft)}
                 </div>
 
@@ -1350,7 +1352,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
                   <button
                     onClick={resetTimer}
-                    className="border border-slate-700 p-2.5 cursor-pointer transition-colors rounded-xl bg-slate-800/80 text-slate-300 hover:border-slate-600 hover:text-white"
+                    className="border border-slate-200 dark:border-slate-700 p-2.5 cursor-pointer transition-colors rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white"
                     title="Reset Timer"
                   >
                     <RotateCcw className="h-4 w-4" />
@@ -1360,7 +1362,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-400">
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">
             <span>Completed Study Slots: {completedSessions} today</span>
             <ChevronRight className="h-4 w-4 text-indigo-400" />
           </div>
@@ -1379,18 +1381,18 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </div>
 
             <div className="flex items-center space-x-2">
-              <h3 className="text-xl font-heading font-bold text-white">Attention Diagnostic</h3>
+              <h3 className="text-xl font-heading font-bold text-slate-900 dark:text-white">Attention Diagnostic</h3>
               <InfoTooltip title="Live Gaze Vector Analysis" content="Monitors face landmark orientation, eye open/close rates, and off-screen gaze shifts in real-time." isDark={isDark} />
             </div>
-            <p className="mt-2 text-xs leading-relaxed font-sans font-medium text-slate-300">
+            <p className="mt-2 text-xs leading-relaxed font-sans font-medium text-slate-600 dark:text-slate-300">
               Configure session duration, monitor live eye-gaze tracking, and generate diagnostic reports.
             </p>
 
             {/* Configurable Duration Selector (before tracking starts) */}
             {!isTracking ? (
-              <div className="mt-5 space-y-3 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+              <div className="mt-5 space-y-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
                 <div className="space-y-1 text-left">
-                  <label className="text-[9px] font-mono font-bold uppercase tracking-wider block text-slate-300">
+                  <label className="text-[9px] font-mono font-bold uppercase tracking-wider block text-slate-700 dark:text-slate-300">
                     Session Topic / Subject
                   </label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
@@ -1404,8 +1406,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         }}
                         className={`px-2 py-0.5 text-[9px] font-mono font-semibold rounded-md border transition-all cursor-pointer ${
                           selectedSubject === subj
-                            ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/50'
-                            : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
+                            ? 'bg-indigo-600/20 text-indigo-700 dark:text-indigo-300 border-indigo-400 dark:border-indigo-500/50'
+                            : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
                         }`}
                       >
                         {subj}
@@ -1417,14 +1419,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     value={diagnosticSessionTitle}
                     onChange={(e) => setDiagnosticSessionTitle(e.target.value)}
                     placeholder="Enter session topic..."
-                    className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
+                    className="w-full text-xs border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-2 outline-none focus:ring-1 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
                   />
                 </div>
 
                 <div className="space-y-1.5 text-left">
                   <div className="flex justify-between items-center text-[9px] font-mono uppercase font-bold">
-                    <span className="text-slate-300">Set Duration:</span>
-                    <span className="text-indigo-400">
+                    <span className="text-slate-700 dark:text-slate-300">Set Duration:</span>
+                    <span className="text-indigo-600 dark:text-indigo-400">
                       Configured: {isCustomDuration ? (customDurationInput || '15') : diagnosticDuration} min
                     </span>
                   </div>
@@ -1439,8 +1441,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                           setIsCustomDuration(false);
                         }}
                         className={`px-2.5 py-1 text-[10px] font-mono font-bold border rounded-lg transition-colors cursor-pointer ${!isCustomDuration && diagnosticDuration === mins
-                            ? 'bg-indigo-600 text-white border-indigo-500'
-                            : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white hover:border-slate-600'
+                            ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-600'
                           }`}
                       >
                         {mins}m
@@ -1450,8 +1452,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       type="button"
                       onClick={() => setIsCustomDuration(true)}
                       className={`px-2.5 py-1 text-[10px] font-mono font-bold border rounded-lg transition-colors cursor-pointer ${isCustomDuration
-                          ? 'bg-indigo-600 text-white border-indigo-500'
-                          : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white hover:border-slate-600'
+                          ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs'
+                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-600'
                         }`}
                     >
                       Custom
@@ -1467,7 +1469,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         placeholder="Minutes (e.g. 25)..."
                         value={customDurationInput}
                         onChange={(e) => setCustomDurationInput(e.target.value)}
-                        className="w-full text-xs border border-slate-700 bg-slate-900 text-white px-3 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
+                        className="w-full text-xs border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500 rounded-lg font-medium transition-colors"
                       />
                     </div>
                   )}
@@ -1479,12 +1481,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   onClick={() => setShowWearableModal(true)}
                   className={`w-full py-2 px-3 text-xs font-semibold rounded-lg border transition-all flex items-center justify-between cursor-pointer ${
                     wearableState.isConnected
-                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
-                      : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:border-slate-600 hover:text-white'
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <Watch className={`w-4 h-4 ${wearableState.isConnected ? 'text-emerald-400' : 'text-indigo-400'}`} />
+                    <Watch className={`w-4 h-4 ${wearableState.isConnected ? 'text-emerald-500' : 'text-indigo-500 dark:text-indigo-400'}`} />
                     <span className="truncate">
                       {wearableState.isConnected
                         ? `${wearableState.deviceName || 'Smartwatch'} Connected`
@@ -1492,12 +1494,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     </span>
                   </div>
                   {wearableState.isConnected ? (
-                    <span className="flex items-center gap-1.5 text-[11px] font-mono text-rose-400 font-bold">
+                    <span className="flex items-center gap-1.5 text-[11px] font-mono text-rose-500 font-bold">
                       <Heart className="w-3.5 h-3.5 animate-pulse text-rose-500" />
                       {liveVitals?.heartRate || wearableState.lastHeartRate || 72} BPM
                     </span>
                   ) : (
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-mono">
                       Pair BLE
                     </span>
                   )}
@@ -1514,40 +1516,40 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
             ) : (
               /* Active Tracking Mode with Countdown & Stop Tracking */
-              <div className="mt-5 space-y-3 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
-                <div className="flex justify-between items-center bg-slate-900 border border-slate-800 text-white p-2.5 font-mono text-xs rounded-xl">
+              <div className="mt-5 space-y-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
+                <div className="flex justify-between items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white p-2.5 font-mono text-xs rounded-xl shadow-xs">
                   <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 text-indigo-400 animate-pulse" />
-                    <span className="font-bold text-sm tracking-wider text-indigo-400">
+                    <Clock className="h-4 w-4 text-indigo-500 dark:text-indigo-400 animate-pulse" />
+                    <span className="font-bold text-sm tracking-wider text-indigo-600 dark:text-indigo-400">
                       {formatCountdown(diagnosticTimeLeft)}
                     </span>
                   </div>
-                  <span className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                  <span className="text-[9px] uppercase tracking-widest text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
                     Live Tracking Active
                   </span>
                 </div>
 
                 {/* Real-time Wearable Vitals Stream during session */}
                 {wearableState.isConnected && (
-                  <div className="flex items-center justify-between p-2.5 bg-slate-900/90 border border-indigo-500/30 rounded-xl text-xs">
+                  <div className="flex items-center justify-between p-2.5 bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-indigo-500/30 rounded-xl text-xs shadow-xs">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400">
+                      <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500">
                         <Heart className="w-4 h-4 animate-pulse text-rose-500" />
                       </div>
                       <div>
-                        <span className="font-mono font-bold text-slate-100 text-sm">
+                        <span className="font-mono font-bold text-slate-900 dark:text-slate-100 text-sm">
                           {liveVitals?.heartRate || wearableState.lastHeartRate || 72}
                         </span>
-                        <span className="text-[10px] text-slate-400 ml-1">BPM</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-1">BPM</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 text-[11px] font-mono">
-                      <span className="text-slate-400">HRV:</span>
-                      <span className="text-indigo-400 font-bold">
+                      <span className="text-slate-500 dark:text-slate-400">HRV:</span>
+                      <span className="text-indigo-600 dark:text-indigo-400 font-bold">
                         {liveVitals?.hrvRmssd || wearableState.lastHrv || 48}ms
                       </span>
-                      <span className="text-slate-500">•</span>
-                      <span className="text-emerald-400 font-medium">Flow State</span>
+                      <span className="text-slate-400">•</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">Flow State</span>
                     </div>
                   </div>
                 )}
@@ -1589,7 +1591,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       setBreakTriggerScore(focusScore);
                       setShowFocusBreakModal(true);
                     }}
-                    className="flex-1 py-2 px-3 text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer border rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-300 flex items-center justify-center space-x-1.5"
+                    className="flex-1 py-2 px-3 text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer border rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-700 dark:text-amber-300 flex items-center justify-center space-x-1.5"
                     title="Take 60-Second Guided Focus Break"
                   >
                     <span>⚡ Take 60s Focus Reset</span>
@@ -1609,10 +1611,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
             {/* Generate / View Latest Report Option */}
             {latestReport && !isTracking && (
-              <div className="mt-3 pt-3 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-white">
+              <div className="mt-3 pt-3 flex items-center justify-between p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-slate-900 dark:text-white">
                 <div className="text-[10px] font-mono">
-                  <span className="font-bold block text-indigo-300">Latest Diagnostic Ready</span>
-                  <span className="font-sans font-medium text-slate-300">{latestReport.status} • {latestReport.metrics.avgFocusScore}% Focus</span>
+                  <span className="font-bold block text-indigo-700 dark:text-indigo-300">Latest Diagnostic Ready</span>
+                  <span className="font-sans font-medium text-slate-600 dark:text-slate-300">{latestReport.status} • {latestReport.metrics.avgFocusScore}% Focus</span>
                 </div>
                 <button
                   type="button"
@@ -1625,7 +1627,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             )}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400">
             <span>Mesh Calibration: 68 Points</span>
             <ChevronRight className="h-4 w-4 text-indigo-400" />
           </div>
@@ -1635,32 +1637,32 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         <div className="saas-card saas-card-hover p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden rounded-xl" id="card-student-progress">
           <div>
             <div className="flex justify-between items-start mb-6">
-              <div className="h-12 w-12 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-500 dark:text-sky-400 flex items-center justify-center">
                 <BarChart2 className="h-6 w-6" />
               </div>
-              <span className="inline-flex items-center px-2.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest bg-sky-500/10 text-sky-300 border border-sky-500/20 rounded-full">
+              <span className="inline-flex items-center px-2.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20 rounded-full">
                 [OBJECTIVES]
               </span>
             </div>
 
             <div className="flex items-center space-x-2">
-              <h3 className="text-xl font-heading font-bold text-white">Study Objectives</h3>
+              <h3 className="text-xl font-heading font-bold text-slate-900 dark:text-white">Study Objectives</h3>
               <InfoTooltip title="Task Completion Index" content="Breaking study goals into smaller 15m tasks improves focus completion rates by +35%." isDark={isDark} />
             </div>
-            <p className="mt-2 text-xs leading-relaxed font-sans font-medium text-slate-300">
+            <p className="mt-2 text-xs leading-relaxed font-sans font-medium text-slate-600 dark:text-slate-300">
               Check off tasks, complete subject deliverables, and watch your completion index scale up in real-time.
             </p>
 
             {/* Interactive study objectives list */}
-            <div className="mt-6 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+            <div className="mt-6 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-300">Completion rate</span>
-                <span className="text-[9px] font-mono font-extrabold text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300">Completion rate</span>
+                <span className="text-[9px] font-mono font-extrabold text-sky-700 dark:text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded">
                   {completionRate}% Complete
                 </span>
               </div>
 
-              <div className="w-full bg-slate-800 h-2.5 overflow-hidden mb-4 rounded-full border border-slate-700">
+              <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 overflow-hidden mb-4 rounded-full border border-slate-300 dark:border-slate-700">
                 <motion.div
                   className="bg-sky-500 h-full rounded-full"
                   initial={{ width: 0 }}
@@ -1675,11 +1677,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   placeholder="Add custom task objective..."
                   value={newTaskText}
                   onChange={(e) => setNewTaskText(e.target.value)}
-                  className="flex-1 text-xs border border-slate-700 bg-slate-900 text-white px-3 py-2 outline-none focus:ring-1 focus:ring-sky-500 rounded-lg font-medium transition-colors"
+                  className="flex-1 text-xs border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 px-3 py-2 outline-none focus:ring-1 focus:ring-sky-500 rounded-lg font-medium transition-colors"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-bold font-mono uppercase tracking-wider cursor-pointer shrink-0 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-bold font-mono uppercase tracking-wider cursor-pointer shrink-0 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors shadow-xs"
                 >
                   Add
                 </button>
@@ -1687,14 +1689,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
               <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                 {tasks.map((t) => (
-                  <div key={t.id} className="flex justify-between items-center border border-slate-800 bg-slate-900/80 p-2.5 px-3 text-xs rounded-lg text-white">
+                  <div key={t.id} className="flex justify-between items-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 p-2.5 px-3 text-xs rounded-lg text-slate-900 dark:text-white shadow-xs">
                     <button
                       onClick={() => toggleTask(t.id)}
                       className="flex-1 flex items-center space-x-2.5 text-left cursor-pointer"
                     >
-                      <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${t.done ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-600 bg-slate-800'
+                      <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${t.done ? 'bg-sky-500 border-sky-500 text-white' : 'border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800'
                         }`}>
-                        {t.done && <Check className="h-3 w-3 stroke-[3]" />}
+                      {t.done && <Check className="h-3 w-3 stroke-[3]" />}
                       </div>
                       <span className={`font-semibold transition-all ${t.done ? 'line-through opacity-50' : ''
                         }`}>
@@ -1703,7 +1705,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     </button>
                     <button
                       onClick={() => removeTask(t.id)}
-                      className="p-1 cursor-pointer ml-2 text-slate-400 hover:text-rose-400 transition-colors"
+                      className="p-1 cursor-pointer ml-2 text-slate-400 hover:text-rose-500 transition-colors"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -1713,9 +1715,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400">
             <span>Tasks count: {tasks.length} Configured</span>
-            <ChevronRight className="h-4 w-4 text-sky-400" />
+            <ChevronRight className="h-4 w-4 text-sky-500 dark:text-sky-400" />
           </div>
         </div>
 
@@ -1723,37 +1725,37 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         <div className="saas-card saas-card-hover p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden rounded-xl" id="card-student-achievements">
           <div>
             <div className="flex justify-between items-start mb-6">
-              <div className="h-12 w-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400 flex items-center justify-center">
                 <Award className="h-6 w-6" />
               </div>
-              <span className="inline-flex items-center px-2.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-full">
+              <span className="inline-flex items-center px-2.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 rounded-full">
                 [ACHIEVEMENTS]
               </span>
             </div>
 
             <div className="flex items-center space-x-2">
-              <h3 className="text-xl font-heading font-bold text-white">Badges & Certificates</h3>
+              <h3 className="text-xl font-heading font-bold text-slate-900 dark:text-white">Badges & Certificates</h3>
               <InfoTooltip title="Gamified Mastery" content="Earn XP and unlock badges by completing daily focus blocks and keeping gaze focus above 80%." isDark={isDark} />
             </div>
-            <p className="mt-2 text-xs leading-relaxed font-sans font-medium text-slate-300">
+            <p className="mt-2 text-xs leading-relaxed font-sans font-medium text-slate-600 dark:text-slate-300">
               Unlock daily streaks, gaze level certificates, and high concentration rewards signed by class teachers.
             </p>
 
             {/* Interactive Achievements/XP Claims */}
-            <div className="mt-6 bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+            <div className="mt-6 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
               <div className="flex justify-between items-center mb-3.5">
-                <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-300">Streaks claimed</span>
-                <span className="text-xs font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-0.5 rounded font-mono">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300">Streaks claimed</span>
+                <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-0.5 rounded font-mono">
                   {currentXP.toLocaleString()} XP
                 </span>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                <div className="flex items-center space-x-1.5 font-bold p-1 px-3 text-[10px] select-none font-mono uppercase tracking-wider border rounded-lg bg-emerald-500/10 border-emerald-500/20 text-emerald-400">
-                  <Star className="h-3.5 w-3.5 fill-emerald-400" />
+                <div className="flex items-center space-x-1.5 font-bold p-1 px-3 text-[10px] select-none font-mono uppercase tracking-wider border rounded-lg bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400">
+                  <Star className="h-3.5 w-3.5 fill-emerald-500" />
                   <span>5-Day Flame</span>
                 </div>
-                <div className="flex items-center space-x-1.5 font-bold p-1 px-3 text-[10px] select-none font-mono uppercase tracking-wider border rounded-lg bg-emerald-500/10 border-emerald-500/20 text-emerald-400">
+                <div className="flex items-center space-x-1.5 font-bold p-1 px-3 text-[10px] select-none font-mono uppercase tracking-wider border rounded-lg bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400">
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>Focus Master</span>
                 </div>
@@ -1763,7 +1765,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 onClick={claimBonusXP}
                 disabled={hasClaimedBonus}
                 className={`w-full py-2.5 px-4 text-xs font-bold uppercase font-mono tracking-widest transition-all cursor-pointer border rounded-lg flex items-center justify-center gap-1.5 ${hasClaimedBonus
-                    ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed'
+                    ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed'
                     : 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-600/20'
                   }`}
               >
@@ -1773,37 +1775,37 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-400">
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400">
             <span>Multiplier level: 1.2x Boost</span>
-            <ChevronRight className="h-4 w-4 text-emerald-400" />
+            <ChevronRight className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
           </div>
         </div>
       </div>
 
       {/* Attention Diagnostic History Section */}
       <div className="mt-10 saas-card p-6 sm:p-8 rounded-xl" id="attention-diagnostic-history-section">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
-            <span className="text-[9px] font-mono font-extrabold uppercase tracking-widest text-indigo-400">
+            <span className="text-[9px] font-mono font-extrabold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
               [DIAGNOSTIC ARCHIVE]
             </span>
-            <h3 className="text-xl font-heading font-bold text-white mt-1 flex items-center gap-2">
-              <History className="h-5 w-5 text-indigo-400" />
+            <h3 className="text-xl font-heading font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+              <History className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
               <span>Attention Diagnostic History</span>
             </h3>
-            <p className="text-xs mt-1 font-medium text-slate-300">
+            <p className="text-xs mt-1 font-medium text-slate-600 dark:text-slate-300">
               Historical logs of past diagnostic tracking sessions. Revisit metrics, observations, and focus recommendations.
             </p>
           </div>
 
           <div className="flex items-center space-x-2 self-start sm:self-auto">
-            <div className="border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-[10px] font-bold uppercase rounded-lg text-slate-300">
+            <div className="border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 px-3 py-1.5 font-mono text-[10px] font-bold uppercase rounded-lg text-slate-700 dark:text-slate-300">
               Logged Sessions: {diagnosticHistory.length} Records
             </div>
             {diagnosticHistory.length > 0 && (
               <button
                 onClick={() => setShowClearAllReportsModal(true)}
-                className="bg-rose-950/60 hover:bg-rose-900 border border-rose-800 text-rose-300 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer inline-flex items-center space-x-1"
+                className="bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer inline-flex items-center space-x-1"
                 title="Delete All Reports"
               >
                 <Trash2 className="h-3 w-3" />
@@ -1814,7 +1816,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         </div>
 
         {diagnosticHistory.length === 0 ? (
-          <div className={`text-center py-10 border-2 rounded-xl text-xs font-mono font-medium ${isDark ? 'bg-[#0F172A] border-slate-700 text-slate-400' : 'bg-[#F8F7F4] border-[#1C1B1A]/20 text-[#1C1B1A]/60'
+          <div className={`text-center py-10 border rounded-xl text-xs font-mono font-medium ${isDark ? 'bg-[#0F172A] border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'
             }`}>
             No diagnostic sessions recorded yet. Start a session in the Attention Diagnostic card above.
           </div>
@@ -1822,7 +1824,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className={`border-b-2 text-[9px] font-mono uppercase tracking-wider font-extrabold ${isDark ? 'border-slate-700 bg-[#0F172A] text-slate-300' : 'border-[#1C1B1A]/20 bg-[#F8F7F4] text-[#1C1B1A]'
+                <tr className={`border-b text-[9px] font-mono uppercase tracking-wider font-extrabold ${isDark ? 'border-slate-700 bg-[#0F172A] text-slate-300' : 'border-slate-200 bg-slate-50 text-slate-700'
                   }`}>
                   <th className="py-3 px-4">Date</th>
                   <th className="py-3 px-4">Session Topic</th>
@@ -1832,18 +1834,18 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y text-xs font-sans ${isDark ? 'divide-slate-700' : 'divide-[#1C1B1A]/10'}`}>
+              <tbody className={`divide-y text-xs font-sans ${isDark ? 'divide-slate-700' : 'divide-slate-200'}`}>
                 {diagnosticHistory.map((item) => (
-                  <tr key={item.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/60' : 'hover:bg-[#F8F7F4]/80'
+                  <tr key={item.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/60' : 'hover:bg-slate-50/80'
                     }`}>
-                    <td className={`py-3.5 px-4 font-mono text-[11px] font-bold ${isDark ? 'text-slate-300' : 'text-[#1C1B1A]/90'
+                    <td className={`py-3.5 px-4 font-mono text-[11px] font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'
                       }`}>
                       {item.date}
                     </td>
-                    <td className={`py-3.5 px-4 font-bold ${isDark ? 'text-white' : 'text-[#1C1B1A]'}`}>
+                    <td className={`py-3.5 px-4 font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {item.sessionTitle}
                     </td>
-                    <td className={`py-3.5 px-4 font-mono text-[11px] font-bold ${isDark ? 'text-slate-300' : 'text-[#1C1B1A]/80'
+                    <td className={`py-3.5 px-4 font-mono text-[11px] font-bold ${isDark ? 'text-slate-300' : 'text-slate-600'
                       }`}>
                       {item.configuredDurationMinutes}m / {Math.floor(item.actualDurationSeconds / 60)}m {item.actualDurationSeconds % 60}s
                     </td>
@@ -1862,7 +1864,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       <div className="flex items-center justify-end space-x-1.5">
                         <button
                           onClick={() => exportReportToPDF(item, false)}
-                          className="bg-[#FF5A5F]/20 hover:bg-[#FF5A5F]/30 border border-[#FF5A5F]/40 text-[#FF5A5F] hover:text-white px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center space-x-1"
+                          className="bg-[#FF5A5F]/10 hover:bg-[#FF5A5F]/20 border border-[#FF5A5F]/30 text-[#FF5A5F] px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center space-x-1"
                           title="Download Formatted PDF Summary"
                         >
                           <Download className="h-3 w-3" />
@@ -1870,7 +1872,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         </button>
                         <button
                           onClick={() => exportReportToCSV(item, false)}
-                          className="bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center space-x-1"
+                          className="bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 px-2 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center space-x-1"
                           title="Download CSV Dataset"
                         >
                           <FileText className="h-3 w-3" />
@@ -1881,8 +1883,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             setViewingHistoryReport(item);
                             setShowReportModal(true);
                           }}
-                          className={`px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center space-x-1 rounded-lg border-2 ${isDark ? 'bg-[#FF5A5F] hover:bg-rose-600 border-[#FF5A5F] text-white' : 'bg-[#1C1B1A] hover:bg-[#B18F5A] border-[#1C1B1A] text-white'
-                            }`}
+                          className="px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center space-x-1 rounded-lg border bg-indigo-600 hover:bg-indigo-700 border-indigo-600 text-white shadow-xs"
                         >
                           <span>View</span>
                         </button>
@@ -1994,8 +1995,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
       {/* Join Cohort Modal */}
       {showJoinModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="saas-card w-full max-w-md p-6 rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#131C2E] shadow-2xl relative text-slate-900 dark:text-slate-100">
             <button
               onClick={() => {
                 setShowJoinModal(false);
@@ -2003,38 +2004,38 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 setJoinError(null);
                 setJoinSuccess(null);
               }}
-              className="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
 
             <div className="flex items-center space-x-3 mb-5">
-              <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+              <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400">
                 <KeyRound className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white tracking-tight">Join Class Cohort</h3>
-                <p className="text-xs text-slate-400">Enter your 6-character class code & roll number</p>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Join Class Cohort</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Enter your 6-character class code & roll number</p>
               </div>
             </div>
 
             {joinError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center space-x-2">
-                <AlertCircle className="h-4 w-4 shrink-0" />
+              <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-800 dark:text-rose-300 text-xs flex items-center space-x-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
                 <span>{joinError}</span>
               </div>
             )}
 
             {joinSuccess && (
-              <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center space-x-2">
-                <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs flex items-center space-x-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <span>{joinSuccess}</span>
               </div>
             )}
 
             <form onSubmit={handleJoinCohortSubmit} className="space-y-4">
               <div>
-                <label className="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-300 block mb-1.5">
+                <label className="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
                   Class Join Code (6 characters)
                 </label>
                 <div className="flex gap-2">
@@ -2044,13 +2045,13 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     value={joinCodeInput}
                     onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
                     placeholder="e.g. KV10-A or CS301"
-                    className="flex-1 px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-sm tracking-wider uppercase focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="flex-1 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-mono text-sm tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors placeholder:text-slate-400 shadow-xs"
                   />
                   <button
                     type="button"
                     onClick={handleVerifyCode}
                     disabled={joinLoading || !joinCodeInput.trim()}
-                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white font-mono text-xs uppercase font-semibold rounded-xl border border-slate-700 transition-all cursor-pointer flex items-center space-x-1.5"
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-800 dark:text-white font-mono text-xs uppercase font-semibold rounded-xl border border-slate-300 dark:border-slate-700 transition-all cursor-pointer flex items-center space-x-1.5 shadow-xs"
                   >
                     <Search className="h-3.5 w-3.5" />
                     <span>Verify</span>
@@ -2060,24 +2061,24 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
               {/* Verified Cohort Preview */}
               {verifiedCohort && (
-                <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-xs space-y-1">
+                <div className="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-xs space-y-1">
                   <div className="flex items-center justify-between font-mono">
-                    <span className="font-bold text-white text-sm">{verifiedCohort.name}</span>
-                    <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-[10px] uppercase font-bold">
+                    <span className="font-bold text-slate-900 dark:text-white text-sm">{verifiedCohort.name}</span>
+                    <span className="px-2 py-0.5 rounded-md bg-indigo-600 text-white text-[10px] uppercase font-bold">
                       {verifiedCohort.tier}
                     </span>
                   </div>
-                  <p className="text-indigo-200">
-                    Subject: <span className="font-semibold text-white">{verifiedCohort.subject}</span>
+                  <p className="text-indigo-900 dark:text-indigo-200">
+                    Subject: <span className="font-semibold text-slate-900 dark:text-white">{verifiedCohort.subject}</span>
                   </p>
-                  <p className="text-slate-400 text-[11px]">
+                  <p className="text-slate-600 dark:text-slate-400 text-[11px]">
                     Instructor: {verifiedCohort.teacherName} • Room: {verifiedCohort.room || 'General'}
                   </p>
                 </div>
               )}
 
               <div>
-                <label className="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-300 block mb-1.5">
+                <label className="text-[10px] font-mono uppercase tracking-wider font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
                   Your Roll Number / Student ID in this Cohort
                 </label>
                 <input
@@ -2085,10 +2086,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   value={joinRollNoInput}
                   onChange={(e) => setJoinRollNoInput(e.target.value)}
                   placeholder="e.g. 14 or 22CS084"
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors placeholder:text-slate-400 shadow-xs"
                   required
                 />
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                   Unique to this cohort. Used on class attendance and focus rosters.
                 </p>
               </div>
@@ -2097,14 +2098,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowJoinModal(false)}
-                  className="px-4 py-2 border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs uppercase font-semibold rounded-xl cursor-pointer"
+                  className="px-4 py-2 border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono text-xs uppercase font-semibold rounded-xl cursor-pointer transition-colors shadow-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={joinLoading || !joinCodeInput.trim() || !joinRollNoInput.trim()}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-indigo-600/30 flex items-center space-x-1.5"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-mono text-xs uppercase font-bold rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/30 flex items-center space-x-1.5"
                 >
                   <Plus className="h-4 w-4" />
                   <span>{joinLoading ? 'Joining...' : 'Confirm Join'}</span>

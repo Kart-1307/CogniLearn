@@ -217,7 +217,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-base text-slate-100 font-sans selection:bg-indigo-600 selection:text-white antialiased">
+    <div className="min-h-screen bg-bg-base text-text-main font-sans selection:bg-indigo-600 selection:text-white antialiased transition-colors duration-200">
       <Navbar
         currentRoute={currentRoute}
         setCurrentRoute={setCurrentRoute}

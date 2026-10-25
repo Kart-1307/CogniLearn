@@ -222,7 +222,7 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
   };
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 relative bg-[#0B0F17] text-slate-100 font-sans overflow-hidden">
+    <div className="min-h-[calc(100vh-5rem)] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 relative bg-transparent text-slate-900 dark:text-slate-100 font-sans overflow-hidden">
       {/* Background Grid & Ambient Glow */}
       <div className="grid-bg" />
       <div className="glow-effect" />
@@ -231,10 +231,10 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
       <div className="max-w-5xl mx-auto w-full mb-6 relative z-10">
         <button
           onClick={() => setCurrentRoute('landing')}
-          className="inline-flex items-center space-x-2 text-xs font-medium text-slate-400 hover:text-white transition-colors cursor-pointer group"
+          className="inline-flex items-center space-x-2 text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer group"
           id="teacher-auth-back-btn"
         >
-          <ArrowLeft className="h-4 w-4 text-indigo-400 group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeft className="h-4 w-4 text-indigo-500 dark:text-indigo-400 group-hover:-translate-x-1 transition-transform" />
           <span>Back to Home</span>
         </button>
       </div>
@@ -242,80 +242,80 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
       {/* Split-Screen Portal Container */}
       <div className="max-w-5xl mx-auto w-full grid lg:grid-cols-12 gap-8 items-center relative z-10">
         {/* LEFT COLUMN: Live AI Classroom Showcase Card */}
-        <div className="lg:col-span-5 hidden lg:flex flex-col space-y-6 saas-card p-8 rounded-xl border border-slate-800 shadow-2xl relative text-slate-100">
-          <div className="inline-flex items-center space-x-2 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-md text-xs font-medium text-indigo-300 w-fit backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+        <div className="lg:col-span-5 hidden lg:flex flex-col space-y-6 saas-card p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl relative text-slate-900 dark:text-slate-100">
+          <div className="inline-flex items-center space-x-2 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-md text-xs font-medium text-indigo-700 dark:text-indigo-300 w-fit backdrop-blur-md">
+            <Sparkles className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" />
             <span>AI Educator Intelligence Suite</span>
           </div>
 
           <div>
-            <h3 className="text-2xl font-heading font-extrabold text-white leading-snug">
+            <h3 className="text-2xl font-heading font-extrabold text-slate-900 dark:text-white leading-snug">
               Real-Time Classroom Engagement Analytics
             </h3>
-            <p className="mt-2 text-xs text-slate-300 font-normal leading-relaxed">
+            <p className="mt-2 text-xs text-slate-600 dark:text-slate-300 font-normal leading-relaxed">
               Empower your teaching with automated cognitive focus monitoring, baseline diagnostics, and instant student attention alerts.
             </p>
           </div>
 
           {/* Live Teaser Metrics Card */}
           <div className="space-y-3 pt-2">
-            <div className="bg-slate-900/60 border border-slate-800/80 p-3.5 rounded-lg flex items-center justify-between">
+            <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-3.5 rounded-xl flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-md border border-emerald-500/20">
+                <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-500/20">
                   <Activity className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-200">Avg Class Engagement</p>
-                  <p className="text-[11px] text-slate-400 font-mono">32 Students Active</p>
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-200">Avg Class Engagement</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">32 Students Active</p>
                 </div>
               </div>
-              <span className="text-lg font-mono font-bold text-emerald-400">94.8%</span>
+              <span className="text-lg font-mono font-bold text-emerald-600 dark:text-emerald-400">94.8%</span>
             </div>
 
-            <div className="bg-slate-900/60 border border-slate-800/80 p-3.5 rounded-lg flex items-center justify-between">
+            <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-3.5 rounded-xl flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-amber-500/10 text-amber-400 rounded-md border border-amber-500/20">
+                <div className="p-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-md border border-amber-500/20">
                   <Users className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-200">Attention Risk Alerts</p>
-                  <p className="text-[11px] text-slate-400 font-mono">Automated Intervention</p>
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-200">Attention Risk Alerts</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">Automated Intervention</p>
                 </div>
               </div>
-              <span className="text-xs font-mono font-medium bg-emerald-500/10 text-emerald-300 py-1 px-2.5 rounded border border-emerald-500/20">0 Critical</span>
+              <span className="text-xs font-mono font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 py-1 px-2.5 rounded border border-emerald-500/20">0 Critical</span>
             </div>
 
-            <div className="bg-slate-900/60 border border-slate-800/80 p-3.5 rounded-lg flex items-center justify-between">
+            <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-3.5 rounded-xl flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-md border border-indigo-500/20">
+                <div className="p-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-md border border-indigo-500/20">
                   <BarChart3 className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-200">Cognitive Baseline Index</p>
-                  <p className="text-[11px] text-slate-400 font-mono">CBSE & KV Standard</p>
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-200">Cognitive Baseline Index</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">CBSE & KV Standard</p>
                 </div>
               </div>
-              <span className="text-lg font-mono font-bold text-indigo-400">88.5</span>
+              <span className="text-lg font-mono font-bold text-indigo-600 dark:text-indigo-400">88.5</span>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex items-center space-x-2 text-xs text-slate-400">
-            <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
+            <ShieldCheck className="h-4 w-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
             <span>FERPA & Student Data Privacy Compliant</span>
           </div>
         </div>
 
         {/* RIGHT COLUMN: Interactive Form Container */}
-        <div className="lg:col-span-7 saas-card p-6 sm:p-10 rounded-xl border border-slate-800 shadow-2xl text-slate-100">
+        <div className="lg:col-span-7 saas-card p-6 sm:p-10 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl text-slate-900 dark:text-slate-100">
           {/* Header section */}
           <div className="text-left mb-8">
-            <div className="h-12 w-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4 shadow-sm">
+            <div className="h-12 w-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4 shadow-xs">
               <School className="h-6 w-6" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-white">
+            <h2 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-slate-900 dark:text-white">
               {mode === 'login' ? 'Educator & Admin Portal' : 'Register Educator Profile'}
             </h2>
-            <p className="mt-2 text-xs sm:text-sm text-slate-300 font-normal leading-relaxed">
+            <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-normal leading-relaxed">
               {mode === 'login'
                 ? 'Sign in with your institutional credentials to view real-time classroom focus analytics'
                 : 'Create an administrator account to start tracking student focus analytics'}
@@ -326,19 +326,19 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
           {mode === 'login' ? (
             <form onSubmit={handleLoginSubmit} className="space-y-5" id="teacher-login-form" autoComplete="off">
               {errors.submit && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-300 text-xs font-medium flex items-start space-x-2">
-                  <AlertCircle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
+                <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-700 dark:text-rose-300 text-xs font-medium flex items-start space-x-2">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-rose-500 mt-0.5" />
                   <span>{errors.submit}</span>
                 </div>
               )}
               {/* Work Email input */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label htmlFor="email" className="block text-xs font-semibold text-slate-200">
+                  <label htmlFor="email" className="block text-xs font-semibold text-slate-700 dark:text-slate-200">
                     Work Email Address
                   </label>
                   {email && isVerifiedDomain(email) && (
-                    <span className="text-xs font-medium text-emerald-400 flex items-center space-x-1">
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
                       <ShieldCheck className="h-3.5 w-3.5" />
                       <span>Verified Institution</span>
                     </span>
@@ -363,15 +363,15 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="teacher@school.edu"
-                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.email
+                    className={`block w-full pl-10 pr-4 py-2.5 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-400 ${errors.email
                         ? 'border border-rose-500'
-                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
+                        : 'border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500'
                       }`}
                   />
                 </div>
                 {errors.email && (
-                  <p className="mt-2 text-xs font-medium text-rose-400 flex items-center space-x-1" id="email-error">
-                    <AlertCircle className="h-3 w-3 shrink-0 text-rose-400" />
+                  <p className="mt-2 text-xs font-medium text-rose-600 dark:text-rose-400 flex items-center space-x-1" id="email-error">
+                    <AlertCircle className="h-3 w-3 shrink-0 text-rose-500" />
                     <span>{errors.email}</span>
                   </p>
                 )}
@@ -379,7 +379,7 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
 
               {/* Password input */}
               <div>
-                <label htmlFor="password" className="block text-xs font-semibold text-slate-200 mb-2">
+                <label htmlFor="password" className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -401,23 +401,23 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
                       }
                     }}
                     placeholder="••••••••"
-                    className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-slate-900 text-slate-100 text-sm focus:outline-none transition-all placeholder:opacity-50 ${errors.password
+                    className={`block w-full pl-10 pr-10 py-2.5 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none transition-all placeholder:text-slate-400 ${errors.password
                         ? 'border border-rose-500'
-                        : 'border border-slate-800 focus:ring-2 focus:ring-indigo-500'
+                        : 'border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500'
                       }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-white"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="mt-2 text-xs font-medium text-rose-400 flex items-center space-x-1" id="password-error">
-                    <AlertCircle className="h-3 w-3 shrink-0 text-rose-400" />
+                  <p className="mt-2 text-xs font-medium text-rose-600 dark:text-rose-400 flex items-center space-x-1" id="password-error">
+                    <AlertCircle className="h-3 w-3 shrink-0 text-rose-500" />
                     <span>{errors.password}</span>
                   </p>
                 )}
@@ -446,36 +446,36 @@ export const TeacherAuth: React.FC<TeacherAuthProps> = ({ mode, setCurrentRoute,
               </div>
 
               {/* Switch view toggle */}
-              <div className="pt-4 border-t border-slate-800 flex flex-col space-y-4">
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col space-y-4">
                 <button
                   type="button"
                   onClick={() => setCurrentRoute('teacher-signup')}
-                  className="w-full py-2.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-200 hover:text-white text-xs font-semibold transition-all cursor-pointer text-center"
+                  className="w-full py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-900/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white text-xs font-semibold transition-all cursor-pointer text-center"
                   id="btn-teacher-goto-signup"
                 >
                   Register New Educator Account
                 </button>
 
                 {/* Quick Mock Login Helper */}
-                <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl text-center space-y-3">
-                  <p className="text-xs font-semibold text-slate-300 flex items-center justify-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-4 rounded-xl text-center space-y-3">
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
                     <span>Try Sandbox Educator Demos (With Pre-loaded Stats)</span>
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => handleQuickDemoLogin('school')}
-                      className="inline-flex items-center justify-center space-x-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 py-2 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                      className="inline-flex items-center justify-center space-x-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-600/20 dark:hover:bg-indigo-600/30 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 py-2 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-colors shadow-xs"
                       id="btn-teacher-instant-demo-school"
                     >
-                      <School className="h-3.5 w-3.5 text-indigo-400" />
+                      <School className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400" />
                       <span>School Teacher (Class 10-A)</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleQuickDemoLogin('college')}
-                      className="inline-flex items-center justify-center space-x-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 text-cyan-300 py-2 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                      className="inline-flex items-center justify-center space-x-1.5 bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-600/20 dark:hover:bg-cyan-600/30 border border-cyan-200 dark:border-cyan-500/30 text-cyan-700 dark:text-cyan-300 py-2 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-colors shadow-xs"
                       id="btn-teacher-instant-demo-college"
                     >
                       <Building2 className="h-3.5 w-3.5 text-cyan-400" />

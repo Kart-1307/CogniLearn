@@ -92,24 +92,24 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
       <div 
-        className="w-full max-w-xl rounded-2xl shadow-2xl border border-slate-800 overflow-hidden transition-all relative bg-[#131C2E] text-slate-100"
+        className="w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-all relative bg-white dark:bg-[#131C2E] text-slate-800 dark:text-slate-100"
       >
         {/* Header Ribbon */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/60">
           <div className="flex items-center space-x-3.5">
-            <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-sm">
+            <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 shadow-sm">
               <HeartPulse className="h-5 w-5 animate-pulse" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-mono font-semibold uppercase tracking-widest text-indigo-400">
+                <span className="text-[10px] font-mono font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
                   [ADAPTIVE BIO-BREAK TRIGGERED]
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                   Focus: {triggerFocusScore}%
                 </span>
               </div>
-              <h3 className="text-lg font-bold tracking-tight text-white leading-tight mt-0.5">
+              <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight mt-0.5">
                 Take a 60-Second Cognitive Reset, {studentName}
               </h3>
             </div>
@@ -117,7 +117,7 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
 
           <button
             onClick={handleDismiss}
-            className="p-1.5 rounded-xl border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             title="Skip Break"
           >
             <X className="h-4 w-4" />
@@ -127,13 +127,13 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
         {/* Content Body */}
         <div className="p-6 space-y-6">
           {/* Mode Tabs */}
-          <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800/80 font-mono text-xs">
+          <div className="flex gap-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 font-mono text-xs">
             <button
               onClick={() => setActiveMode('box-breathing')}
               className={`flex-1 py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
                 activeMode === 'box-breathing'
                   ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
               <HeartPulse className="h-3.5 w-3.5" />
@@ -144,7 +144,7 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
               className={`flex-1 py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
                 activeMode === '20-20-20-eyes'
                   ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
               <Eye className="h-3.5 w-3.5" />
@@ -155,7 +155,7 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
               className={`flex-1 py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5 ${
                 activeMode === 'neck-stretch'
                   ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
               <Zap className="h-3.5 w-3.5" />
@@ -164,7 +164,7 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
           </div>
 
           {/* Interactive Visualizer */}
-          <div className="p-6 rounded-2xl border border-slate-800 bg-slate-950/80 flex flex-col items-center justify-center relative overflow-hidden min-h-[220px]">
+          <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 flex flex-col items-center justify-center relative overflow-hidden min-h-[220px]">
             {activeMode === 'box-breathing' && (
               <div className="flex flex-col items-center text-center space-y-4">
                 {/* Expanding / Contracting Breathing Circle */}
@@ -183,16 +183,16 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
                     }}
                   />
                   <div className="relative z-10 text-center">
-                    <span className="text-xl font-bold text-indigo-400 block tracking-tight">
+                    <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400 block tracking-tight">
                       {breathingPhase}
                     </span>
-                    <span className="text-2xl font-mono font-bold text-white">
+                    <span className="text-2xl font-mono font-bold text-slate-900 dark:text-white">
                       {phaseCounter}s
                     </span>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-400 font-sans max-w-sm">
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-sans max-w-sm">
                   Inhale gently through your nose, hold your breath, exhale completely, then pause before the next cycle.
                 </p>
               </div>
@@ -200,16 +200,16 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
 
             {activeMode === '20-20-20-eyes' && (
               <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-1">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 dark:text-emerald-400 mb-1">
                   <Eye className="h-8 w-8 animate-pulse" />
                 </div>
-                <h4 className="font-bold text-sm text-emerald-400 tracking-tight">
+                <h4 className="font-bold text-sm text-emerald-600 dark:text-emerald-400 tracking-tight">
                   Ocular Distance Decompression
                 </h4>
-                <p className="text-xs text-slate-400 font-sans max-w-sm leading-relaxed">
-                  Look away from your screen at an object at least <strong className="text-white">20 feet away</strong> (e.g. out a window or across the room). Soften your gaze and blink 5 times.
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-sans max-w-sm leading-relaxed">
+                  Look away from your screen at an object at least <strong className="text-slate-900 dark:text-white">20 feet away</strong> (e.g. out a window or across the room). Soften your gaze and blink 5 times.
                 </p>
-                <div className="text-[11px] font-mono font-medium text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                <div className="text-[11px] font-mono font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
                   Target: 20ft away • Relieves ciliary muscle spasm
                 </div>
               </div>
@@ -217,16 +217,16 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
 
             {activeMode === 'neck-stretch' && (
               <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-1">
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 dark:text-amber-400 mb-1">
                   <Zap className="h-8 w-8" />
                 </div>
-                <h4 className="font-bold text-sm text-amber-400 tracking-tight">
+                <h4 className="font-bold text-sm text-amber-600 dark:text-amber-400 tracking-tight">
                   Cervical Spine Relaxation
                 </h4>
-                <p className="text-xs text-slate-400 font-sans max-w-sm leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-sans max-w-sm leading-relaxed">
                   Gently roll your shoulders backward 5 times. Drop your right ear toward your right shoulder for 10s, then switch to the left. Keep breathing steadily.
                 </p>
-                <div className="text-[11px] font-mono font-medium text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+                <div className="text-[11px] font-mono font-medium text-amber-700 dark:text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
                   Relieves trapezius tension & restores blood flow
                 </div>
               </div>
@@ -234,10 +234,10 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
           </div>
 
           {/* Countdown Clock & Status Bar */}
-          <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono">
+          <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono">
             <div className="flex items-center space-x-2">
-              <span className="text-slate-400">Time Remaining:</span>
-              <span className="font-bold text-indigo-400 text-base">
+              <span className="text-slate-500 dark:text-slate-400">Time Remaining:</span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-400 text-base">
                 {secondsRemaining}s
               </span>
             </div>
@@ -245,7 +245,7 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setIsActive(!isActive)}
-                className="p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                 title={isActive ? 'Pause' : 'Resume'}
               >
                 {isActive ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 fill-current" />}
@@ -256,7 +256,7 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
                   setPhaseCounter(4);
                   setIsActive(true);
                 }}
-                className="p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                 title="Restart Timer"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
@@ -266,10 +266,10 @@ export const FocusBreakModal: React.FC<FocusBreakModalProps> = ({
         </div>
 
         {/* Action Footer */}
-        <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between bg-slate-900/60">
+        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/60">
           <button
             onClick={handleDismiss}
-            className="text-xs font-mono font-medium uppercase tracking-wider px-4 py-2 rounded-xl cursor-pointer text-slate-400 hover:text-white transition-colors"
+            className="text-xs font-mono font-medium uppercase tracking-wider px-4 py-2 rounded-xl cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors"
           >
             Skip for now
           </button>

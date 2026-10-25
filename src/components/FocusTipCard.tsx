@@ -35,7 +35,7 @@ export const InfoTooltip: React.FC<{
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}
           className={`p-1 rounded-full cursor-help transition-colors ${
-            isDark ? 'text-slate-400 hover:text-amber-400 hover:bg-slate-800' : 'text-[#1C1B1A]/50 hover:text-[#B18F5A] hover:bg-[#1C1B1A]/5'
+            isDark ? 'text-slate-400 hover:text-amber-400 hover:bg-slate-800' : 'text-slate-500 hover:text-amber-600 hover:bg-slate-100'
           }`}
           aria-label={title || 'Information'}
         >
@@ -52,19 +52,19 @@ export const InfoTooltip: React.FC<{
             transition={{ duration: 0.15 }}
             className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 p-3 rounded-xl border shadow-xl z-50 text-left pointer-events-none ${
               isDark 
-                ? 'bg-[#0F172A] border-amber-500/30 text-slate-200 shadow-black/60' 
-                : 'bg-white border-[#B18F5A]/40 text-[#1C1B1A] shadow-xl'
+                ? 'bg-slate-900 border-amber-500/30 text-slate-200 shadow-black/60' 
+                : 'bg-white border-slate-200 text-slate-800 shadow-xl'
             }`}
           >
             {title && (
               <div className="flex items-center space-x-1.5 mb-1">
-                <Lightbulb className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                <span className="font-heading font-bold text-xs text-amber-400">{title}</span>
+                <Lightbulb className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
+                <span className="font-heading font-bold text-xs text-amber-600 dark:text-amber-400">{title}</span>
               </div>
             )}
             <p className="text-[11px] leading-relaxed font-sans font-medium">{content}</p>
             <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 border-r border-b ${
-              isDark ? 'bg-[#0F172A] border-amber-500/30' : 'bg-white border-[#B18F5A]/40'
+              isDark ? 'bg-slate-900 border-amber-500/30' : 'bg-white border-slate-200'
             }`} />
           </motion.div>
         )}
@@ -166,19 +166,19 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
       {/* Header with Title and Performance Tag */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div className="flex items-center space-x-2.5">
-          <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 shrink-0">
+          <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-500 dark:text-amber-400 shrink-0">
             <Lightbulb className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
-              <h3 className="font-heading font-bold text-lg text-white">Daily Focus Intelligence</h3>
+              <h3 className="font-heading font-bold text-lg text-slate-900 dark:text-white">Daily Focus Intelligence</h3>
               <InfoTooltip
                 title="AI Focus Science"
                 content="CogniLearn evaluates your real-time gaze vectors, streak duration, and task completion speed to generate personalized focus optimization strategies."
                 isDark={isDark}
               />
             </div>
-            <p className="text-[11px] font-sans font-medium text-slate-300">
+            <p className="text-[11px] font-sans font-medium text-slate-600 dark:text-slate-300">
               Tailored study & eye ergonomics advice based on your current {focusScore}% Focus Score
             </p>
           </div>
@@ -192,41 +192,41 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
       </div>
 
       {/* Tip Content Card */}
-      <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/80 mb-4 relative">
+      <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 mb-4 relative">
         {!isCustomAi ? (
           <div>
-            <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest font-bold text-amber-400 mb-2">
+            <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest font-bold text-amber-600 dark:text-amber-400 mb-2">
               <span className="flex items-center space-x-1">
                 <TipIcon className="h-3.5 w-3.5" />
                 <span>{currentTip.category}</span>
               </span>
-              <span className="text-slate-400">Tip #{tipIndex + 1} of {focusTips.length}</span>
+              <span className="text-slate-500 dark:text-slate-400">Tip #{tipIndex + 1} of {focusTips.length}</span>
             </div>
 
-            <h4 className="font-heading font-bold text-sm text-white mb-1.5">{currentTip.title}</h4>
-            <p className="text-xs font-sans leading-relaxed mb-2 font-medium text-slate-200">
+            <h4 className="font-heading font-bold text-sm text-slate-900 dark:text-white mb-1.5">{currentTip.title}</h4>
+            <p className="text-xs font-sans leading-relaxed mb-2 font-medium text-slate-700 dark:text-slate-200">
               {currentTip.suggestion}
             </p>
-            <div className="text-[11px] font-mono p-2 rounded-lg border bg-amber-500/10 border-amber-500/20 text-amber-300">
+            <div className="text-[11px] font-mono p-2 rounded-lg border bg-amber-500/10 border-amber-500/20 text-amber-800 dark:text-amber-300">
               ⚡ <strong>Expected Impact:</strong> {currentTip.impact}
             </div>
           </div>
         ) : (
           <div>
-            <div className="flex items-center space-x-1 text-[10px] font-mono uppercase tracking-widest font-bold text-rose-400 mb-2">
+            <div className="flex items-center space-x-1 text-[10px] font-mono uppercase tracking-widest font-bold text-rose-600 dark:text-rose-400 mb-2">
               <Sparkles className="h-3.5 w-3.5" />
               <span>Personalized AI Focus Recommendation</span>
             </div>
-            <h4 className="font-heading font-bold text-sm text-white mb-1.5">
+            <h4 className="font-heading font-bold text-sm text-slate-900 dark:text-white mb-1.5">
               {focusScore >= 80 ? 'Maintain High Flow & Vision Comfort' : 'Micro-Reset Strategy for High Attention'}
             </h4>
-            <p className="text-xs font-sans leading-relaxed mb-2 font-medium text-slate-200">
+            <p className="text-xs font-sans leading-relaxed mb-2 font-medium text-slate-700 dark:text-slate-200">
               {focusScore >= 80
                 ? `You have logged ${completedSessions} study slots with an impressive ${focusScore}% focus average! To sustain this level for upcoming tests, take a 5-minute break every 25 minutes and dim non-essential background lights.`
                 : `Your live attention diagnostic is at ${focusScore}%. Take 3 deep breaths, adjust your chair height so your eyes align with the camera top, and run a short 15-minute diagnostic block to rebuild focus momentum.`
               }
             </p>
-            <div className="text-[11px] font-mono p-2 rounded-lg border bg-rose-500/10 border-rose-500/20 text-rose-300">
+            <div className="text-[11px] font-mono p-2 rounded-lg border bg-rose-500/10 border-rose-500/20 text-rose-700 dark:text-rose-300">
               🎯 <strong>Pro Tip:</strong> {streakDays}-day active streak multiplier (+1.2x XP) active!
             </div>
           </div>
@@ -240,10 +240,10 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
             type="button"
             onClick={handleNextTip}
             className={`px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider rounded-lg border transition-all cursor-pointer flex items-center space-x-1.5 ${
-              isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-600 text-white' : 'bg-white hover:bg-gray-100 border-[#1C1B1A]/30 text-[#1C1B1A]'
+              isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
             }`}
           >
-            <RefreshCw className="h-3 w-3 text-amber-400" />
+            <RefreshCw className="h-3 w-3 text-amber-500 dark:text-amber-400" />
             <span>Next Strategy</span>
           </button>
 
@@ -251,7 +251,7 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
             type="button"
             onClick={handleGenerateAiTip}
             className={`px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider rounded-lg border transition-all cursor-pointer flex items-center space-x-1.5 ${
-              isDark ? 'bg-rose-950/60 hover:bg-rose-900/80 border-rose-800 text-[#FF5A5F]' : 'bg-rose-50 hover:bg-rose-100 border-rose-300 text-rose-800'
+              isDark ? 'bg-rose-950/60 hover:bg-rose-900/80 border-rose-800 text-[#FF5A5F]' : 'bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-700'
             }`}
           >
             <Sparkles className="h-3 w-3" />
@@ -265,7 +265,7 @@ export const FocusTipCard: React.FC<FocusTipCardProps> = ({
           className={`px-3.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider rounded-lg border transition-all cursor-pointer flex items-center space-x-1.5 ${
             isApplied 
               ? 'bg-emerald-600 border-emerald-600 text-white' 
-              : isDark ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30' : 'bg-[#1C1B1A] border-[#1C1B1A] text-white'
+              : isDark ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30' : 'bg-slate-900 hover:bg-slate-800 border-slate-900 text-white'
           }`}
         >
           <CheckCircle2 className="h-3.5 w-3.5" />
