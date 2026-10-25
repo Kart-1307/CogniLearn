@@ -84,19 +84,19 @@ export const ResetDatabaseModal: React.FC<ResetDatabaseModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-lg bg-[#131C2E] border border-slate-800 shadow-2xl rounded-2xl overflow-hidden text-slate-100 font-sans"
+          className="relative w-full max-w-lg bg-white dark:bg-[#131C2E] border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden text-slate-800 dark:text-slate-100 font-sans"
         >
           {/* Header Bar */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/60">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
             <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 dark:text-amber-400">
                 <Database className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-xl font-bold tracking-tight text-white leading-none">
+                <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">
                   Reset Database
                 </h3>
-                <p className="text-[10px] text-amber-400 font-mono uppercase tracking-widest font-semibold mt-1">
+                <p className="text-[10px] text-amber-600 dark:text-amber-400 font-mono uppercase tracking-widest font-semibold mt-1">
                   Double Confirmation Safety Required ({step}/2)
                 </p>
               </div>
@@ -104,7 +104,7 @@ export const ResetDatabaseModal: React.FC<ResetDatabaseModalProps> = ({
             <button
               onClick={handleClose}
               disabled={isResetting}
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors cursor-pointer disabled:opacity-30"
+              className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer disabled:opacity-30"
               title="Close modal"
             >
               <X className="h-5 w-5" />
@@ -114,43 +114,43 @@ export const ResetDatabaseModal: React.FC<ResetDatabaseModalProps> = ({
           {/* Modal Content */}
           <div className="p-6 space-y-5">
             {successMessage ? (
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs font-mono flex items-center space-x-3">
-                <CheckCircle2 className="h-6 w-6 text-emerald-400 shrink-0" />
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 text-xs font-mono flex items-center space-x-3">
+                <CheckCircle2 className="h-6 w-6 text-emerald-500 dark:text-emerald-400 shrink-0" />
                 <div>
                   <p className="font-bold text-sm uppercase tracking-wider">Reset Successful!</p>
-                  <p className="text-emerald-400/80 mt-0.5">{successMessage}</p>
+                  <p className="text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">{successMessage}</p>
                 </div>
               </div>
             ) : step === 1 ? (
               /* Step 1: Initial Warning & Summary */
               <div className="space-y-4">
-                <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start space-x-3 text-amber-300 text-xs">
-                  <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl flex items-start space-x-3 text-amber-700 dark:text-amber-300 text-xs">
+                  <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold uppercase tracking-wider text-amber-200">
+                    <p className="font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-200">
                       Step 1 of 2: Factory Data Purge Notice
                     </p>
-                    <p className="text-slate-300 mt-0.5 text-[11px] leading-relaxed">
+                    <p className="text-slate-600 dark:text-slate-300 mt-0.5 text-[11px] leading-relaxed">
                       You are about to trigger a full database reset. Please review the items affected below before proceeding to final confirmation.
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl space-y-2.5 text-xs font-medium">
-                  <p className="text-[10px] font-mono uppercase tracking-widest font-semibold text-slate-400 mb-2">
+                <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-4 rounded-xl space-y-2.5 text-xs font-medium">
+                  <p className="text-[10px] font-mono uppercase tracking-widest font-semibold text-slate-500 dark:text-slate-400 mb-2">
                     Action Impact Summary:
                   </p>
-                  <div className="flex items-start space-x-2.5 text-rose-300">
-                    <Trash2 className="h-4 w-4 shrink-0 mt-0.5 text-rose-400" />
+                  <div className="flex items-start space-x-2.5 text-rose-600 dark:text-rose-300">
+                    <Trash2 className="h-4 w-4 shrink-0 mt-0.5 text-rose-500 dark:text-rose-400" />
                     <span>Purges custom registered student and teacher user accounts.</span>
                   </div>
-                  <div className="flex items-start space-x-2.5 text-rose-300">
-                    <Trash2 className="h-4 w-4 shrink-0 mt-0.5 text-rose-400" />
+                  <div className="flex items-start space-x-2.5 text-rose-600 dark:text-rose-300">
+                    <Trash2 className="h-4 w-4 shrink-0 mt-0.5 text-rose-500 dark:text-rose-400" />
                     <span>Clears all recorded focus sessions, baseline scores, and telemetry.</span>
                   </div>
-                  <div className="flex items-start space-x-2.5 text-emerald-300">
-                    <RefreshCw className="h-4 w-4 shrink-0 mt-0.5 text-emerald-400" />
-                    <span>Restores default demo accounts (<code className="bg-slate-950 px-1.5 py-0.5 rounded text-white font-mono text-[10px]">student@cognilearn.com</code> & <code className="bg-slate-950 px-1.5 py-0.5 rounded text-white font-mono text-[10px]">teacher@cognilearn.com</code>).</span>
+                  <div className="flex items-start space-x-2.5 text-emerald-600 dark:text-emerald-300">
+                    <RefreshCw className="h-4 w-4 shrink-0 mt-0.5 text-emerald-500 dark:text-emerald-400" />
+                    <span>Restores default demo accounts (<code className="bg-slate-200 dark:bg-slate-950 px-1.5 py-0.5 rounded text-slate-800 dark:text-white font-mono text-[10px]">student@cognilearn.com</code> & <code className="bg-slate-200 dark:bg-slate-950 px-1.5 py-0.5 rounded text-slate-800 dark:text-white font-mono text-[10px]">teacher@cognilearn.com</code>).</span>
                   </div>
                 </div>
 
@@ -158,7 +158,7 @@ export const ResetDatabaseModal: React.FC<ResetDatabaseModalProps> = ({
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono uppercase tracking-wider font-medium transition-colors cursor-pointer rounded-xl border border-slate-700"
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-xs font-mono uppercase tracking-wider font-medium transition-colors cursor-pointer rounded-xl border dark:border-slate-700"
                   >
                     Cancel
                   </button>
@@ -175,20 +175,20 @@ export const ResetDatabaseModal: React.FC<ResetDatabaseModalProps> = ({
             ) : (
               /* Step 2: Double Confirmation with "RESET" typing */
               <div className="space-y-4">
-                <div className="p-4 bg-rose-950/40 border border-rose-800/80 rounded-xl flex items-start space-x-3 text-rose-200 text-xs">
-                  <ShieldAlert className="h-6 w-6 text-rose-400 shrink-0" />
+                <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 rounded-xl flex items-start space-x-3 text-rose-700 dark:text-rose-200 text-xs">
+                  <ShieldAlert className="h-6 w-6 text-rose-500 dark:text-rose-400 shrink-0" />
                   <div>
-                    <p className="font-semibold uppercase tracking-wider text-rose-300 text-sm">
+                    <p className="font-semibold uppercase tracking-wider text-rose-800 dark:text-rose-300 text-sm">
                       Step 2 of 2: Final Confirmation
                     </p>
-                    <p className="text-rose-200/80 mt-1 text-[11px] leading-relaxed">
-                      This action cannot be undone. To prevent accidental resets, type <span className="font-bold text-white underline">RESET</span> in capital letters below.
+                    <p className="text-rose-600/90 dark:text-rose-200/80 mt-1 text-[11px] leading-relaxed">
+                      This action cannot be undone. To prevent accidental resets, type <span className="font-bold text-rose-900 dark:text-white underline">RESET</span> in capital letters below.
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-400 mb-1.5">
+                  <label className="block text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">
                     Security Key:
                   </label>
                   <input
@@ -197,22 +197,22 @@ export const ResetDatabaseModal: React.FC<ResetDatabaseModalProps> = ({
                     onChange={(e) => setConfirmationInput(e.target.value)}
                     placeholder='Type "RESET" here'
                     disabled={isResetting}
-                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-rose-900/60 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 font-mono tracking-widest uppercase placeholder:opacity-40"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-rose-300 dark:border-rose-900/60 rounded-xl text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 font-mono tracking-widest uppercase placeholder:opacity-40"
                   />
                   {errorMessage && (
-                    <p className="text-[11px] text-rose-400 font-mono font-medium mt-1.5 flex items-center space-x-1">
+                    <p className="text-[11px] text-rose-600 dark:text-rose-400 font-mono font-medium mt-1.5 flex items-center space-x-1">
                       <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                       <span>{errorMessage}</span>
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+                <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
                   <button
                     type="button"
                     onClick={handleBackToStep1}
                     disabled={isResetting}
-                    className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono uppercase tracking-wider font-medium transition-colors cursor-pointer rounded-xl border border-slate-700 disabled:opacity-50"
+                    className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 text-xs font-mono uppercase tracking-wider font-medium transition-colors cursor-pointer rounded-xl border dark:border-slate-700 disabled:opacity-50"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
                     <span>Back</span>

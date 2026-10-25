@@ -1,41 +1,81 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-heading: "Plus Jakarta Sans", "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   --font-brand: "Plus Jakarta Sans", sans-serif;
   
-  --color-primary: #4F46E5;
-  --color-primary-hover: #4338CA;
-  --color-accent-sky: #38BDF8;
-  --color-bg-base: #0B0F17;
-  --color-bg-surface: #131C2E;
-  --color-border-subtle: #1E293B;
-  --color-text-main: #F8FAFC;
-  --color-text-muted: #94A3B8;
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent-sky: var(--accent-sky);
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-border-subtle: var(--border-subtle);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
 }
 
 :root {
-  --bg: #0B0F17;
-  --surface: #131C2E;
-  --border: #1E293B;
-  --ink: #F8FAFC;
-  --ink-muted: #94A3B8;
+  --bg-base: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #F1F5F9;
+  --border-subtle: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --text-main: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
   --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --primary-light: #EEF2FF;
+  --accent-sky: #0284C7;
+  --sky: #0284C7;
+  --emerald: #059669;
+  --amber: #D97706;
+  --rose: #E11D48;
+  --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --card-hover-shadow: 0 12px 30px -4px rgba(79, 70, 229, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.06);
+  --grid-color: rgba(15, 23, 42, 0.035);
+  --glow-color: radial-gradient(circle, rgba(79, 70, 229, 0.07) 0%, rgba(56, 189, 248, 0.03) 40%, rgba(255, 255, 255, 0) 70%);
+  --nav-bg: rgba(255, 255, 255, 0.88);
+  --nav-border: rgba(226, 232, 240, 0.9);
+}
+
+.dark {
+  --bg-base: #0B0F17;
+  --bg-surface: #131C2E;
+  --bg-surface-elevated: #1E293B;
+  --border-subtle: #1E293B;
+  --border-strong: #334155;
+  --text-main: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --primary: #6366F1;
+  --primary-hover: #4F46E5;
+  --primary-light: rgba(99, 102, 241, 0.15);
+  --accent-sky: #38BDF8;
   --sky: #38BDF8;
   --emerald: #10B981;
   --amber: #F59E0B;
   --rose: #EF4444;
+  --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  --card-hover-shadow: 0 12px 30px -4px rgba(99, 102, 241, 0.2);
+  --grid-color: rgba(255, 255, 255, 0.03);
+  --glow-color: radial-gradient(circle, rgba(79, 70, 229, 0.12) 0%, rgba(56, 189, 248, 0.04) 40%, rgba(0, 0, 0, 0) 70%);
+  --nav-bg: rgba(11, 15, 23, 0.88);
+  --nav-border: rgba(30, 41, 59, 0.8);
 }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--bg);
-  color: var(--ink);
+  background-color: var(--bg-base);
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .font-heading {
@@ -50,8 +90,8 @@ body {
 
 .grid-bg {
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
   background-size: 40px 40px;
   position: absolute;
   inset: 0;
@@ -62,7 +102,7 @@ body {
   position: absolute;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(79, 70, 229, 0.12) 0%, rgba(56, 189, 248, 0.04) 40%, rgba(0, 0, 0, 0) 70%);
+  background: var(--glow-color);
   top: -100px;
   left: 50%;
   transform: translateX(-50%);
@@ -71,11 +111,11 @@ body {
 }
 
 .saas-card {
-  background-color: rgba(19, 28, 46, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.875rem;
+  box-shadow: var(--card-shadow);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .saas-card-hover {
@@ -83,9 +123,9 @@ body {
 }
 
 .saas-card-hover:hover {
-  border-color: rgba(79, 70, 229, 0.4);
+  border-color: var(--primary);
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px -4px rgba(79, 70, 229, 0.15);
+  box-shadow: var(--card-hover-shadow);
 }
 
 ::selection {
@@ -99,13 +139,12 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B0F17;
+  background: var(--bg-base);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: var(--border-strong);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--text-muted);
 }
-
