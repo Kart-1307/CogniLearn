@@ -1,0 +1,82 @@
+[
+  {
+    "timestamp": 1729930000000,
+    "studentId": "mem-user-student-1",
+    "studentName": "Ananya Sharma",
+    "rollNo": "14",
+    "state": "SCREEN_FOCUS",
+    "focusScore": 94.5,
+    "ear": 0.285,
+    "euler": {
+      "pitch": -4.2,
+      "yaw": 1.8,
+      "roll": -0.6
+    },
+    "vitals": {
+      "heartRateBpm": 72,
+      "hrvRmssdMs": 58.4,
+      "sensorContact": true
+    },
+    "annotation": "Focused on digital reading / lecture screen"
+  },
+  {
+    "timestamp": 1729930001000,
+    "studentId": "mem-user-student-1",
+    "studentName": "Ananya Sharma",
+    "rollNo": "14",
+    "state": "NOTE_TAKING",
+    "focusScore": 91.2,
+    "ear": 0.241,
+    "euler": {
+      "pitch": 24.5,
+      "yaw": 3.1,
+      "roll": 1.2
+    },
+    "vitals": {
+      "heartRateBpm": 74,
+      "hrvRmssdMs": 52.1,
+      "sensorContact": true
+    },
+    "annotation": "Head tilted down toward desk; writing notes; steady posture"
+  },
+  {
+    "timestamp": 1729930002000,
+    "studentId": "mem-user-student-1",
+    "studentName": "Ananya Sharma",
+    "rollNo": "14",
+    "state": "COGNITIVE_REFLECTION",
+    "focusScore": 86.0,
+    "ear": 0.270,
+    "euler": {
+      "pitch": -8.5,
+      "yaw": -14.2,
+      "roll": -2.0
+    },
+    "vitals": {
+      "heartRateBpm": 73,
+      "hrvRmssdMs": 55.0,
+      "sensorContact": true
+    },
+    "annotation": "Brief glance away during mental synthesis (<3.5s)"
+  },
+  {
+    "timestamp": 1729930003000,
+    "studentId": "mem-user-student-1",
+    "studentName": "Ananya Sharma",
+    "rollNo": "14",
+    "state": "OFF_TASK",
+    "focusScore": 42.0,
+    "ear": 0.162,
+    "euler": {
+      "pitch": 48.0,
+      "yaw": -36.5,
+      "roll": 12.1
+    },
+    "vitals": {
+      "heartRateBpm": 88,
+      "hrvRmssdMs": 22.8,
+      "sensorContact": true
+    },
+    "annotation": "Steep downward pitch >45 deg and off-axis yaw; smartphone distraction"
+  }
+]

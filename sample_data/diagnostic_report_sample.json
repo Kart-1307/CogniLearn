@@ -1,0 +1,33 @@
+{
+  "sessionId": "session-demo-20261026",
+  "studentIdPseudonym": "d82f3a91b4",
+  "generatedAt": "2026-10-26T12:00:00Z",
+  "model": "gemini-3.0-flash",
+  "deterministicMetrics": {
+    "durationMinutes": 45,
+    "xpEarned": 150,
+    "avgFocusScore": 88.4,
+    "peakFocusScore": 96.2,
+    "screenFocusPercentage": 62.5,
+    "noteTakingPercentage": 28.0,
+    "reflectionPercentage": 6.5,
+    "offTaskPercentage": 3.0,
+    "perclosAverage": 0.082,
+    "averageHeartRateBpm": 74.2,
+    "averageHrvRmssdMs": 54.8
+  },
+  "narrative": {
+    "executiveSummary": "Outstanding deep work session demonstrating sustained analytical concentration. Student spent 90.5% of the block immersed in active reading and paper calculations with minimal micro-distractions.",
+    "fatigueAnalysis": "Ocular aperture (EAR) remained consistent at 0.26 throughout the first 35 minutes. A subtle PERCLOS rise occurred at minute 38, correlating with a minor drop in HRV RMSSD from 58ms to 46ms, reflecting natural cognitive saturation.",
+    "pedagogicalStrengths": [
+      "Disciplined desk ergonomics during mathematical derivation phases",
+      "Low pitch variance (<0.004) confirming absence of covert phone checks",
+      "Stable parasympathetic cardiac rhythm indicating low anxiety during problem solving"
+    ],
+    "actionPlan": [
+      "Implement a 5-minute Box Breathing break at minute 35 before fatigue sets in",
+      "Schedule high-difficulty calculus problems during the morning peak focus window (10:00 AM - 11:30 AM)",
+      "Maintain the 20-20-20 ocular relaxation routine to alleviate ciliary strain"
+    ]
+  }
+}

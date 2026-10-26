@@ -1,0 +1,91 @@
+{
+  "schoolCohort": {
+    "cohortId": "mem-cohort-1",
+    "code": "SCH-KV10",
+    "tier": "school",
+    "name": "Class 10 - Mathematics & Physics",
+    "standard": "Class 10",
+    "section": "A",
+    "subject": "Mathematics",
+    "academicYear": "2026-2027",
+    "room": "Room 204",
+    "teacher": {
+      "id": "mem-user-teacher-1",
+      "name": "Dr. Ramesh Kumar",
+      "email": "teacher@cognilearn.com",
+      "staffId": "DPS-STAFF-104"
+    },
+    "roster": [
+      {
+        "studentId": "mem-user-student-1",
+        "name": "Ananya Sharma",
+        "email": "student@cognilearn.com",
+        "rollNo": "14",
+        "learningStyle": "Visual",
+        "averageFocusScore": 88.5,
+        "totalStudyHours": 24.5,
+        "status": "active"
+      },
+      {
+        "studentId": "mem-user-student-2",
+        "name": "Rohan Gupta",
+        "email": "rohan.g@example.com",
+        "rollNo": "22",
+        "learningStyle": "Kinesthetic",
+        "averageFocusScore": 76.2,
+        "totalStudyHours": 18.0,
+        "status": "active"
+      },
+      {
+        "studentId": "mem-user-student-3",
+        "name": "Priya Nair",
+        "email": "priya.n@example.com",
+        "rollNo": "08",
+        "learningStyle": "Auditory",
+        "averageFocusScore": 92.1,
+        "totalStudyHours": 31.0,
+        "status": "active"
+      }
+    ]
+  },
+  "collegeCohort": {
+    "cohortId": "mem-cohort-2",
+    "code": "COL-CS301",
+    "tier": "college",
+    "name": "B.Tech CSE - Operating Systems & Distributed Systems",
+    "department": "Computer Science & Engineering",
+    "semester": "Semester 5",
+    "section": "CSE-B",
+    "subject": "Operating Systems",
+    "academicYear": "2026-2027",
+    "room": "Lab 4B",
+    "teacher": {
+      "id": "mem-user-teacher-2",
+      "name": "Prof. Sunita Rao",
+      "email": "college-teacher@cognilearn.com",
+      "staffId": "UNI-FAC-889"
+    },
+    "roster": [
+      {
+        "studentId": "mem-user-student-4",
+        "name": "Aarav Patel",
+        "email": "college-student@cognilearn.com",
+        "rollNo": "24CS042",
+        "learningStyle": "Visual",
+        "averageFocusScore": 84.0,
+        "totalStudyHours": 42.0,
+        "status": "active"
+      },
+      {
+        "studentId": "mem-user-student-5",
+        "name": "Sneha Iyer",
+        "email": "sneha.i@example.com",
+        "rollNo": "24CS058",
+        "learningStyle": "Auditory",
+        "averageFocusScore": 89.4,
+        "totalStudyHours": 38.5,
+        "status": "active"
+      }
+    ]
+  }
+}

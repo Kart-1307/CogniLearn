@@ -29,12 +29,12 @@ Unlike traditional monitoring tools that stream intrusive video feeds to the clo
 | Requirement | Artifact / Verification Location | Status |
 | :--- | :--- | :--- |
 | **Setup Steps & Env Config** | [Quickstart Guide](#-getting-started) & [`.env.example`](.env.example) | ✅ Complete & Documented |
-| **Technical Design Document** | [`ARCHITECTURE.md`](ARCHITECTURE.md) (Architecture, ERDs, CV Math) | ✅ Complete & Documented |
-| **Sample Data & Test Cases** | [`scripts/test_pipeline.ts`](scripts/test_pipeline.ts) (`npm test`) & [`supabase-schema.sql`](supabase-schema.sql) | ✅ 100% Passing (6 Suites) |
+| **Technical Design Document** | [`ARCHITECTURE.md`](ARCHITECTURE.md) & [`CogniLearn_System_Architecture_and_Features.pdf`](CogniLearn_System_Architecture_and_Features.pdf) | ✅ Complete (Architecture, ERDs, Formulas) |
+| **Sample Data & Test Cases** | [`sample_data/`](sample_data/) & [`scripts/test_pipeline.ts`](scripts/test_pipeline.ts) (`npm test`) | ✅ 100% Passing (All 7 Test Suites) |
 | **Open Source License** | [`LICENSE`](LICENSE) (Standard MIT License) | ✅ Complete & Verified |
 | **Live Deployed App** | [https://cognilearnpdl.vercel.app/](https://cognilearnpdl.vercel.app/) | ✅ Live Deployed |
 
-> 📖 **Deep Dive Documentation**: For mathematical specifications, Kalman/Hungarian tracking details, and ER diagrams, see [ARCHITECTURE.md](ARCHITECTURE.md).
+> 📖 **Deep Dive Documentation**: For mathematical specifications, Kalman/Hungarian tracking details, and ER diagrams, see [`ARCHITECTURE.md`](ARCHITECTURE.md) or download the formal PDF specification [`CogniLearn_System_Architecture_and_Features.pdf`](CogniLearn_System_Architecture_and_Features.pdf).
 
 ---
 
@@ -45,6 +45,8 @@ Unlike traditional monitoring tools that stream intrusive video feeds to the clo
   - **Account Security**: Real-time password strength meter and cryptographic credentials.
   - **AI Facial Calibration**: In-browser facial calibration reticle powered by MediaPipe Face Mesh; creates a 512-dimensional normalized embedding vector stored locally.
   - **Academic Profiling**: Dual-tier onboarding customized for **School** (Class 6–12, CBSE/ICSE, Board tracks) or **Higher Education** (B.Tech, B.Sc, B.Com, Semesters, Departments).
+- **Multimodal Wearable Vitals (Web Bluetooth GATT)**: Direct browser-to-hardware BLE connection to **Samsung Galaxy Fit3**, **Galaxy Watch**, **Apple Watch**, and BLE heart rate monitors (GATT Service `0x180D`, Characteristic `0x2A37`). Computes live **Heart Rate (BPM)** and **HRV RMSSD (ms)** in a rolling 30-beat FIFO buffer to physiologically cross-validate deep focus vs stress vs fatigue.
+- **Adaptive Dual-Theme SaaS Interface**: Instant toggle between deep slate glassmorphism (dark mode for low-light focus) and high-contrast daylight SaaS (light mode with WCAG 2.1 AA readability), with zero-flicker `localStorage` persistence.
 - **Gamified Focus Timer (Deep Work)**: Customizable Pomodoro blocks (5m to 60m) with ambient audio, streak tracking, and XP reward engines.
 - **AI-Powered Diagnostics & Action Plans**: Post-session diagnostic reports providing cognitive indices, fatigue assessments, and actionable revision schedules synthesized by Google Gemini 3.0 Flash.
 
@@ -85,7 +87,14 @@ graph TD
 ```text
 COGNILEARN/
 ├── ARCHITECTURE.md              # Complete System Architecture & Mathematical Specification
+├── CogniLearn_System_Architecture_and_Features.pdf # Formal PDF Architecture Specification (v2.5.0)
+├── LICENSE                      # Open-Source MIT License
 ├── supabase-schema.sql          # Supabase PostgreSQL DDL (Tables, Constraints, Indexes)
+├── sample_data/                 # Standalone Sample Datasets & Evaluator Fixtures
+│   ├── README.md                # Guide to Sample Telemetry & Rosters
+│   ├── telemetry_sample.json    # 1 Hz Telemetry Frames (States, EAR, Euler, HR/HRV)
+│   ├── cohort_roster_sample.json# School & College Academic Cohort Rosters
+│   └── diagnostic_report_sample.json # Sample Gemini 3.0 Flash AI Diagnostic Output
 ├── server/                      # Express.js Backend Application
 │   ├── index.ts                 # Main Server Entrypoint & Unified Static Serving (:3000)
 │   ├── supabase.ts              # Supabase Client & Relational Mapping Layer
@@ -101,12 +110,12 @@ COGNILEARN/
 │
 ├── src/                         # React 19 Frontend Application
 │   ├── components/
-│   │   ├── Navbar.tsx           # Global Responsive Navigation Bar
+│   │   ├── Navbar.tsx           # Responsive Navigation Bar with Theme & Wearable Toggles
 │   │   ├── LandingPage.tsx      # Platform Hero Page & Architectural Features
 │   │   ├── StudentAuth.tsx      # 3-Step Student Onboarding Wizard
 │   │   ├── TeacherAuth.tsx      # Split-Screen Educator Authentication Portal
-│   │   ├── StudentDashboard.tsx # Student Attention Analytics & Gamified Timer
-│   │   ├── TeacherDashboard.tsx # Educator Live Classroom Monitoring & Tracking
+│   │   ├── StudentDashboard.tsx # Attention Analytics, BLE Vitals HUD & Pomodoro Timer
+│   │   ├── TeacherDashboard.tsx # Educator Live Classroom Monitoring & DeepSORT Tracker
 │   │   ├── AcademicProfileForm.tsx # Dynamic School/College Profile Form
 │   │   ├── ResetDatabaseModal.tsx  # Double-Confirmation Database Purge Dialog
 │   │   └── AccountSettingsModal.tsx # Profile Management & Account Deletion
@@ -115,6 +124,7 @@ COGNILEARN/
 │   │   ├── faceTracker.ts       # MediaPipe Edge Vision & Facial Reticle Engine
 │   │   ├── faceMatcher.ts       # 512-D Cosine Metric Multi-Face Recognizer
 │   │   ├── trackingHarness.ts   # Kalman + Hungarian Multi-Track Association
+│   │   ├── bleHeartRateService.ts # Web Bluetooth GATT (0x180D/0x2A37) HR & HRV RMSSD
 │   │   └── telemetryStream.ts   # Realtime WebSocket Streamer
 │   ├── schemas/
 │   │   └── academic.ts          # Zod Validation Schemas for Curricula & Auth
@@ -123,7 +133,7 @@ COGNILEARN/
 │   └── main.tsx                 # React DOM Root
 │
 ├── scripts/
-│   └── test_pipeline.ts         # Automated Mathematical Verification Test Suite
+│   └── test_pipeline.ts         # Automated 7-Phase Mathematical Verification Suite
 ├── .env.example                 # Environment Variable Reference
 └── package.json                 # Project Dependencies & Build Scripts
 ```
