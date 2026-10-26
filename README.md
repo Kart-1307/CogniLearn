@@ -4,23 +4,38 @@
   <h1>🎓 CogniLearn AI</h1>
   <p><b>Privacy-First, Edge-AI Cognitive Learning, Attention Analytics & Classroom Intelligence Platform</b></p>
   
+  <p>
+    <a href="https://cognilearnpdl.vercel.app/" target="_blank">
+      <img src="https://img.shields.io/badge/🚀_LAUNCH_LIVE_APPLICATION-cognilearnpdl.vercel.app-7C3AED?style=for-the-badge&logo=vercel&logoColor=white" alt="Launch Live App" height="40" />
+    </a>
+  </p>
+
+  [![Live Demo](https://img.shields.io/badge/Live_Deployment-cognilearnpdl.vercel.app-000000?style=flat&logo=vercel&logoColor=white)](https://cognilearnpdl.vercel.app/)
   [![React](https://img.shields.io/badge/React-19.0-blue?logo=react)](https://react.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript)](https://www.typescriptlang.org/)
   [![Vite](https://img.shields.io/badge/Vite-6.2-purple?logo=vite)](https://vitejs.dev/)
   [![Express](https://img.shields.io/badge/Express-4.21-lightgrey?logo=express)](https://expressjs.com/)
   [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-emerald?logo=supabase)](https://supabase.com/)
   [![Google Gemini](https://img.shields.io/badge/Gemini-3.0_Flash-orange?logo=google)](https://deepmind.google/technologies/gemini/)
-  [![Langfuse](https://img.shields.io/badge/Langfuse-LLM_Tracing-black)](https://langfuse.com/)
-  [![TailwindCSS](https://img.shields.io/badge/Tailwind-4.1-cyan?logo=tailwindcss)](https://tailwindcss.com/)
-  [![Tests](https://img.shields.io/badge/Tests-Passing_100%25-brightgreen)](https://github.com/)
+  [![Web Bluetooth](https://img.shields.io/badge/Web_Bluetooth-GATT_0x180D-0082FC?logo=bluetooth)](https://github.com/Kart-1307/CogniLearn)
+  [![Tests](https://img.shields.io/badge/Tests-7%20Passed%20(100%25)-brightgreen)](https://github.com/Kart-1307/CogniLearn)
+  [![License](https://img.shields.io/badge/License-MIT-yellow)](https://github.com/Kart-1307/CogniLearn/blob/main/LICENSE)
   <br /><br />
 </div>
 
 ---
 
+> 🌐 **LIVE CLOUD APPLICATION:** [**https://cognilearnpdl.vercel.app/**](https://cognilearnpdl.vercel.app/)  
+> ⚡ **INSTANT EVALUATOR ACCESS:** Pre-configured demo accounts are ready out of the box with zero setup needed:  
+> • **Teacher Portal:** `teacher@cognilearn.com` / `TeacherPass123!` (or College: `college-teacher@cognilearn.com`)  
+> • **Student Portal:** `student@cognilearn.com` / `StudentPass123!` (or College: `college-student@cognilearn.com`)  
+> *(You can also test the 3-step biometric onboarding wizard to enroll your own live face reticle & track attention!)*
+
+---
+
 ## 🌟 Overview
 
-**CogniLearn AI** is an enterprise-grade cognitive learning and educator analytics platform engineered for modern classrooms and independent study. It combines **Edge-First Computer Vision**, **mathematical gaze modeling**, and **structured generative AI** to optimize student engagement while strictly safeguarding biometric privacy.
+**CogniLearn AI** is an enterprise-grade cognitive learning and educator analytics platform engineered for modern classrooms and independent study. It combines **Edge-First Computer Vision**, **mathematical gaze modeling**, **multimodal smartwatch vitals**, and **structured generative AI** to optimize student engagement while strictly safeguarding biometric privacy.
 
 Unlike traditional monitoring tools that stream intrusive video feeds to the cloud, CogniLearn processes 100% of video telemetry **locally in the browser** via WebAssembly and WebGL. Only anonymized, aggregated numeric telemetry (focus scores, PERCLOS fatigue, head pose vectors) ever touches the network.
 
@@ -67,18 +82,101 @@ Unlike traditional monitoring tools that stream intrusive video feeds to the clo
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ System Architecture & Multimodal Engineering
+
+CogniLearn AI is engineered around an **Edge-First, Multimodal Perception & Physiological Telemetry Architecture**. Computer vision, facial mesh extraction, and biometric inferences run 100% locally in the browser over WebGL and WebAssembly SIMD. Video frames never leave the client device; only lightweight, anonymized 1 Hz state packets are transmitted to cloud endpoints.
 
 ```mermaid
-graph TD
-    UserClient[React 19 + Vite Frontend] -->|REST & WebSockets| UnifiedServer[Unified Express Server :3000]
-    UnifiedServer -->|JWT Auth & bcryptjs| AuthLayer[Security & RBAC Middleware]
-    AuthLayer -->|Database Pool| SupabaseDB[(Supabase PostgreSQL)]
-    AuthLayer -->|Fallback| MemoryStore[(Zero-Config In-Memory Store)]
-    UserClient -->|Realtime Channels| SupabaseRealtime[Supabase Realtime Broadcast]
-    UnifiedServer -->|Zod Constrained Prompt| GeminiAI[Google Gemini 3.0 Flash]
-    GeminiAI -.->|Observability| Langfuse[Langfuse Tracing]
+flowchart TD
+    %% SUBGRAPH 1: INPUT SENSORS
+    subgraph SENSORS["1. Multimodal Edge Hardware & Ingestion"]
+        Webcam["📷 HTML5 User Webcam<br/>(1280x720 @ 30 FPS)"]
+        BLE["⌚ Smartwatch / Fitness Band<br/>(Samsung Galaxy Fit3 / Galaxy Watch / Apple Watch)"]
+    end
+
+    %% SUBGRAPH 2: EDGE PERCEPTION
+    subgraph EDGE["2. Browser-Native Edge Perception (WebGL GPU + WASM SIMD)"]
+        MediaPipe["MediaPipe Tasks Vision<br/>(FaceLandmarker: 468 3D Mesh + 10 Iris)"]
+        WebBluetooth["Web Bluetooth API Service<br/>(GATT 0x180D Heart Rate / 0x2A37 RR)"]
+        
+        EAR_Euler["Metric Feature Extraction<br/>• 6-Point Eye Aspect Ratio (EAR)<br/>• PERCLOS 45s Temporal Window<br/>• 3D Euler Angles (Pitch, Yaw, Roll)"]
+        Umeyama_ONNX["MobileFaceNet ONNX Runtime Web<br/>• 5-Point Umeyama Procrustes Alignment<br/>• 512-D L2-Normalized Embeddings"]
+        HRV_RMSSD["Autonomic Vitals Engine<br/>• 30-Beat Rolling FIFO Buffer<br/>• HRV RMSSD Calculation<br/>• Autonomic Stress Index (S_autonomic)"]
+    end
+
+    %% SUBGRAPH 3: MULTI-TARGET TRACKING & ERGONOMICS
+    subgraph TRACKING["3. DeepSORT-lite Tracking & Cognitive State Fusion"]
+        Kalman["8-State Constant-Velocity Kalman Filter<br/>Predicts Bounding Box Coordinates & Velocity"]
+        Hungarian["Hungarian Bipartite Association (O(N³))<br/>Cost = 0.50*(1-IoU) + 0.20*Dist + 0.30*(1-Sim)"]
+        CognitiveModel["Cognitive Ergonomics Classifier<br/>• Dynamic EAR Baseline Calibration<br/>• Note-Taking Physiological Validation Rule<br/>• Softmax 4-State Probability Tree + EMA (α=0.12)"]
+        AR_HUD["Canvas 2D AR HUD Overlays<br/>• 3D Pupil Gaze Rays & Reticles<br/>• Status Pills & Real-time Alerts"]
+    end
+
+    %% SUBGRAPH 4: PERSISTENCE & LOCAL CRYPTO
+    subgraph CRYPTO["4. DPDP Act 2023 Local Biometric Vault"]
+        IndexedDB[("🔒 WebCrypto Encrypted IndexedDB<br/>cognilearn_biometrics_db<br/>AES-GCM 256-bit Key<br/>(Zero Raw Photos Stored)")]
+    end
+
+    %% SUBGRAPH 5: REALTIME & BACKEND
+    subgraph BACKEND["5. Realtime Gateway & Cloud Persistence"]
+        Realtime["📡 Supabase Realtime Channels<br/>1 Hz Throttled JSON Telemetry Broadcast"]
+        Express["⚡ Unified Express 4.21 Gateway (:3000)<br/>• Rate Limiters (Auth: 10/15m, AI: 20/hr)<br/>• JWT Session Auth & bcryptjs<br/>• Cohort Code Scoping (SCH-XXXX / COL-XXXX)"]
+        Postgres[("🗄️ Supabase PostgreSQL<br/>Users • Cohorts • Enrollments<br/>Sessions • Baseline Scores • Breaks")]
+        MemoryStore[("💾 In-Memory Fallback Store<br/>(Pre-seeded Zero-Config Demo Accounts)")]
+    end
+
+    %% SUBGRAPH 6: GENERATIVE PEDAGOGICAL AI
+    subgraph GENAI["6. Structured Pedagogical AI & Observability"]
+        StatsEngine["Deterministic Stats Engine<br/>Computes Exact Focus %, Dwell & Drop-offs"]
+        PII_Gate["SHA-256 PII Pseudonymization Gate"]
+        Gemini["🤖 Google Gemini 3.0 Flash<br/>Pedagogical Narrative & Action Plans"]
+        Zod["🛡️ Zod Schema Runtime Validation<br/>(Guarantees Zero Hallucinated Numbers)"]
+        Langfuse["🔭 Langfuse Observability<br/>Latency, Tracing & Token Analytics"]
+    end
+
+    %% CONNECTIONS
+    Webcam --> MediaPipe
+    BLE --> WebBluetooth
+    
+    MediaPipe --> EAR_Euler
+    MediaPipe --> Umeyama_ONNX
+    WebBluetooth --> HRV_RMSSD
+    
+    Umeyama_ONNX -.->|Enrollment Vector| IndexedDB
+    
+    EAR_Euler --> CognitiveModel
+    HRV_RMSSD --> CognitiveModel
+    Umeyama_ONNX --> Hungarian
+    
+    MediaPipe --> Kalman
+    Kalman --> Hungarian
+    Hungarian --> AR_HUD
+    CognitiveModel --> AR_HUD
+    
+    CognitiveModel -->|1 Hz State Packet| Realtime
+    Realtime --> Express
+    Express --> Postgres
+    Express -.->|Fallback| MemoryStore
+    
+    Postgres --> StatsEngine
+    StatsEngine --> PII_Gate
+    PII_Gate --> Gemini
+    Gemini --> Zod
+    Gemini -.-> Langfuse
+    Zod --> Express
 ```
+
+### 🔄 Multi-Tier Layer Architecture Breakdown
+
+| Architecture Tier | Components & Protocols | Technical Implementation & Privacy Guarantees |
+| :--- | :--- | :--- |
+| **Edge Perception Layer** | MediaPipe Tasks Vision (`0.10.18`), WebGL Shaders | Extracts 468 3D facial landmarks and 10 iris coordinates at 30 FPS entirely within the client's GPU memory. Zero frames are transmitted to any server. |
+| **Physiological Vitals Layer** | Web Bluetooth GATT (`0x180D`, `0x2A37`), PPG Sensors | Streams real-time heart rate (BPM) and RR-intervals directly from Samsung Galaxy Fit3/Watch and Apple Watch into a 30-beat FIFO buffer; computes HRV RMSSD. |
+| **Tracking & Association Layer** | 8-State Kalman Filter, Kuhn-Munkres Hungarian ($O(N^3)$) | Tracks up to 6 classroom students simultaneously with spatial gating ($>1.5\times$ box width forbidden) and 15-frame identity locking hysteresis to prevent ID swapping. |
+| **Cognitive Inference Engine** | Softmax Decision Tree, Dynamic EAR Baselines | Evaluates 4 distinct states (`SCREEN_FOCUS`, `NOTE_TAKING`, `COGNITIVE_REFLECTION`, `OFF_TASK`). Uses autonomic vitals ($\text{RMSSD} \ge 35\text{ms}$) to confirm desk writing. |
+| **Biometric Privacy Vault** | WebCrypto API (`window.crypto.subtle`), IndexedDB | Encrypts 512-D MobileFaceNet vectors locally using hardware-bound AES-GCM 256-bit keys under DPDP Act 2023 compliance. Raw imagery is immediately discarded. |
+| **Realtime Telemetry Layer** | Supabase Realtime WebSockets (1 Hz throttled) | Broadcasts compact 90-byte JSON telemetry state packets (`{studentId, state, score, heartRate, hrv}`) to the teacher's live dashboard HUD. |
+| **Pedagogical AI Layer** | Google Gemini 3.0 Flash, Zod Runtime Validation | Translates deterministic TypeScript metrics into formative narrative reports. Quantitative metrics are strictly guarded against LLM hallucination via Zod. |
 
 ---
 
